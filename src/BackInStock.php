@@ -120,11 +120,7 @@ class BackInStock extends Plugin
     private function _registerCraftEventListeners(): void
     {
         Event::on(Variant::class, Variant::EVENT_BEFORE_SAVE, function(ModelEvent $event) {
-            $variant = $event->sender;
-            
-            if ($variant->id && ($variant->stock > $this->getSettings()->stockThreshold || $variant->hasUnlimitedStock)) {
-                $this->getService()->isBackInStock($variant);
-            }
+            $this->getService()->isBackInStock($event->sender);
         });
     }
 }
