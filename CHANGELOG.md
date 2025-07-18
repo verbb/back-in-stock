@@ -57,6 +57,11 @@
 - Now requires Craft 5.0+.
 - Now requires Craft Commerce 5.0+.
 
+## 3.0.8 - 2025-07-18
+
+### Fixed
+- Fix back-in-stock logic for deeming when a variant comes back in stock.
+
 ## 3.0.7 - 2025-03-05
 
 ### Added
@@ -108,6 +113,7 @@
 - Fix an error when adding an email with options.
 
 ## 3.0.0 - 2024-10-25
+
 > {note} The plugin’s package name has changed to `verbb/back-in-stock`. Back in Stock will need be updated to 3.0 from a terminal, by running `composer require verbb/back-in-stock && composer remove mediabeastnz/craft-commerce-back-in-stock`.
 
 ### Changed
@@ -138,7 +144,7 @@
 ## 1.4.2 - 2022-07-09
 
 ### Added
-- Added support for translating the subject line. This uses the customers locale and stores it in the database for later. This will require a migration so remember to run `craft migrate/all` if it is not already a part fo your deploy script. 
+- Added support for translating the subject line. This uses the customers locale and stores it in the database for later. This will require a migration so remember to run `craft migrate/all` if it is not already a part fo your deploy script.
 
 ## 1.4.1 - 2022-07-09
 
@@ -180,7 +186,7 @@
  
 ### Fixed
 - Validation issues when no email was entered and other various responses
-- Creating a new product would cause an error as no variant was found, this is now fixed 
+- Creating a new product would cause an error as no variant was found, this is now fixed
 
 ## 1.0.1 - 2019-05-30
 

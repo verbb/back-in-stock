@@ -26,16 +26,25 @@ class Service extends Component
     public function isBackInStock(Variant $variant): bool
     {
         $settings = BackInStock::$plugin->getSettings();
-        
-        // Check that before save variant had 0 stock and was not unlimited
-        $originalObject = Variant::findOne($variant->id);
 
-        if ($originalObject) {
-            if ($originalObject->stock < $settings->stockThreshold && !$originalObject->hasUnlimitedStock) {
-                $this->findInterestedEmails($variant->id);
-                
-                return true;
-            }
+        if (!$variant->id) {
+            return false;
+        }
+
+        // Get the saved (original) variant
+        $original = Variant::findOne($variant->id);
+
+        if (!$original) {
+            return false;
+        }
+
+        $wasOutOfStock = (!$original->hasUnlimitedStock && $original->stock <= $settings->stockThreshold);
+        $isNowInStock = ($variant->hasUnlimitedStock || $variant->stock > $settings->stockThreshold);
+
+        if ($wasOutOfStock && $isNowInStock) {
+            $this->findInterestedEmails($variant->id);
+
+            return true;
         }
 
         return false;
