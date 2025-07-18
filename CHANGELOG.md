@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.8 - 2025-07-18
+
+### Fixed
+- Fix back-in-stock logic for deeming when a variant comes back in stock.
+
 ## 4.0.7 - 2025-03-05
 
 ### Added
