@@ -12,6 +12,7 @@ use DateTime;
 
 use yii\validators\InlineValidator;
 
+use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 
 class Log extends Model
@@ -60,6 +61,15 @@ class Log extends Model
     {
         if ($this->variantId) {
             return Variant::findOne($this->variantId);
+        }
+
+        return null;
+    }
+
+    public function getProduct(): ?Product
+    {
+        if ($variant = $this->getVariant()) {
+            return $variant->getProduct();
         }
 
         return null;
