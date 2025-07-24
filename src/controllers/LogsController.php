@@ -97,7 +97,7 @@ class LogsController extends Controller
                 'variantId' => $variant ? [
                     'title' => $variant->title,
                     'cpEditUrl' => $variant->cpEditUrl,
-                ] : [],
+                ] : null,
                 'locale' => $log['locale'],
                 'isNotified' => $log['isNotified'],
                 'dateCreated' => $dateCreated?->format($dateFormat) ?? null,
