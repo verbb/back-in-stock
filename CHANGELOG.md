@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.0.9 - 2025-08-13
+
+### Fixed
+- Fix incorrect URL for product/variant when one can’t be found.
+
 ## 4.0.8 - 2025-07-18
 
 ### Fixed
