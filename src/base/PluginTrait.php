@@ -3,6 +3,7 @@ namespace verbb\backinstock\base;
 
 use verbb\backinstock\BackInStock;
 use verbb\backinstock\services\Logs;
+use verbb\backinstock\services\Inventory;
 use verbb\backinstock\services\Service;
 
 use Craft;
@@ -34,6 +35,7 @@ trait PluginTrait
         return [
             'components' => [
                 'logs' => Logs::class,
+                'inventory' => Inventory::class,
                 'service' => Service::class,
             ],
         ];
@@ -46,6 +48,11 @@ trait PluginTrait
     public function getLogs(): Logs
     {
         return $this->get('logs');
+    }
+
+    public function getInventory(): Inventory
+    {
+        return $this->get('inventory');
     }
 
     public function getService(): Service

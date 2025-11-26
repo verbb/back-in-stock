@@ -3,6 +3,7 @@ namespace verbb\backinstock\services;
 
 use verbb\backinstock\BackInStock;
 use verbb\backinstock\models\Log;
+use verbb\backinstock\models\Inventory;
 use verbb\backinstock\models\Settings;
 use verbb\backinstock\queue\jobs\SendEmailNotification;
 use verbb\backinstock\records\Log as LogRecord;
@@ -17,31 +18,49 @@ use craft\mail\Message;
 use Throwable;
 
 use craft\commerce\elements\Variant;
+use craft\commerce\events\UpdateInventoryLevelEvent;
 
 class Service extends Component
 {
     // Public Methods
     // =========================================================================
 
-    public function isBackInStock(Variant $variant): bool
+    public function checkInventoryLevel(UpdateInventoryLevelEvent $event): bool
     {
         $settings = BackInStock::$plugin->getSettings();
 
-        if (!$variant->id) {
+        // This needs to handle inventory updates, so if set to 0, record as out of stock, 
+        // if a matching out-of-stock record is found, then it's back in stock.
+
+        // Get the variant from the inventory
+        $variant = $event->updateInventoryLevel->getInventoryItem()?->getPurchasable();
+
+        if (!$variant || !$variant->id) {
             return false;
         }
 
-        // Get the saved (original) variant
-        $original = Variant::findOne($variant->id);
-
-        if (!$original) {
-            return false;
-        }
-
-        $wasOutOfStock = (!$original->hasUnlimitedStock && $original->stock <= $settings->stockThreshold);
+        $isOutOfStock = (!$variant->hasUnlimitedStock && $variant->stock <= $settings->stockThreshold);
         $isNowInStock = ($variant->hasUnlimitedStock || $variant->stock > $settings->stockThreshold);
 
-        if ($wasOutOfStock && $isNowInStock) {
+        // Craft::dd([$isOutOfStock, $isNowInStock]);
+
+        // Check for a out of stock record on our end
+        $outOfStockRecord = BackInStock::$plugin->getInventory()->getInventoryByVariantId($variant->id);
+
+        // If the current item is considered out of stock, record it for future checks
+        if ($isOutOfStock && !$outOfStockRecord) {
+            $inventory = new Inventory([
+                'variantId' => $variant->id,
+            ]);
+
+            BackInStock::$plugin->getInventory()->saveInventory($inventory);
+
+            return false;
+        }
+
+        if ($isNowInStock && $outOfStockRecord) {
+            BackInStock::$plugin->getInventory()->deleteInventory($outOfStockRecord);
+
             $this->findInterestedEmails($variant->id);
 
             return true;

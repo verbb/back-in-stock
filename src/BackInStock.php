@@ -16,6 +16,8 @@ use craft\web\UrlManager;
 use yii\base\Event;
 
 use craft\commerce\elements\Variant;
+use craft\commerce\events\UpdateInventoryLevelEvent;
+use craft\commerce\services\Inventory;
 
 class BackInStock extends Plugin
 {
@@ -24,7 +26,7 @@ class BackInStock extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '1.1.0';
+    public string $schemaVersion = '1.2.0';
 
 
     // Traits
@@ -117,8 +119,10 @@ class BackInStock extends Plugin
 
     private function _registerCraftEventListeners(): void
     {
-        Event::on(Variant::class, Variant::EVENT_BEFORE_SAVE, function(ModelEvent $event) {
-            $this->getService()->isBackInStock($event->sender);
-        });
+        if (defined(Inventory::class . '::EVENT_AFTER_EXECUTE_UPDATE_INVENTORY_LEVEL')) {
+            Event::on(Inventory::class, Inventory::EVENT_AFTER_EXECUTE_UPDATE_INVENTORY_LEVEL, function(UpdateInventoryLevelEvent $event) {
+                $this->getService()->checkInventoryLevel($event);
+            });
+        }
     }
 }
