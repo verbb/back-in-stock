@@ -42,8 +42,6 @@ class Service extends Component
         $isOutOfStock = (!$variant->hasUnlimitedStock && $variant->stock <= $settings->stockThreshold);
         $isNowInStock = ($variant->hasUnlimitedStock || $variant->stock > $settings->stockThreshold);
 
-        // Craft::dd([$isOutOfStock, $isNowInStock]);
-
         // Check for a out of stock record on our end
         $outOfStockRecord = BackInStock::$plugin->getInventory()->getInventoryByVariantId($variant->id);
 
