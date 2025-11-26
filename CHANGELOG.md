@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.1.0 - 2025-11-26
+
+### Added
+- Add support for Commerce 5.5 and proper inventory-tracking handling.
+
+### Changed
+- Now requires Commerce 5.5+.
+
 ## 4.0.9 - 2025-08-13
 
 ### Fixed
