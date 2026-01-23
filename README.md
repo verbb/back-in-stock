@@ -1,4 +1,4 @@
-<p align="center"><img src="https://verbb.imgix.net/plugins/back-in-stock/back-in-stock-icon.svg" width="100" height="100" alt="Back in Stock icon"></p>
+<p align="center"><img src="https://assets.verbb.io/plugins/back-in-stock/back-in-stock-icon.svg" width="100" height="100" alt="Back in Stock icon"></p>
 <h1 align="center">Back in Stock for Craft CMS</h1>
 
 Back in Stock is a Craft CMS plugin that allows anyone to register interest on out of stock products. If they do and the product becomes re-stocked an email will automatically be sent to all interested emails with a link prompting them to purchase.
