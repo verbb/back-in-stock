@@ -20,11 +20,15 @@
     var columns = [
         { name: '__slot:title', title: Craft.t('craft-commerce-back-in-stock', 'Email'), sortField: 'email' },
         { name: 'variantId', title: Craft.t('craft-commerce-back-in-stock', 'Product/Variant'), sortField: 'variantId', callback: function(value) {
-            if (value) {
-                return '<a href="' + value.cpEditUrl + '">' + value.title + '</a>';
-            } else {
+            if (!value) {
                 return '-';
             }
+
+            if (value.cpEditUrl) {
+                return '<a href="' + Craft.escapeHtml(value.cpEditUrl) + '">' + Craft.escapeHtml(value.title) + '</a>';
+            }
+            
+            return value.title ? Craft.escapeHtml(value.title) : '-';
         }  },
         { name: 'locale', title: Craft.t('craft-commerce-back-in-stock', 'Locale'), sortField: 'locale' },
         { name: 'isNotified', title: Craft.t('craft-commerce-back-in-stock', 'Notified'), sortField: 'isNotified', callback: function(value) {
