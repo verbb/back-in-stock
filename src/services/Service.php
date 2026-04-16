@@ -184,7 +184,6 @@ class Service extends Component
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'order' => $order->id,
             ]);
 
             BackInStock::error($error);
