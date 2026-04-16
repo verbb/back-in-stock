@@ -19,6 +19,7 @@ use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 use craft\commerce\Plugin as Commerce;
+use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 
 class LogsController extends Controller
@@ -79,9 +80,12 @@ class LogsController extends Controller
 
         $tableData = [];
 
-        // Get all the variants for each log here for efficiency
-        $variants = Variant::find()
-            ->id(array_unique(ArrayHelper::getColumn($logs, 'variantId')))
+        // Get all the variants for each log here for efficiency.
+        // Commerce 5 variants are nested elements: they do not define cpEditUrl(); the product does.
+        $variantIds = array_values(array_unique(array_filter(ArrayHelper::getColumn($logs, 'variantId'))));
+        $variants = $variantIds === [] ? [] : Variant::find()
+            ->id($variantIds)
+            ->with(['owner'])
             ->indexBy('id')
             ->all();
 
@@ -91,12 +95,26 @@ class LogsController extends Controller
             $variant = $variants[$log['variantId']] ?? [];
             $dateCreated = $log['dateCreated'] ? DateTimeHelper::toDateTime($log['dateCreated']) : null;
 
+            $cpEditUrl = null;
+            
+            if ($variant) {
+                $cpEditUrl = $variant->getCpEditUrl();
+
+                if (!$cpEditUrl) {
+                    $product = $variant->getProduct();
+
+                    if ($product instanceof Product) {
+                        $cpEditUrl = $product->getCpEditUrl();
+                    }
+                }
+            }
+
             $tableData[] = [
                 'title' => $log['email'],
                 'email' => $log['email'],
                 'variantId' => $variant ? [
                     'title' => $variant->title,
-                    'cpEditUrl' => $variant->cpEditUrl,
+                    'cpEditUrl' => $cpEditUrl,
                 ] : null,
                 'locale' => $log['locale'],
                 'isNotified' => $log['isNotified'],
