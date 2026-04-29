@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.1.1 - 2026-04-29
+
+### Fixed
+- Fix logs links by resolving Commerce variant rows to the product edit URL.
+- Fix product/variant link.
+
 ## 4.1.0 - 2025-11-26
 
 ### Added
