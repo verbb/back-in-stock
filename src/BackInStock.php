@@ -6,6 +6,7 @@ use verbb\backinstock\models\Settings;
 use verbb\backinstock\variables\BackInStockVariable;
 
 use Craft;
+use craft\base\Element;
 use craft\base\Plugin;
 use craft\events\ModelEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -124,5 +125,14 @@ class BackInStock extends Plugin
                 $this->getService()->checkInventoryLevel($event);
             });
         }
+
+        // Unlimited stock and some CP edits update the variant without an inventory-level event (Commerce 5).
+        Event::on(Variant::class, Element::EVENT_AFTER_SAVE, function(ModelEvent $event) {
+            if (!$event->sender instanceof Variant || !$event->sender->id) {
+                return;
+            }
+
+            $this->getService()->syncVariantStockState($event->sender);
+        });
     }
 }

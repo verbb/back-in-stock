@@ -27,25 +27,28 @@ class Service extends Component
 
     public function checkInventoryLevel(UpdateInventoryLevelEvent $event): bool
     {
-        $settings = BackInStock::$plugin->getSettings();
-
-        // This needs to handle inventory updates, so if set to 0, record as out of stock, 
-        // if a matching out-of-stock record is found, then it's back in stock.
-
-        // Get the variant from the inventory
         $variant = $event->updateInventoryLevel->getInventoryItem()?->getPurchasable();
 
-        if (!$variant || !$variant->id) {
+        if (!$variant instanceof Variant || !$variant->id) {
             return false;
         }
+
+        return $this->syncVariantStockState($variant);
+    }
+
+    public function syncVariantStockState(Variant $variant): bool
+    {
+        if (!$variant->id) {
+            return false;
+        }
+
+        $settings = BackInStock::$plugin->getSettings();
 
         $isOutOfStock = (!$variant->hasUnlimitedStock && $variant->stock <= $settings->stockThreshold);
         $isNowInStock = ($variant->hasUnlimitedStock || $variant->stock > $settings->stockThreshold);
 
-        // Check for a out of stock record on our end
         $outOfStockRecord = BackInStock::$plugin->getInventory()->getInventoryByVariantId($variant->id);
 
-        // If the current item is considered out of stock, record it for future checks
         if ($isOutOfStock && !$outOfStockRecord) {
             $inventory = new Inventory([
                 'variantId' => $variant->id,
