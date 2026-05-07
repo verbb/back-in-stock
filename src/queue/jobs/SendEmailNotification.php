@@ -26,6 +26,10 @@ class SendEmailNotification extends BaseJob
         $log = LogRecord::findOne($this->logId);
         
         if ($log) {
+            if (!$this->confirmation && $log->isNotified) {
+                return;
+            }
+
             if (BackInStock::$plugin->getService()->sendMail($log, $this->subject, $this->template)) {
                 if (!$this->confirmation) {
                     if (BackInStock::$plugin->getSettings()->purgeRequests) {

@@ -8,14 +8,11 @@ use verbb\backinstock\records\Inventory as InventoryRecord;
 use Craft;
 use craft\base\MemoizableArray;
 use craft\db\Query;
-use craft\helpers\ArrayHelper;
 use craft\helpers\Db;
-use craft\helpers\Json;
 
 use yii\base\Component;
 
 use Exception;
-use Throwable;
 
 class Inventory extends Component
 {
@@ -83,6 +80,8 @@ class Inventory extends Component
             $inventory->id = $inventoryRecord->id;
         }
 
+        $this->_inventory = null;
+
         // Fire an 'afterSaveInventory' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_SAVE_INVENTORY)) {
             $this->trigger(self::EVENT_AFTER_SAVE_INVENTORY, new InventoryEvent([
@@ -117,6 +116,8 @@ class Inventory extends Component
         Db::delete('{{%backinstock_inventory}}', [
             'uid' => $inventory->uid,
         ]);
+
+        $this->_inventory = null;
 
         // Fire a 'afterDeleteInventory' event
         if ($this->hasEventHandlers(self::EVENT_AFTER_DELETE_INVENTORY)) {
