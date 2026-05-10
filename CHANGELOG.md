@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.1.3 - 2026-05-10
+
+### Fixed
+- Fix duplicate notification emails when multiple Commerce stock-related events fire during a single variant update.
+
 ## 4.1.2 - 2026-05-03
 
 ### Fixed
