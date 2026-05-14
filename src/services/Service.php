@@ -42,10 +42,8 @@ class Service extends Component
             return false;
         }
 
-        $settings = BackInStock::$plugin->getSettings();
-
-        $isOutOfStock = (!$variant->hasUnlimitedStock && $variant->stock <= $settings->stockThreshold);
-        $isNowInStock = ($variant->hasUnlimitedStock || $variant->stock > $settings->stockThreshold);
+        $isNowInStock = $this->isVariantInStock($variant);
+        $isOutOfStock = !$isNowInStock;
 
         $outOfStockRecord = BackInStock::$plugin->getInventory()->getInventoryByVariantId($variant->id);
 
@@ -68,6 +66,14 @@ class Service extends Component
         }
 
         return false;
+    }
+
+    public function isVariantInStock(Variant $variant): bool
+    {
+        $settings = BackInStock::$plugin->getSettings();
+        $hasStock = ($variant->hasUnlimitedStock || $variant->stock > $settings->stockThreshold);
+
+        return ($hasStock && (!$settings->includeAvailableForPurchase || $variant->availableForPurchase));
     }
 
     public function findInterestedEmails(int $variantId): void

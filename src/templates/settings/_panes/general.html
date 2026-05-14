@@ -30,3 +30,13 @@
     errors: settings.getErrors('stockThreshold'),
     warning: macros.configWarning('stockThreshold', 'craft-commerce-back-in-stock'),
 }) }}
+
+{{ forms.lightswitchField({
+    label: 'Include Available for Purchase' | t('craft-commerce-back-in-stock'),
+    instructions: 'Whether variants that are disabled for purchase should be treated as out of stock, even when stock is available.' | t('craft-commerce-back-in-stock'),
+    id: 'includeAvailableForPurchase',
+    name: 'includeAvailableForPurchase',
+    on: settings.includeAvailableForPurchase,
+    errors: settings.getErrors('includeAvailableForPurchase'),
+    warning: macros.configWarning('includeAvailableForPurchase', 'craft-commerce-back-in-stock'),
+}) }}
