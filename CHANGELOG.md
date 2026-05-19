@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.1.4 - 2026-05-19
+
+### Added
+- Add an `includeAvailableForPurchase` setting to treat variants disabled for purchase as out of stock.
+
 ## 4.1.3 - 2026-05-10
 
 ### Fixed
