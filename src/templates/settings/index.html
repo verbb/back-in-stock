@@ -1,56 +1,22 @@
-{% extends 'craft-commerce-back-in-stock/_layouts' %}
+{% extends 'craft-commerce-back-in-stock/_layouts/settings' %}
+
 {% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
 
 {% requireAdmin %}
 
-{% set crumbs = [
-    { label: 'Back In Stock' | t('craft-commerce-back-in-stock'), url: url('back-in-stock') },
-    { label: 'Settings' | t('app'), url: url('back-in-stock/settings') },
-] %}
-
-{% set navItems = {
-    'general': { title: 'General Settings' | t('craft-commerce-back-in-stock') },
-    'notifications': { title: 'Notifications' | t('craft-commerce-back-in-stock') },
-} %}
-
-{% set selectedSubnavItem = 'settings' %}
-{% set selectedTab = 'settings' %}
-{% set selectedItem = 'general' %}
+{% set selectedTab = selectedTab ?? craft.app.request.getSegment(3) %}
+{% set selectedTab = selectedTab ?: 'general' %}
 {% set fullPageForm = true %}
+{% set pageTabs = {
+    general: { title: 'General Settings' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings') },
+    notifications: { title: 'Notifications' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings/notifications') },
+} %}
+{% set pageTitle = pageTabs[selectedTab].title ?? pageTabs[selectedTab].heading ?? null %}
+{% if not pageTitle %}{% exit 404 %}{% endif %}
+{% set pageAction = 'craft-commerce-back-in-stock/plugin/save-plugin-settings' %}
+{% set pageUrl = selectedTab == 'general' ? 'back-in-stock/settings' : 'back-in-stock/settings/' ~ selectedTab %}
 
-{% block sidebar %}
-    <nav class="back-in-stock-settings-tabs" data-vui-tabs>
-        <ul>
-            {% for id, item in navItems %}
-                {% if item.heading is defined %}
-                    <li class="heading"><span>{{ item.heading }}</span></li>
-                {% else %}
-                    <li>
-                        <a id="tab-{{ loop.index }}" href="#tab-{{ id }}" class="tab {% if id == selectedItem %}sel{% endif %}">
-                            {{ item.title }}
-                        </a>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </nav>
-{% endblock %}
-
-{% block blockContent %}
-
-<input type="hidden" name="action" value="craft-commerce-back-in-stock/plugin/save-plugin-settings">
-<input type="hidden" name="pluginHandle" value="craft-commerce-back-in-stock">
-
-{% for id, item in navItems %}
-    {% if item.title is defined %}
-        <div id="tab-{{ id }}" {% if not loop.first %}class="hidden"{% endif %}>
-            <h2>{{ item.title }}</h2>
-
-            {% namespace 'settings' %}
-                {% include 'craft-commerce-back-in-stock/settings/_panes/' ~ id ignore missing %}
-            {% endnamespace %}
-        </div>
-    {% endif %}
-{% endfor %}
-
+{% block settingsContent %}
+    {% include 'craft-commerce-back-in-stock/settings/_panes/' ~ selectedTab ignore missing %}
 {% endblock %}

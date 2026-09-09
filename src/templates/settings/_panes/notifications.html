@@ -4,7 +4,6 @@
 {% set craftSettings = craft.app.getProjectConfig().get('email') %}
 
 {{ forms.autosuggestField({
-    first: true,
     label: 'From Email Address' | t('craft-commerce-back-in-stock'),
     instructions: 'The email address that confirmation and notification emails are sent from. Leave blank to use the System Email Address defined in Craft’s General Settings.' | t('craft-commerce-back-in-stock'),
     name: 'fromEmail',

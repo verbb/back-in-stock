@@ -7,6 +7,8 @@
     id: 'pluginName',
     name: 'pluginName',
     value: settings.pluginName,
+    required: true,
+    errors: settings.getErrors('pluginName'),
     warning: macros.configWarning('pluginName', 'craft-commerce-back-in-stock'),
 }) }}
 

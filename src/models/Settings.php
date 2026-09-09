@@ -30,6 +30,9 @@ class Settings extends Model
     public function defineRules(): array
     {
         $rules = parent::defineRules();
+        $rules[] = [['pluginName'], 'trim'];
+        $rules[] = [['pluginName'], 'required'];
+        $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['stockThreshold'], 'number', 'integerOnly' => true];
 
         return $rules;

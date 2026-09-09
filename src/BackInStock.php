@@ -108,6 +108,7 @@ class BackInStock extends Plugin
             $event->rules['back-in-stock'] = ['template' => 'craft-commerce-back-in-stock/index'];
             $event->rules['back-in-stock/logs'] = 'craft-commerce-back-in-stock/logs/index';
             $event->rules['back-in-stock/settings'] = 'craft-commerce-back-in-stock/plugin/settings';
+            $event->rules['back-in-stock/settings/<settingsNavItem:{handle}>'] = 'craft-commerce-back-in-stock/plugin/settings';
         });
     }
 

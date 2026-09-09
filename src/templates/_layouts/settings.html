@@ -1,0 +1,26 @@
+{% extends 'verbb-base/_layouts/settings' %}
+
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{% requireAdmin %}
+
+{% set crumbs = [
+    { label: 'Settings' | t('app'), url: url('settings') },
+    { label: 'Plugins' | t('app'), url: url('settings/plugins') },
+    { label: craft.backInStock.getPluginName() | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings') },
+] | merge(crumbs ?? []) %}
+
+{% set pageTabs = pageTabs ?? {
+    general: { title: 'General Settings' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings') },
+    notifications: { title: 'Notifications' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings/notifications') },
+} %}
+
+{% set pageTitle = pageTitle ?? false %}
+{% if title is not defined and pageTitle %}
+    {% set title = pageTitle %}
+{% endif %}
+
+{% block settingsMeta %}
+    {{ hiddenInput('pluginHandle', 'craft-commerce-back-in-stock') }}
+{% endblock %}
