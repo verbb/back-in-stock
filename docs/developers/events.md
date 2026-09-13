@@ -3,7 +3,7 @@ Back In Stock provides a collection of events for extending its functionality. M
 
 ## Log Events
 
-### The `beforeSaveLog` event
+### The `beforeSaveLog` Event
 The event that is triggered before a log is saved.
 
 ```php
@@ -18,7 +18,7 @@ Event::on(Logs::class, Logs::EVENT_BEFORE_SAVE_LOG, function(LogEvent $event) {
 });
 ```
 
-### The `afterSaveLog` event
+### The `afterSaveLog` Event
 The event that is triggered after a log is saved.
 
 ```php
