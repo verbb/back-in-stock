@@ -3,11 +3,13 @@
 
 Back in Stock is a Craft CMS plugin that allows anyone to register interest on out of stock products. If they do and the product becomes re-stocked an email will automatically be sent to all interested emails with a link prompting them to purchase.
 
+Configure the stock threshold that counts as re-stocked, and optionally require variants to be available for purchase before notifications are sent.
+
 ## Documentation
 Visit the [Back in Stock Plugin page](https://verbb.io/craft-plugins/back-in-stock) for all documentation, guides, pricing and developer resources.
 
 ## Credit & Thanks
-Originally created by [Myles Beardsmore](https://github.com/mediabeastnz).
+Originally created by Myles Beardsmore.
 
 ## Support
 Get in touch with us via the [Back in Stock Support page](https://verbb.io/craft-plugins/back-in-stock/support) or by [creating a Github issue](https://github.com/verbb/back-in-stock/issues)
