@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fix a settings authorization vulnerability.
+
 ## 3.0.9 - 2025-08-12
 
 ### Fixed

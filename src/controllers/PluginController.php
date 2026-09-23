@@ -28,14 +28,10 @@ class PluginController extends Controller
     public function actionSavePluginSettings(): ?Response
     {
         $this->requirePostRequest();
+        $this->requireAdmin();
 
-        $pluginHandle = Craft::$app->getRequest()->getRequiredBodyParam('pluginHandle');
         $settings = Craft::$app->getRequest()->getBodyParam('settings', []);
-        $plugin = Craft::$app->getPlugins()->getPlugin($pluginHandle);
-
-        if ($plugin === null) {
-            throw new NotFoundHttpException('Plugin not found');
-        }
+        $plugin = BackInStock::$plugin;
 
         if (!Craft::$app->getPlugins()->savePluginSettings($plugin, $settings)) {
             Craft::$app->getSession()->setError(Craft::t('app', "Couldn't save plugin settings."));
