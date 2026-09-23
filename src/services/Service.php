@@ -139,7 +139,7 @@ class Service extends Component
             'variant' => $variant,
         ]);
 
-        $subject = $view->renderString($subject, [
+        $subject = BackInStock::$plugin->getTemplates()->renderSandboxedString($subject, [
             'variant' => $variant,
         ]);
 
@@ -154,7 +154,7 @@ class Service extends Component
             $renderVariables['options'] = Json::decode($log->options);
         }
 
-        $templatePath = $view->renderString($templatePath, $renderVariables);
+        $templatePath = BackInStock::$plugin->getTemplates()->renderSandboxedString($templatePath, $renderVariables);
 
         // validate that the email template exists
         if (!$view->doesTemplateExist($templatePath)) {

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Render notification email subjects and template-path expressions in Twig sandbox.
+
 ## 4.1.6 - 2026-09-14
 
 ### Changed

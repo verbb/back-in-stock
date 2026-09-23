@@ -5,6 +5,7 @@ use verbb\backinstock\BackInStock;
 use verbb\backinstock\services\Logs;
 use verbb\backinstock\services\Inventory;
 use verbb\backinstock\services\Service;
+use verbb\backinstock\services\Templates;
 
 use Craft;
 
@@ -37,6 +38,7 @@ trait PluginTrait
                 'logs' => Logs::class,
                 'inventory' => Inventory::class,
                 'service' => Service::class,
+                'templates' => Templates::class,
             ],
         ];
     }
@@ -58,6 +60,11 @@ trait PluginTrait
     public function getService(): Service
     {
         return $this->get('service');
+    }
+
+    public function getTemplates(): Templates
+    {
+        return $this->get('templates');
     }
 
 }
