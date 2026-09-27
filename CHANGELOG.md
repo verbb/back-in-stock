@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Ensure settings can only be saved by authorized administrators.
+
 ## 4.1.7 - 2026-09-23
 
 ### Changed

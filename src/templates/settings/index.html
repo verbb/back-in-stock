@@ -14,7 +14,7 @@
 } %}
 {% set pageTitle = pageTabs[selectedTab].title ?? pageTabs[selectedTab].heading ?? null %}
 {% if not pageTitle %}{% exit 404 %}{% endif %}
-{% set pageAction = 'craft-commerce-back-in-stock/plugin/save-plugin-settings' %}
+{% set pageAction = 'craft-commerce-back-in-stock/settings/save-settings' %}
 {% set pageUrl = selectedTab == 'general' ? 'back-in-stock/settings' : 'back-in-stock/settings/' ~ selectedTab %}
 
 {% block settingsContent %}
