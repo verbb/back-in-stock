@@ -24,22 +24,48 @@ use craft\commerce\elements\Variant;
 
 class LogsController extends Controller
 {
+    // Constants
+    // =========================================================================
+
+    private const MAX_PAGE_SIZE = 100;
+
+    private const SORT_FIELDS = [
+        'email' => 'logs.email',
+        'variantId' => 'logs.variantId',
+        'locale' => 'logs.locale',
+        'isNotified' => 'logs.isNotified',
+        'dateCreated' => 'logs.dateCreated',
+    ];
+
+    private const SORT_DIRECTIONS = [
+        'asc' => SORT_ASC,
+        'desc' => SORT_DESC,
+    ];
+
     // Public Methods
     // =========================================================================
 
     public function actionIndex(): Response
     {
+        $this->_requireDashboardAccess();
+
         return $this->renderTemplate('craft-commerce-back-in-stock/logs');
     }
 
     public function actionGetLogs(): Response
     {
+        $this->_requireDashboardAccess();
         $this->requireAcceptsJson();
 
-        $page = $this->request->getParam('page', 1);
+        $page = $this->_getPositiveIntegerParam('page', 1);
         $sort = $this->request->getParam('sort');
-        $limit = $this->request->getParam('per_page', 10);
+        $limit = min($this->_getPositiveIntegerParam('per_page', 10), self::MAX_PAGE_SIZE);
         $search = $this->request->getParam('search');
+
+        if (($page - 1) > intdiv(PHP_INT_MAX, $limit)) {
+            throw new BadRequestHttpException('The page parameter is too large.');
+        }
+
         $offset = ($page - 1) * $limit;
 
         $query = (new Query())
@@ -50,7 +76,7 @@ class LogsController extends Controller
             ])
             ->leftJoin('{{%commerce_variants}} variants', '[[logs.variantId]] = [[variants.id]]')
             ->leftJoin('{{%commerce_products}} products', '[[variants.primaryOwnerId]] = [[products.id]]')
-            ->orderBy(['id' => SORT_DESC]);
+            ->orderBy(['logs.id' => SORT_DESC]);
 
         if ($search) {
             $likeOperator = Craft::$app->getDb()->getIsPgsql() ? 'ILIKE' : 'LIKE';
@@ -67,14 +93,7 @@ class LogsController extends Controller
         $query->limit($limit);
         $query->offset($offset);
 
-        if ($sort) {
-            $sortField = $sort[0]['sortField'] ?? null;
-            $direction = $sort[0]['direction'] ?? null;
-
-            if ($sortField && $direction) {
-                $query->orderBy($sortField . ' ' . $direction);
-            }
-        }
+        $this->_applySort($query, $sort);
 
         $logs = $query->all();
 
@@ -125,6 +144,65 @@ class LogsController extends Controller
         return $this->asJson([
             'pagination' => AdminTable::paginationLinks($page, $total, $limit),
             'data' => $tableData,
+        ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _requireDashboardAccess(): void
+    {
+        $this->requireCpRequest();
+        $this->requirePermission('accessPlugin-craft-commerce-back-in-stock');
+    }
+
+    private function _getPositiveIntegerParam(string $name, int $default): int
+    {
+        $value = $this->request->getParam($name, $default);
+
+        if (is_int($value) && $value > 0) {
+            return $value;
+        }
+
+        if (is_string($value) && preg_match('/^[1-9][0-9]*$/D', $value)) {
+            $integer = filter_var($value, FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 1],
+            ]);
+
+            if ($integer !== false) {
+                return $integer;
+            }
+        }
+
+        throw new BadRequestHttpException("The $name parameter must be a positive integer.");
+    }
+
+    private function _applySort(Query $query, mixed $sort): void
+    {
+        if (!$sort) {
+            return;
+        }
+
+        if (!is_array($sort) || !isset($sort[0]) || !is_array($sort[0])) {
+            throw new BadRequestHttpException('The sort parameter is invalid.');
+        }
+
+        $sortField = $sort[0]['sortField'] ?? null;
+        $direction = $sort[0]['direction'] ?? null;
+
+        if (!is_string($sortField) || !isset(self::SORT_FIELDS[$sortField]) || !is_string($direction)) {
+            throw new BadRequestHttpException('The sort parameter is invalid.');
+        }
+
+        $direction = strtolower($direction);
+
+        if (!isset(self::SORT_DIRECTIONS[$direction])) {
+            throw new BadRequestHttpException('The sort parameter is invalid.');
+        }
+
+        $query->orderBy([
+            self::SORT_FIELDS[$sortField] => self::SORT_DIRECTIONS[$direction],
         ]);
     }
 }

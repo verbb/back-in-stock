@@ -4,6 +4,7 @@
 
 ### Fixed
 - Ensure settings can only be saved by authorized administrators.
+- Fixed a high-severity database query vulnerability.
 
 ## 4.1.7 - 2026-09-23
 
