@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Fixed notification email subjects and template paths failing when accessing Craft Commerce variant properties. ([#42](https://github.com/verbb/back-in-stock/issues/42))
 - Ensure settings can only be saved by authorized administrators.
 - Fixed a high-severity database query vulnerability.
 
