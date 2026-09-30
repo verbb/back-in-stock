@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.1.8 - 2026-09-30
 
 ### Fixed
 - Fixed notification email subjects and template paths failing when accessing Craft Commerce variant properties. ([#42](https://github.com/verbb/back-in-stock/issues/42))
