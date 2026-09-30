@@ -7,7 +7,7 @@ Back in Stock turns sold-out Craft Commerce variants into a reason for customers
 
 Add a notification form to a product page and subscribe guests or signed-in customers to the exact variant they want. Requests remain visible in Craft, giving the team a clear view of demand while the item is unavailable, and completed requests can be purged automatically when the privacy policy calls for it.
 
-![A project-owned sold-out product page with a notification form for the exact variant.](../screenshots/output/feature-tour/signup-form.png)
+![A project-owned sold-out product page with a notification form for the exact variant.](../screenshots/signup-form.png)
 
 <!-- feature-section-end -->
 
@@ -16,7 +16,7 @@ Add a notification form to a product page and subscribe guests or signed-in cust
 
 Review the email address, requested variant, locale, notification state and submission date in one current Craft control-panel view. That makes demand visible before stock returns and keeps the customer journey easy to audit afterwards.
 
-![Back in Stock requests with exact variants, locales and notification states.](../screenshots/output/feature-tour/request-log.png)
+![Back in Stock requests with exact variants, locales and notification states.](../screenshots/request-log.png)
 
 <!-- feature-section-end -->
 
@@ -25,6 +25,6 @@ Review the email address, requested variant, locale, notification state and subm
 
 Choose the stock threshold that counts as available and let Craft’s queue deliver notifications when a subscribed variant crosses it. Custom subjects and Twig templates keep confirmation and availability emails consistent with your store.
 
-![The bundled availability email rendered with the requested Commerce variant.](../screenshots/output/feature-tour/availability-email.png)
+![The bundled availability email rendered with the requested Commerce variant.](../screenshots/availability-email.png)
 
 <!-- feature-section-end -->

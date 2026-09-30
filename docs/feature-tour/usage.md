@@ -33,6 +33,10 @@ You can also include an `options` value to save additional information with the 
 
 Test with an out-of-stock variant and an email address you can read. Submit the form, then check the request in Back In Stock's Logs. Increase that variant's stock above the configured `stockThreshold` and allow Craft's queue to run. The resulting availability email should identify the same variant. If it does not arrive, check failed queue jobs and Craft's email configuration before submitting more requests.
 
+![Back In Stock notification requests in the control panel](../../screenshots/request-log.png)
+
+![A Back In Stock availability email](../../screenshots/availability-email.png)
+
 ## Confirmation Email
 You can also set an email to be sent when someone registers their interest. Enable confirmation emails and configure their subject and template in the plugin settings. Confirmation is a separate queued email from the later stock notification; test both parts of the journey.
 
