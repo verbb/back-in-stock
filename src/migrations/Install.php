@@ -36,6 +36,7 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'email' => $this->string(255)->notNull()->defaultValue(''),
             'variantId' => $this->integer()->notNull(),
+            'siteId' => $this->integer()->notNull(),
             'locale' => $this->string(255),
             'options' => $this->text(),
             'isNotified' => $this->boolean()->defaultValue(false),
@@ -57,6 +58,7 @@ class Install extends Migration
     public function createIndexes(): void
     {
         $this->createIndex(null, '{{%backinstock_records}}', ['variantId'], false);
+        $this->createIndex(null, '{{%backinstock_records}}', ['siteId'], false);
         $this->createIndex(null, '{{%backinstock_inventory}}', ['variantId'], false);
     }
 
@@ -64,9 +66,10 @@ class Install extends Migration
     {
         if ($this->db->tableExists('{{%commerce_variants}}')) {
             $this->addForeignKey(null, '{{%backinstock_records}}', ['variantId'], '{{%commerce_variants}}', ['id'], 'CASCADE', 'CASCADE');
-
             $this->addForeignKey(null, '{{%backinstock_inventory}}', ['variantId'], '{{%commerce_variants}}', ['id'], 'CASCADE', 'CASCADE');
         }
+
+        $this->addForeignKey(null, '{{%backinstock_records}}', ['siteId'], '{{%sites}}', ['id'], 'CASCADE', 'CASCADE');
     }
 
     public function dropTables(): void

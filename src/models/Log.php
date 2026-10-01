@@ -23,6 +23,7 @@ class Log extends Model
 
     public ?string $id = null;
     public ?int $variantId = null;
+    public ?int $siteId = null;
     public ?string $locale = null;
     public array $options = [];
     public bool $isNotified = false;
@@ -31,6 +32,7 @@ class Log extends Model
     public ?string $uid = null;
 
     private ?string $_email = null;
+    private ?Variant $_variant = null;
 
 
     // Public Methods
@@ -41,7 +43,7 @@ class Log extends Model
         $rules = parent::defineRules();
         $rules[] = [['email', 'variantId'], 'required'];
         $rules[] = [['email'], 'email', 'enableIDN' => App::supportsIdn(), 'enableLocalIDN' => false];
-        $rules[] = [['variantId'], 'number', 'integerOnly' => true];
+        $rules[] = [['variantId', 'siteId'], 'number', 'integerOnly' => true];
         $rules[] = [['variantId'], 'validateVariant'];
         $rules[] = [['variantId'], 'validateLog'];
 
@@ -61,7 +63,14 @@ class Log extends Model
     public function getVariant(): ?Variant
     {
         if ($this->variantId) {
-            return Variant::findOne($this->variantId);
+            $this->siteId ??= Craft::$app->getSites()->getCurrentSite()->id;
+
+            // Reuse the live variant that passed validation for the immediate response. Email delivery revalidates it independently.
+            if (!$this->_variant || $this->_variant->id !== $this->variantId || $this->_variant->siteId !== $this->siteId) {
+                $this->_variant = BackInStock::$plugin->getService()->getLiveVariant($this->variantId, $this->siteId);
+            }
+
+            return $this->_variant;
         }
 
         return null;
@@ -93,6 +102,7 @@ class Log extends Model
     {
         $duplicateRecord = LogRecord::findOne([
             'variantId' => $this->variantId,
+            'siteId' => $this->siteId,
             'locale' => $this->locale,
             'email' => $this->getEmail(),
             'options' => Json::encode($this->options),

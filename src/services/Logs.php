@@ -44,6 +44,7 @@ class Logs extends Component
     public function saveLog(Log $log, bool $runValidation = true): bool
     {
         $isNewLog = !$log->id;
+        $log->siteId ??= Craft::$app->getSites()->getCurrentSite()->id;
 
         // Fire a 'beforeSaveLog' event
         if ($this->hasEventHandlers(self::EVENT_BEFORE_SAVE_LOG)) {
@@ -61,6 +62,7 @@ class Logs extends Component
         $logRecord = $this->_getLogRecordById($log->id);
         $logRecord->email = $log->getEmail();
         $logRecord->variantId = $log->variantId;
+        $logRecord->siteId = $log->siteId;
         $logRecord->locale = $log->locale;
         $logRecord->options = $log->options;
         $logRecord->isNotified = $log->isNotified;
@@ -105,6 +107,7 @@ class Logs extends Component
                 'id',
                 'email',
                 'variantId',
+                'siteId',
                 'locale',
                 'options',
                 'isNotified',

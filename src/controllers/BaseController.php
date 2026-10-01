@@ -37,6 +37,7 @@ class BaseController extends Controller
         $log->email = $this->request->getParam('email');
         $log->options = Json::decode($this->request->getParam('options')) ?? [];
         $log->locale = Craft::$app->language;
+        $log->siteId = Craft::$app->getSites()->getCurrentSite()->id;
 
         if (!BackInStock::$plugin->getLogs()->saveLog($log)) {
             $error = array_values($log->getErrors())[0][0] ?? Craft::t('craft-commerce-back-in-stock', 'Sorry you couldn‘t be added to the notifications list.');
