@@ -24,7 +24,7 @@ class SendEmailNotification extends BaseJob
     public function execute($queue): void
     {
         $log = LogRecord::findOne($this->logId);
-        
+
         if ($log) {
             if (!$this->confirmation && $log->isNotified) {
                 return;

@@ -17,5 +17,5 @@ class BackInStockVariable
     {
         return BackInStock::$plugin->getPluginName();
     }
-    
+
 }

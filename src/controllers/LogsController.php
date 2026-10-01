@@ -115,7 +115,7 @@ class LogsController extends Controller
             $dateCreated = $log['dateCreated'] ? DateTimeHelper::toDateTime($log['dateCreated']) : null;
 
             $cpEditUrl = null;
-            
+
             if ($variant) {
                 $cpEditUrl = $variant->getCpEditUrl();
 

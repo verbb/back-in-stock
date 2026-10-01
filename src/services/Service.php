@@ -114,11 +114,11 @@ class Service extends Component
 
         if (!$log->variantId) {
             $error = Craft::t('craft-commerce-back-in-stock', 'Could not find Variant for Back In Stock Notification email.');
-            
+
             BackInStock::error($error);
-            
+
             $view->setTemplateMode($oldTemplateMode);
-            
+
             return false;
         }
 
@@ -126,11 +126,11 @@ class Service extends Component
 
         if (!$variant) {
             $error = Craft::t('craft-commerce-back-in-stock', 'Could not find Variant for Back In Stock Notification email.');
-            
+
             BackInStock::error($error);
-            
+
             $view->setTemplateMode($oldTemplateMode);
-            
+
             return false;
         }
 
@@ -161,15 +161,15 @@ class Service extends Component
             $error = Craft::t('craft-commerce-back-in-stock', 'Email template does not exist at “{templatePath}”.', [
                 'templatePath' => $templatePath,
             ]);
-            
+
             BackInStock::error($error);
-            
+
             $view->setTemplateMode($oldTemplateMode);
-            
+
             return false;
         }
 
-        $settings = BackInStock::$plugin->getSettings();;
+        $settings = BackInStock::$plugin->getSettings();
 
         // build the email
         $newEmail = new Message();
@@ -181,11 +181,11 @@ class Service extends Component
         try {
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $error = Craft::t('craft-commerce-back-in-stock', 'Back In Stock email “{email}” could not be sent');
-                
+
                 BackInStock::error($error);
-                
+
                 $view->setTemplateMode($oldTemplateMode);
-                
+
                 return false;
             }
         } catch (Throwable $e) {
