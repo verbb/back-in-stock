@@ -1,6 +1,6 @@
 {% extends parentLayout ?? '_layouts/cp' %}
 
-{% do view.registerAssetBundle('verbb\\backinstock\\assetbundles\\BackInStockAsset') %}
+{% do view.registerAssetBundle('verbb\\backinstock\\web\\assets\\cp\\BackInStockAsset') %}
 
 {% if title is not defined %}
     {% set title = 'Back In Stock' | t('craft-commerce-back-in-stock') %}
