@@ -15,6 +15,8 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\mail\Message;
 
+use yii\web\TooManyRequestsHttpException;
+
 use Throwable;
 
 use craft\commerce\elements\Product;
@@ -23,6 +25,15 @@ use craft\commerce\events\UpdateInventoryLevelEvent;
 
 class Service extends Component
 {
+    // Constants
+    // =========================================================================
+
+    private const REGISTRATION_ATTEMPT_LIMIT = 10;
+    private const REGISTRATION_ATTEMPT_WINDOW = 300;
+    private const REGISTRATION_RATE_LIMIT_CACHE_PREFIX = 'back-in-stock:registration-rate-limit:';
+    private const REGISTRATION_RATE_LIMIT_MUTEX_PREFIX = 'back-in-stock:registration-rate-limit-lock:';
+
+
     // Public Methods
     // =========================================================================
 
@@ -84,6 +95,83 @@ class Service extends Component
             ->siteId($siteId)
             ->productStatus(Product::STATUS_LIVE)
             ->one();
+    }
+
+    public function enforceRegistrationRateLimit(?string $email): void
+    {
+        $request = Craft::$app->getRequest();
+
+        if ($request->getIsConsoleRequest()) {
+            return;
+        }
+
+        $identities = [
+            hash('sha256', 'peer:' . ($request->getRemoteIP() ?: 'unknown')),
+            hash('sha256', 'recipient:' . Log::normalizeRecipient($email)),
+        ];
+        $cacheKeys = array_map(fn(string $identity) => self::REGISTRATION_RATE_LIMIT_CACHE_PREFIX . $identity, $identities);
+        $mutexKeys = array_map(fn(string $identity) => self::REGISTRATION_RATE_LIMIT_MUTEX_PREFIX . $identity, $identities);
+        // A stable order prevents requests sharing only one identity from deadlocking each other.
+        sort($mutexKeys, SORT_STRING);
+        $acquiredMutexKeys = [];
+
+        try {
+            $mutex = Craft::$app->getMutex();
+
+            foreach ($mutexKeys as $mutexKey) {
+                if (!($mutex?->acquire($mutexKey, 0) ?? false)) {
+                    $this->_rejectRegistrationAttempt(1);
+                }
+
+                $acquiredMutexKeys[] = $mutexKey;
+            }
+
+            $cache = Craft::$app->getCache();
+            $now = time();
+            $entries = [];
+            $retryAfter = 0;
+
+            foreach ($cacheKeys as $cacheKey) {
+                $storedEntry = $cache->get($cacheKey);
+                $isCurrentEntry = is_array($storedEntry) &&
+                    isset($storedEntry['count'], $storedEntry['resetAt']) &&
+                    (int)$storedEntry['resetAt'] > $now;
+                $entry = $isCurrentEntry ? $storedEntry : [
+                    'count' => 0,
+                    'resetAt' => $now + self::REGISTRATION_ATTEMPT_WINDOW,
+                ];
+                $entries[$cacheKey] = $entry;
+
+                if ((int)$entry['count'] >= self::REGISTRATION_ATTEMPT_LIMIT) {
+                    $retryAfter = max($retryAfter, (int)$entry['resetAt'] - $now);
+                }
+            }
+
+            if ($retryAfter > 0) {
+                $this->_rejectRegistrationAttempt($retryAfter);
+            }
+
+            foreach ($entries as $cacheKey => $entry) {
+                $entry['count'] = (int)$entry['count'] + 1;
+                $duration = max(1, (int)$entry['resetAt'] - $now);
+
+                if (!$cache->set($cacheKey, $entry, $duration) || $cache->get($cacheKey) !== $entry) {
+                    $this->_rejectRegistrationAttempt(1);
+                }
+            }
+        } catch (TooManyRequestsHttpException $e) {
+            throw $e;
+        } catch (Throwable) {
+            $this->_rejectRegistrationAttempt(1);
+        } finally {
+            foreach (array_reverse($acquiredMutexKeys) as $mutexKey) {
+                try {
+                    $mutex?->release($mutexKey);
+                } catch (Throwable) {
+                    // The mutex will be released automatically when the request ends.
+                }
+            }
+        }
     }
 
     public function findInterestedEmails(int $variantId): void
@@ -215,5 +303,20 @@ class Service extends Component
             $sites->setCurrentSite($originalSite);
             Craft::$app->language = $originalLanguage;
         }
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _rejectRegistrationAttempt(int $retryAfter): never
+    {
+        try {
+            Craft::$app->getResponse()->getHeaders()->set('Retry-After', (string)max(1, $retryAfter));
+        } catch (Throwable) {
+            // Rate limiting remains fail-closed if response headers cannot be updated.
+        }
+
+        throw new TooManyRequestsHttpException(Craft::t('craft-commerce-back-in-stock', 'Too many notification requests. Please try again later.'));
     }
 }

@@ -34,10 +34,13 @@ class BaseController extends Controller
 
         $log = new Log();
         $log->variantId = $this->request->getParam('variantId');
-        $log->email = $this->request->getParam('email');
-        $log->options = Json::decode($this->request->getParam('options')) ?? [];
+        $email = $this->request->getParam('email');
+        $log->email = is_string($email) ? $email : null;
+        $log->setOptionsFromRequest($this->request->getParam('options'));
         $log->locale = Craft::$app->language;
         $log->siteId = Craft::$app->getSites()->getCurrentSite()->id;
+
+        BackInStock::$plugin->getService()->enforceRegistrationRateLimit($log->getEmail());
 
         if (!BackInStock::$plugin->getLogs()->saveLog($log)) {
             $error = array_values($log->getErrors())[0][0] ?? Craft::t('craft-commerce-back-in-stock', 'Sorry you couldn‘t be added to the notifications list.');

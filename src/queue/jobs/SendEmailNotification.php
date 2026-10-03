@@ -26,7 +26,8 @@ class SendEmailNotification extends BaseJob
         $log = LogRecord::findOne($this->logId);
 
         if ($log) {
-            if (!$this->confirmation && $log->isNotified) {
+            // Completed or migration-suppressed requests must not send delayed queue work.
+            if ($log->isNotified) {
                 return;
             }
 
@@ -36,6 +37,7 @@ class SendEmailNotification extends BaseJob
                         $log->delete();
                     } else {
                         $log->isNotified = true;
+                        $log->pendingKey = null;
                         $log->save(false);
                     }
                 }

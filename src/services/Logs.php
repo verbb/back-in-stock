@@ -12,6 +12,7 @@ use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 
 use yii\base\Component;
+use yii\db\IntegrityException;
 
 use Exception;
 use Throwable;
@@ -66,8 +67,18 @@ class Logs extends Component
         $logRecord->locale = $log->locale;
         $logRecord->options = $log->options;
         $logRecord->isNotified = $log->isNotified;
+        $logRecord->pendingKey = $log->getPendingIdentityKey();
 
-        $logRecord->save(false);
+        try {
+            $logRecord->save(false);
+        } catch (IntegrityException $e) {
+            if ($isNewLog && $logRecord->pendingKey && $this->_isDuplicateKeyException($e) && LogRecord::find()->where(['pendingKey' => $logRecord->pendingKey])->exists()) {
+                $log->addError('variantId', Craft::t('craft-commerce-back-in-stock', 'Your email is already subscribed to receive updates for this product.'));
+                return false;
+            }
+
+            throw $e;
+        }
 
         if (!$log->id) {
             $log->id = $logRecord->id;
@@ -111,6 +122,7 @@ class Logs extends Component
                 'locale',
                 'options',
                 'isNotified',
+                'pendingKey',
                 'dateCreated',
                 'dateUpdated',
                 'uid',
@@ -131,6 +143,14 @@ class Logs extends Component
         }
 
         return $logRecord;
+    }
+
+    private function _isDuplicateKeyException(IntegrityException $exception): bool
+    {
+        $sqlState = $exception->errorInfo[0] ?? null;
+        $driverCode = (int)($exception->errorInfo[1] ?? 0);
+
+        return $sqlState === '23505' || ($sqlState === '23000' && $driverCode === 1062);
     }
 
 }

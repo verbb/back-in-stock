@@ -40,6 +40,7 @@ class Install extends Migration
             'locale' => $this->string(255),
             'options' => $this->text(),
             'isNotified' => $this->boolean()->defaultValue(false),
+            'pendingKey' => $this->char(64),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
@@ -59,6 +60,7 @@ class Install extends Migration
     {
         $this->createIndex(null, '{{%backinstock_records}}', ['variantId'], false);
         $this->createIndex(null, '{{%backinstock_records}}', ['siteId'], false);
+        $this->createIndex(null, '{{%backinstock_records}}', ['pendingKey'], true);
         $this->createIndex(null, '{{%backinstock_inventory}}', ['variantId'], false);
     }
 

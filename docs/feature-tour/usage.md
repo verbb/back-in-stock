@@ -31,6 +31,8 @@ You can also include an `options` value to save additional information with the 
 <input type="hidden" name="options" value="{{ options | json_encode }}">
 ```
 
+Options are limited to an 8 KB JSON object and provide template context; they do not create separate notification requests for the same email, variant, site, and locale. Registration is also temporarily limited to ten requests from the same direct connection address or for the same recipient within five minutes. Visitors behind a shared proxy or network address share that allowance, and multi-node sites should use shared cache and mutex backends.
+
 Test with an out-of-stock variant and an email address you can read. Submit the form, then check the request in Back In Stock's Logs. Increase that variant's stock above the configured `stockThreshold` and allow Craft's queue to run. The resulting availability email should identify the same variant. If it does not arrive, check failed queue jobs and Craft's email configuration before submitting more requests.
 
 ![Back In Stock notification requests in the control panel](../../screenshots/request-log.png)
