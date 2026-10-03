@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed a medium-severity improper control of interaction frequency vulnerability.
+- Fixed a low-severity information disclosure vulnerability.
 
 ## 4.1.9 - 2026-10-02
 

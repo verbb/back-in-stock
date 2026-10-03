@@ -96,10 +96,18 @@ class Log extends Model
     private ?string $_email = null;
     private ?Variant $_variant = null;
     private ?string $_optionsError = null;
+    private bool $_hasDuplicateError = false;
 
 
     // Public Methods
     // =========================================================================
+
+    public function beforeValidate(): bool
+    {
+        $this->_hasDuplicateError = false;
+
+        return parent::beforeValidate();
+    }
 
     public function defineRules(): array
     {
@@ -162,6 +170,19 @@ class Log extends Model
         return self::createPendingKey($this->getEmail(), $this->variantId, $this->siteId, $this->locale);
     }
 
+    public function getHasOnlyDuplicateError(): bool
+    {
+        return $this->_hasDuplicateError && count($this->getErrors()) === 1 && count($this->getErrors('variantId')) === 1;
+    }
+
+    public function markAsDuplicate(): void
+    {
+        if (!$this->_hasDuplicateError) {
+            $this->_hasDuplicateError = true;
+            $this->addError('variantId', Craft::t('craft-commerce-back-in-stock', 'Your email is already subscribed to receive updates for this product.'));
+        }
+    }
+
     public function getVariant(): ?Variant
     {
         if ($this->variantId) {
@@ -215,7 +236,7 @@ class Log extends Model
         }
 
         if ($duplicateQuery->exists()) {
-            $validator->addError($this, $attribute, Craft::t('craft-commerce-back-in-stock', 'Your email is already subscribed to receive updates for this product.'), $params);
+            $this->markAsDuplicate();
         }
     }
 

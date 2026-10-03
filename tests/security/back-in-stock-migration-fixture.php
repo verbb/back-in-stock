@@ -210,6 +210,7 @@ try {
     $duplicateLog->email = 'person@example.test';
     fixtureAssert(!$logsService->saveLog($duplicateLog, false), 'The persistence service must translate a database uniqueness race into the existing duplicate result.');
     fixtureAssert($duplicateLog->hasErrors('variantId'), 'The translated duplicate race must retain the existing validation error contract.');
+    fixtureAssert($duplicateLog->getHasOnlyDuplicateError(), 'The translated duplicate race must be eligible for an idempotent public response.');
 
     $completedLog = new verbb\backinstock\models\Log([
         'variantId' => 102,

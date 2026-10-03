@@ -231,6 +231,14 @@ $directOversizedLog = new verbb\backinstock\models\Log([
 ]);
 fixtureAssert(!$directOversizedLog->validate(['options']), 'Direct service callers must not bypass the encoded options size limit.');
 
+$duplicateOnlyLog = new verbb\backinstock\models\Log();
+$duplicateOnlyLog->markAsDuplicate();
+fixtureAssert($duplicateOnlyLog->getHasOnlyDuplicateError(), 'A duplicate-only save failure must be eligible for an idempotent public response.');
+$duplicateOnlyLog->addError('options', 'Invalid fixture options.');
+fixtureAssert(!$duplicateOnlyLog->getHasOnlyDuplicateError(), 'A duplicate must not hide another validation failure.');
+$duplicateOnlyLog->validate(['options']);
+fixtureAssert(!$duplicateOnlyLog->getHasOnlyDuplicateError(), 'Revalidation must clear stale duplicate state.');
+
 $service = new verbb\backinstock\services\Service();
 $peerLimitedApp = fixtureApp();
 $peerLimitedApp->request->remoteIp = '203.0.113.10';

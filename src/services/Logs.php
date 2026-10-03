@@ -73,7 +73,7 @@ class Logs extends Component
             $logRecord->save(false);
         } catch (IntegrityException $e) {
             if ($isNewLog && $logRecord->pendingKey && $this->_isDuplicateKeyException($e) && LogRecord::find()->where(['pendingKey' => $logRecord->pendingKey])->exists()) {
-                $log->addError('variantId', Craft::t('craft-commerce-back-in-stock', 'Your email is already subscribed to receive updates for this product.'));
+                $log->markAsDuplicate();
                 return false;
             }
 
