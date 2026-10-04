@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Added
+- Added canonical subscription lifecycle states, durable restock runs and delivery attempts.
+- Added stock-matched notification cohorts with oldest-first selection, configurable internal batches and bounded retries.
+- Added optional double opt-in verification and signed one-click cancellation links.
+- Added editable Craft System Messages for confirmation, verification and availability emails, while retaining custom Twig template overrides.
+- Added an Overview, Subscriptions and History control panel experience.
+- Added the `craft craft-commerce-back-in-stock/reconcile` command for periodic availability and lifecycle reconciliation.
+
+### Changed
+- Changed stock updates to enqueue demand-led availability evaluation after Commerce has committed inventory changes.
+- Changed fresh installs to stock-matched notifications by default; upgrades retain the existing notify-everyone behaviour.
+- Changed successful, failed, cancelled and uncertain deliveries to be recorded as explicit outcomes.
+
+### Deprecated
+- Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.
+
 ### Fixed
 - Fixed a medium-severity improper control of interaction frequency vulnerability.
 - Fixed a low-severity information disclosure vulnerability.

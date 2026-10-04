@@ -1,0 +1,31 @@
+{% if runs %}
+    <div class="tableview tablepane">
+        <table class="data fullwidth">
+            <thead><tr>
+                <th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>
+                <th>{{ 'Policy' | t('craft-commerce-back-in-stock') }}</th>
+                <th>{{ 'Selected' | t('craft-commerce-back-in-stock') }}</th>
+                <th>{{ 'Sent' | t('craft-commerce-back-in-stock') }}</th>
+                <th>{{ 'Failed' | t('craft-commerce-back-in-stock') }}</th>
+                <th>{{ 'Status' | t('craft-commerce-back-in-stock') }}</th>
+                <th>{{ 'Started' | t('craft-commerce-back-in-stock') }}</th>
+            </tr></thead>
+            <tbody>
+            {% for item in runs %}
+                {% set run = item.record %}
+                <tr>
+                    <th><a href="{{ url('back-in-stock/history/' ~ run.id) }}">{{ item.variant ? item.variant.title : ('Variant #' ~ run.variantId) }}</a></th>
+                    <td>{{ run.notificationPolicy == 'stockMatched' ? 'Stock matched' | t('craft-commerce-back-in-stock') : 'Notify everyone' | t('craft-commerce-back-in-stock') }}</td>
+                    <td>{{ run.selectedCount }}</td>
+                    <td>{{ run.sentCount }}</td>
+                    <td>{{ run.failedCount + run.unknownCount }}</td>
+                    <td><span class="status {{ run.status == 'closed' ? '' : 'enabled' }}"></span>{{ run.status | ucfirst }}</td>
+                    <td>{{ run.openedAt | datetime('short') }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p class="zilch">{{ 'No notification history exists yet.' | t('craft-commerce-back-in-stock') }}</p>
+{% endif %}

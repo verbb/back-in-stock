@@ -1,0 +1,7 @@
+{% if pageCount > 1 %}
+    <div class="flex justify-between" style="margin-top: 18px;">
+        <div>{% if page > 1 %}<a class="btn" href="{{ url(route, params | merge({page: page - 1})) }}">{{ 'Previous' | t('app') }}</a>{% endif %}</div>
+        <div class="light">{{ 'Page {page} of {pages}' | t('craft-commerce-back-in-stock', {page: page, pages: pageCount}) }}</div>
+        <div>{% if page < pageCount %}<a class="btn" href="{{ url(route, params | merge({page: page + 1})) }}">{{ 'Next' | t('app') }}</a>{% endif %}</div>
+    </div>
+{% endif %}

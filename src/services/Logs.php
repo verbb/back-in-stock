@@ -1,9 +1,11 @@
 <?php
 namespace verbb\backinstock\services;
 
+use verbb\backinstock\BackInStock;
 use verbb\backinstock\events\LogEvent;
 use verbb\backinstock\models\Log;
 use verbb\backinstock\records\Log as LogRecord;
+use verbb\backinstock\models\Subscription;
 
 use Craft;
 use craft\base\MemoizableArray;
@@ -16,6 +18,8 @@ use yii\db\IntegrityException;
 
 use Exception;
 use Throwable;
+
+use craft\commerce\Plugin as Commerce;
 
 class Logs extends Component
 {
@@ -69,10 +73,24 @@ class Logs extends Component
         $logRecord->isNotified = $log->isNotified;
         $logRecord->pendingKey = $log->getPendingIdentityKey();
 
+        $store = Commerce::getInstance()->getStores()->getStoreBySiteId($log->siteId);
+
+        if (!$store) {
+            $log->addError('siteId', Craft::t('craft-commerce-back-in-stock', 'Unable to find a Commerce store for this site.'));
+            return false;
+        }
+
+        $settings = BackInStock::$plugin->getSettings();
+        $logRecord->recipientKey = Subscription::createRecipientKey($log->getEmail());
+        $logRecord->userId = Craft::$app->getUser()->getIdentity()?->id;
+        $logRecord->storeId = $store->id;
+        $logRecord->state = $settings->requireVerification ? Subscription::STATE_PENDING_VERIFICATION : Subscription::STATE_ACTIVE;
+        $logRecord->activeKey = Subscription::createActiveKey($log->getEmail(), $log->variantId, $store->id);
+
         try {
             $logRecord->save(false);
         } catch (IntegrityException $e) {
-            if ($isNewLog && $logRecord->pendingKey && $this->_isDuplicateKeyException($e) && LogRecord::find()->where(['pendingKey' => $logRecord->pendingKey])->exists()) {
+            if ($isNewLog && $this->_isDuplicateKeyException($e) && LogRecord::find()->where(['activeKey' => $logRecord->activeKey])->exists()) {
                 $log->markAsDuplicate();
                 return false;
             }
@@ -123,6 +141,15 @@ class Logs extends Component
                 'options',
                 'isNotified',
                 'pendingKey',
+                'recipientKey',
+                'userId',
+                'storeId',
+                'state',
+                'activeKey',
+                'verifiedAt',
+                'notifiedAt',
+                'cancelledAt',
+                'expiredAt',
                 'dateCreated',
                 'dateUpdated',
                 'uid',

@@ -1,15 +1,12 @@
 <?php
 namespace verbb\backinstock\records;
 
-use craft\db\ActiveRecord;
-
-class Log extends ActiveRecord
+/**
+ * @deprecated in 4.2.0. Use [[Subscription]] instead.
+ */
+class Log extends Subscription
 {
     // Public Methods
     // =========================================================================
 
-    public static function tableName(): string
-    {
-        return '{{%backinstock_records}}';
-    }
 }

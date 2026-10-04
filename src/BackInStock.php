@@ -9,10 +9,12 @@ use Craft;
 use craft\base\Element;
 use craft\base\Plugin;
 use craft\events\ModelEvent;
+use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
+use craft\services\SystemMessages;
 
 use yii\base\Event;
 
@@ -27,7 +29,7 @@ class BackInStock extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '1.4.0';
+    public string $schemaVersion = '1.5.0';
 
 
     // Traits
@@ -45,8 +47,13 @@ class BackInStock extends Plugin
 
         self::$plugin = $this;
 
+        if (Craft::$app->getRequest()->getIsConsoleRequest()) {
+            $this->controllerNamespace = 'verbb\\backinstock\\console\\controllers';
+        }
+
         $this->_registerVariables();
         $this->_registerCraftEventListeners();
+        $this->_registerSystemMessages();
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
@@ -68,9 +75,17 @@ class BackInStock extends Plugin
         $nav['url'] = 'back-in-stock';
 
         if (Craft::$app->getUser()->checkPermission('accessPlugin-craft-commerce-back-in-stock')) {
-            $nav['subnav']['logs'] = [
-                'label' => Craft::t('craft-commerce-back-in-stock', 'Logs'),
-                'url' => 'back-in-stock/logs',
+            $nav['subnav']['overview'] = [
+                'label' => Craft::t('craft-commerce-back-in-stock', 'Overview'),
+                'url' => 'back-in-stock',
+            ];
+            $nav['subnav']['subscriptions'] = [
+                'label' => Craft::t('craft-commerce-back-in-stock', 'Subscriptions'),
+                'url' => 'back-in-stock/subscriptions',
+            ];
+            $nav['subnav']['history'] = [
+                'label' => Craft::t('craft-commerce-back-in-stock', 'History'),
+                'url' => 'back-in-stock/history',
             ];
         }
 
@@ -105,8 +120,11 @@ class BackInStock extends Plugin
     private function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
-            $event->rules['back-in-stock'] = ['template' => 'craft-commerce-back-in-stock/index'];
-            $event->rules['back-in-stock/logs'] = 'craft-commerce-back-in-stock/logs/index';
+            $event->rules['back-in-stock'] = 'craft-commerce-back-in-stock/dashboard/overview';
+            $event->rules['back-in-stock/subscriptions'] = 'craft-commerce-back-in-stock/dashboard/subscriptions';
+            $event->rules['back-in-stock/history'] = 'craft-commerce-back-in-stock/dashboard/history';
+            $event->rules['back-in-stock/history/<runId:\\d+>'] = 'craft-commerce-back-in-stock/dashboard/history-detail';
+            $event->rules['back-in-stock/logs'] = 'craft-commerce-back-in-stock/dashboard/subscriptions';
             $event->rules['back-in-stock/settings'] = 'craft-commerce-back-in-stock/plugin/settings';
             $event->rules['back-in-stock/settings/<settingsNavItem:{handle}>'] = 'craft-commerce-back-in-stock/plugin/settings';
         });
@@ -134,6 +152,30 @@ class BackInStock extends Plugin
             }
 
             $this->getService()->syncVariantStockState($event->sender);
+        });
+    }
+
+    private function _registerSystemMessages(): void
+    {
+        Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function(RegisterEmailMessagesEvent $event) {
+            $event->messages[] = [
+                'key' => 'back_in_stock_confirmation',
+                'heading' => Craft::t('craft-commerce-back-in-stock', 'When someone joins a back-in-stock list'),
+                'subject' => Craft::t('craft-commerce-back-in-stock', 'You’re on the list for {{ variant.title }}'),
+                'body' => Craft::t('craft-commerce-back-in-stock', "Thanks for your interest in {{ variant.title }}. We’ll let you know when it is available again.\n\n[Cancel this notification]({{ cancelUrl }})"),
+            ];
+            $event->messages[] = [
+                'key' => 'back_in_stock_verification',
+                'heading' => Craft::t('craft-commerce-back-in-stock', 'When someone needs to verify a back-in-stock subscription'),
+                'subject' => Craft::t('craft-commerce-back-in-stock', 'Confirm your notification for {{ variant.title }}'),
+                'body' => Craft::t('craft-commerce-back-in-stock', "Confirm that you want to hear when {{ variant.title }} is available again.\n\n[Confirm notification]({{ verifyUrl }})\n\nIf you did not make this request, you can ignore this email."),
+            ];
+            $event->messages[] = [
+                'key' => 'back_in_stock_available',
+                'heading' => Craft::t('craft-commerce-back-in-stock', 'When a subscribed product is available again'),
+                'subject' => Craft::t('craft-commerce-back-in-stock', '{{ variant.title }} is back in stock'),
+                'body' => Craft::t('craft-commerce-back-in-stock', "{{ variant.title }} is available again.\n\n[View product]({{ variant.url }})\n\n[Cancel this notification]({{ cancelUrl }})"),
+            ];
         });
     }
 }

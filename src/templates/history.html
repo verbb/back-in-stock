@@ -1,0 +1,9 @@
+{% extends 'craft-commerce-back-in-stock/_layouts' %}
+
+{% set title = 'History' | t('craft-commerce-back-in-stock') %}
+{% set selectedSubnavItem = 'history' %}
+
+{% block blockContent %}
+    {% include 'craft-commerce-back-in-stock/_includes/run-table' with { runs: runs } %}
+    {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/history', params: {} } %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'craft-commerce-back-in-stock/_layouts' %}
+
+{% set title = 'Subscriptions' | t('craft-commerce-back-in-stock') %}
+{% set selectedSubnavItem = 'subscriptions' %}
+
+{% block blockContent %}
+    <form method="get" class="flex" style="margin-bottom: 18px;">
+        <div class="texticon search icon clearable flex-grow"><input class="text fullwidth" type="text" name="search" value="{{ search }}" placeholder="{{ 'Search email addresses' | t('craft-commerce-back-in-stock') }}"></div>
+        <div class="select"><select name="state">
+            <option value="">{{ 'All states' | t('craft-commerce-back-in-stock') }}</option>
+            {% for value, label in { pendingVerification: 'Pending verification', active: 'Active', notified: 'Notified', cancelled: 'Cancelled', expired: 'Expired' } %}
+                <option value="{{ value }}" {{ state == value ? 'selected' }}>{{ label | t('craft-commerce-back-in-stock') }}</option>
+            {% endfor %}
+        </select></div>
+        <button class="btn" type="submit">{{ 'Filter' | t('craft-commerce-back-in-stock') }}</button>
+    </form>
+
+    {% if subscriptions %}
+        <div class="tableview tablepane"><table class="data fullwidth">
+            <thead><tr><th>{{ 'Email' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'State' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Locale' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Created' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
+            <tbody>{% for subscription in subscriptions %}<tr>
+                <th>{{ subscription.email }}</th>
+                <td>{{ subscription.variant ? subscription.variant.title : ('Variant #' ~ subscription.variantId) }}</td>
+                <td><span class="status {{ subscription.state == 'active' ? 'enabled' : (subscription.state == 'pendingVerification' ? 'pending' : '') }}"></span>{{ subscription.state | kebab | replace({'-': ' '}) | title }}</td>
+                <td>{{ subscription.locale ?: '—' }}</td>
+                <td>{{ subscription.dateCreated | datetime('short') }}</td>
+            </tr>{% endfor %}</tbody>
+        </table></div>
+    {% else %}<p class="zilch">{{ 'No subscriptions match these filters.' | t('craft-commerce-back-in-stock') }}</p>{% endif %}
+
+    {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/subscriptions', params: {search: search, state: state} } %}
+{% endblock %}

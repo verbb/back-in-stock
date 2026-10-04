@@ -7,6 +7,8 @@ use verbb\backinstock\models\Inventory;
 use verbb\backinstock\models\Settings;
 use verbb\backinstock\queue\jobs\SendEmailNotification;
 use verbb\backinstock\records\Log as LogRecord;
+use verbb\backinstock\records\Subscription;
+use verbb\backinstock\queue\jobs\EvaluateAvailability;
 
 use Craft;
 use craft\base\Component;
@@ -45,39 +47,26 @@ class Service extends Component
             return false;
         }
 
-        return $this->syncVariantStockState($variant);
+        return $this->queueVariantEvaluation($variant);
     }
 
     public function syncVariantStockState(Variant $variant): bool
     {
-        if (!$variant->id) {
+        return $this->queueVariantEvaluation($variant);
+    }
+
+    public function queueVariantEvaluation(Variant $variant): bool
+    {
+        if (!$variant->id || !$variant->siteId) {
             return false;
         }
 
-        $isNowInStock = $this->isVariantInStock($variant);
-        $isOutOfStock = !$isNowInStock;
+        Craft::$app->getQueue()->push(new EvaluateAvailability([
+            'variantId' => $variant->id,
+            'siteId' => $variant->siteId,
+        ]));
 
-        $outOfStockRecord = BackInStock::$plugin->getInventory()->getInventoryByVariantId($variant->id);
-
-        if ($isOutOfStock && !$outOfStockRecord) {
-            $inventory = new Inventory([
-                'variantId' => $variant->id,
-            ]);
-
-            BackInStock::$plugin->getInventory()->saveInventory($inventory);
-
-            return false;
-        }
-
-        if ($isNowInStock && $outOfStockRecord) {
-            BackInStock::$plugin->getInventory()->deleteInventory($outOfStockRecord);
-
-            $this->findInterestedEmails($variant->id);
-
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     public function isVariantInStock(Variant $variant): bool
@@ -176,24 +165,87 @@ class Service extends Component
 
     public function findInterestedEmails(int $variantId): void
     {
-        $logs = LogRecord::find()->where([
-            'variantId' => $variantId,
-            'isNotified' => false,
-        ])->all();
+        $subscription = Subscription::find()
+            ->where(['variantId' => $variantId, 'state' => \verbb\backinstock\models\Subscription::STATE_ACTIVE])
+            ->orderBy(['id' => SORT_ASC])
+            ->one();
 
-        if ($logs) {
-            $template = BackInStock::$plugin->getSettings()->getEmailTemplate();
-            $subject = BackInStock::$plugin->getSettings()->emailSubject;
+        if ($subscription) {
+            $variant = $this->getLiveVariant($variantId, $subscription->siteId);
 
-            // Add all emails to send to the queue
-            foreach ($logs as $log) {
-                Craft::$app->getQueue()->push(new SendEmailNotification([
-                    'confirmation' => false,
-                    'logId' => $log->id,
-                    'subject' => $subject,
-                    'template' => $template,
-                ]));
+            if ($variant) {
+                $this->queueVariantEvaluation($variant);
             }
+        }
+    }
+
+    public function sendSubscriptionMessage(Subscription $subscription, string $messageKey, ?string $templatePath = null, ?string $subject = null, array $variables = []): array
+    {
+        $site = Craft::$app->getSites()->getSiteById($subscription->siteId);
+        $variant = $site ? $this->getLiveVariant($subscription->variantId, $site->id) : null;
+
+        if (!$site || !$variant) {
+            return ['status' => 'failed', 'code' => 'variant-unavailable', 'message' => 'The subscribed variant or site could not be loaded.'];
+        }
+
+        $variables += [
+            'variant' => $variant,
+            'subscription' => $subscription,
+            'options' => is_string($subscription->options) ? Json::decodeIfJson($subscription->options) : $subscription->options,
+            'cancelUrl' => BackInStock::$plugin->getSubscriptions()->getCancellationUrl($subscription),
+        ];
+        $settings = BackInStock::$plugin->getSettings();
+        $message = null;
+
+        try {
+            if ($templatePath) {
+                $view = Craft::$app->getView();
+                $oldTemplateMode = $view->getTemplateMode();
+                $sites = Craft::$app->getSites();
+                $originalSite = $sites->getCurrentSite();
+                $originalLanguage = Craft::$app->language;
+
+                try {
+                    $sites->setCurrentSite($site);
+                    Craft::$app->language = $subscription->locale ?: $site->language;
+                    $view->setTemplateMode(str_contains($templatePath, 'craft-commerce-back-in-stock/emails') ? $view::TEMPLATE_MODE_CP : $view::TEMPLATE_MODE_SITE);
+                    $renderedTemplate = BackInStock::$plugin->getTemplates()->renderSandboxedString($templatePath, $variables);
+
+                    if (!$view->doesTemplateExist($renderedTemplate)) {
+                        return ['status' => 'failed', 'code' => 'template-missing', 'message' => "Email template does not exist at $renderedTemplate."];
+                    }
+
+                    $renderedSubject = BackInStock::$plugin->getTemplates()->renderSandboxedString((string)$subject, $variables);
+                    $variables['subject'] = $renderedSubject;
+                    $message = new Message();
+                    $message->setSubject($renderedSubject);
+                    $message->setHtmlBody($view->renderTemplate($renderedTemplate, $variables));
+                } finally {
+                    $view->setTemplateMode($oldTemplateMode);
+                    $sites->setCurrentSite($originalSite);
+                    Craft::$app->language = $originalLanguage;
+                }
+            } else {
+                $message = Craft::$app->getMailer()->composeFromKey($messageKey, $variables);
+            }
+
+            $message->siteId = $site->id;
+            $message->language = $subscription->locale ?: $site->language;
+            $message->setTo($subscription->email);
+
+            if ($settings->getFromEmail()) {
+                $message->setFrom([$settings->getFromEmail() => $settings->getFromName()]);
+            }
+
+            if (!Craft::$app->getMailer()->send($message)) {
+                return ['status' => 'failed', 'code' => 'mailer-rejected', 'message' => $message->error?->getMessage() ?? 'The mailer did not accept the message.'];
+            }
+
+            return ['status' => 'sent', 'code' => null, 'message' => null];
+        } catch (Throwable $e) {
+            BackInStock::error($e->getMessage());
+
+            return ['status' => 'unknown', 'code' => 'mailer-exception', 'message' => mb_substr($e->getMessage(), 0, 1024)];
         }
     }
 
@@ -229,7 +281,7 @@ class Service extends Component
         Craft::$app->language = $log->locale ?: $site->language;
 
         try {
-            if (strpos($templatePath, 'craft-commerce-back-in-stock/emails') !== false) {
+            if (str_contains((string)$templatePath, 'craft-commerce-back-in-stock/emails')) {
                 $view->setTemplateMode($view::TEMPLATE_MODE_CP);
             } else {
                 $view->setTemplateMode($view::TEMPLATE_MODE_SITE);

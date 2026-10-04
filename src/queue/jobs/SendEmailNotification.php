@@ -15,7 +15,7 @@ class SendEmailNotification extends BaseJob
     public int $logId;
     public bool $confirmation;
     public string $subject;
-    public string $template;
+    public ?string $template = null;
 
 
     // Public Methods
@@ -31,7 +31,19 @@ class SendEmailNotification extends BaseJob
                 return;
             }
 
-            if (BackInStock::$plugin->getService()->sendMail($log, $this->subject, $this->template)) {
+            if ($this->confirmation) {
+                $result = BackInStock::$plugin->getService()->sendSubscriptionMessage(
+                    $log,
+                    'back_in_stock_confirmation',
+                    $this->template,
+                    $this->subject,
+                );
+                $wasSent = $result['status'] === 'sent';
+            } else {
+                $wasSent = BackInStock::$plugin->getService()->sendMail($log, $this->subject, $this->template);
+            }
+
+            if ($wasSent) {
                 if (!$this->confirmation) {
                     if (BackInStock::$plugin->getSettings()->purgeRequests) {
                         $log->delete();

@@ -7,6 +7,13 @@ use craft\helpers\App;
 
 class Settings extends Model
 {
+    // Constants
+    // =========================================================================
+
+    public const NOTIFICATION_POLICY_ALL = 'all';
+    public const NOTIFICATION_POLICY_STOCK_MATCHED = 'stockMatched';
+
+
     // Properties
     // =========================================================================
 
@@ -22,6 +29,16 @@ class Settings extends Model
     public bool $purgeRequests = false;
     public ?string $fromEmail = null;
     public ?string $fromName = null;
+    public string $notificationPolicy = self::NOTIFICATION_POLICY_STOCK_MATCHED;
+    public int $subscribersPerUnit = 1;
+    public int $batchSize = 100;
+    public int $batchDelay = 60;
+    public int $maximumAttempts = 3;
+    public bool $requireVerification = false;
+    public int $verificationWindow = 48;
+    public int $pendingExpiry = 7;
+    public int $activeExpiry = 365;
+    public int $historyRetention = 90;
 
 
     // Public Methods
@@ -34,6 +51,9 @@ class Settings extends Model
         $rules[] = [['pluginName'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
         $rules[] = [['stockThreshold'], 'number', 'integerOnly' => true];
+        $rules[] = [['notificationPolicy'], 'in', 'range' => [self::NOTIFICATION_POLICY_ALL, self::NOTIFICATION_POLICY_STOCK_MATCHED]];
+        $rules[] = [['subscribersPerUnit', 'batchSize', 'batchDelay', 'maximumAttempts', 'verificationWindow', 'pendingExpiry', 'activeExpiry', 'historyRetention'], 'number', 'integerOnly' => true, 'min' => 0];
+        $rules[] = [['subscribersPerUnit', 'batchSize', 'maximumAttempts'], 'number', 'integerOnly' => true, 'min' => 1];
 
         return $rules;
     }
@@ -54,11 +74,11 @@ class Settings extends Model
 
     public function getConfirmationEmailTemplate(): ?string
     {
-        return App::parseEnv($this->confirmationEmailTemplate) ?? 'craft-commerce-back-in-stock/emails/confirmation';
+        return App::parseEnv($this->confirmationEmailTemplate);
     }
 
     public function getEmailTemplate(): ?string
     {
-        return App::parseEnv($this->emailTemplate) ?? 'craft-commerce-back-in-stock/emails/notification';
+        return App::parseEnv($this->emailTemplate);
     }
 }
