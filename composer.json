@@ -39,6 +39,24 @@
             "verbb\\backinstock\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "verbb\\backinstock\\tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        },
+        "sort-packages": true
+    },
     "extra": {
         "name": "Back In Stock",
         "handle": "craft-commerce-back-in-stock",

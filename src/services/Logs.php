@@ -84,8 +84,10 @@ class Logs extends Component
         $logRecord->recipientKey = Subscription::createRecipientKey($log->getEmail());
         $logRecord->userId = Craft::$app->getUser()->getIdentity()?->id;
         $logRecord->storeId = $store->id;
-        $logRecord->state = $settings->requireVerification ? Subscription::STATE_PENDING_VERIFICATION : Subscription::STATE_ACTIVE;
-        $logRecord->activeKey = Subscription::createActiveKey($log->getEmail(), $log->variantId, $store->id);
+        $logRecord->state = $log->isNotified
+            ? Subscription::STATE_NOTIFIED
+            : ($settings->requireVerification && $isNewLog ? Subscription::STATE_PENDING_VERIFICATION : Subscription::STATE_ACTIVE);
+        $logRecord->activeKey = $log->isNotified ? null : Subscription::createActiveKey($log->getEmail(), $log->variantId, $store->id);
 
         try {
             $logRecord->save(false);

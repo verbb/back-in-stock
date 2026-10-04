@@ -2,6 +2,7 @@
 namespace verbb\backinstock\services;
 
 use verbb\backinstock\BackInStock;
+use verbb\backinstock\helpers\Cohort;
 use verbb\backinstock\models\DeliveryAttempt as DeliveryAttemptModel;
 use verbb\backinstock\models\RestockRun as RestockRunModel;
 use verbb\backinstock\models\Settings;
@@ -122,13 +123,14 @@ class Availability extends Component
         $alreadySelected = (int)DeliveryAttempt::find()
             ->where(['runId' => $run->id, 'attemptNumber' => 1])
             ->count();
-        $capacity = $eligibleCount;
-
-        if ($run->notificationPolicy === Settings::NOTIFICATION_POLICY_STOCK_MATCHED && $variant->inventoryTracked) {
-            $capacity = max(0, (int)$variant->stock * (int)$run->subscribersPerUnit);
-        }
-
-        $selectionLimit = max(0, min($eligibleCount, $capacity) - $alreadySelected);
+        $selectionLimit = Cohort::selectionLimit(
+            $run->notificationPolicy,
+            $variant->inventoryTracked,
+            (int)$variant->stock,
+            (int)$run->subscribersPerUnit,
+            $eligibleCount,
+            $alreadySelected,
+        );
         $run->eligibleCount = max((int)$run->eligibleCount, $eligibleCount + $alreadySelected);
 
         if ($selectionLimit === 0) {

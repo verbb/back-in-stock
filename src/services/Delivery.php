@@ -80,6 +80,12 @@ class Delivery extends Component
         $this->_complete($attempt, $result['status'], $result['code'], $result['message']);
 
         if ($result['status'] === DeliveryAttemptModel::STATUS_SENT) {
+            if ($settings->purgeRequests) {
+                $subscription->delete();
+                $this->_refreshRun($run);
+                return;
+            }
+
             $subscription->state = SubscriptionModel::STATE_NOTIFIED;
             $subscription->notifiedAt = $now;
             $subscription->activeKey = null;

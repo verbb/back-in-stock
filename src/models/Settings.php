@@ -53,7 +53,7 @@ class Settings extends Model
         $rules[] = [['stockThreshold'], 'number', 'integerOnly' => true];
         $rules[] = [['notificationPolicy'], 'in', 'range' => [self::NOTIFICATION_POLICY_ALL, self::NOTIFICATION_POLICY_STOCK_MATCHED]];
         $rules[] = [['subscribersPerUnit', 'batchSize', 'batchDelay', 'maximumAttempts', 'verificationWindow', 'pendingExpiry', 'activeExpiry', 'historyRetention'], 'number', 'integerOnly' => true, 'min' => 0];
-        $rules[] = [['subscribersPerUnit', 'batchSize', 'maximumAttempts'], 'number', 'integerOnly' => true, 'min' => 1];
+        $rules[] = [['subscribersPerUnit', 'batchSize', 'maximumAttempts', 'verificationWindow', 'pendingExpiry', 'activeExpiry'], 'number', 'integerOnly' => true, 'min' => 1];
 
         return $rules;
     }
