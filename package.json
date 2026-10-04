@@ -1,0 +1,19 @@
+{
+    "name": "back-in-stock-cp",
+    "version": "4.2.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@verbb/plugin-kit-icons": "^2.0.22",
+        "@verbb/plugin-kit-web": "^2.0.22",
+        "lit": "^3.3.3"
+    },
+    "devDependencies": {
+        "typescript": "^5.7.3",
+        "vite": "^8.0.10"
+    }
+}

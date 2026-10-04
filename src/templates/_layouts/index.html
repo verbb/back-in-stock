@@ -6,6 +6,10 @@
     {% set title = 'Back In Stock' | t('craft-commerce-back-in-stock') %}
 {% endif %}
 
+{% set crumbs = [
+    { label: craft.backInStock.getPluginName() | t('craft-commerce-back-in-stock'), url: url('back-in-stock') },
+] | merge(crumbs ?? []) %}
+
 {% block content %}
     {% block blockContent %}
 

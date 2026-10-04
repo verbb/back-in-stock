@@ -2,31 +2,60 @@
 
 {% set title = 'Subscriptions' | t('craft-commerce-back-in-stock') %}
 {% set selectedSubnavItem = 'subscriptions' %}
+{% set crumbs = [{ label: title, url: url('back-in-stock/subscriptions') }] %}
 
 {% block blockContent %}
-    <form method="get" class="flex" style="margin-bottom: 18px;">
-        <div class="texticon search icon clearable flex-grow"><input class="text fullwidth" type="text" name="search" value="{{ search }}" placeholder="{{ 'Search email addresses' | t('craft-commerce-back-in-stock') }}"></div>
-        <div class="select"><select name="state">
-            <option value="">{{ 'All states' | t('craft-commerce-back-in-stock') }}</option>
-            {% for value, label in { pendingVerification: 'Pending verification', active: 'Active', notified: 'Notified', cancelled: 'Cancelled', expired: 'Expired' } %}
-                <option value="{{ value }}" {{ state == value ? 'selected' }}>{{ label | t('craft-commerce-back-in-stock') }}</option>
-            {% endfor %}
-        </select></div>
-        <button class="btn" type="submit">{{ 'Filter' | t('craft-commerce-back-in-stock') }}</button>
-    </form>
+    <div class="bis-page">
+        <div class="bis-page-intro">
+            <div class="bis-page-intro__copy">
+                <p class="bis-eyebrow">{{ '{count} total' | t('craft-commerce-back-in-stock', {count: total | number}) }}</p>
+                <p class="bis-lead">{{ 'Review every customer request and its current lifecycle state.' | t('craft-commerce-back-in-stock') }}</p>
+            </div>
+        </div>
 
-    {% if subscriptions %}
-        <div class="tableview tablepane"><table class="data fullwidth">
-            <thead><tr><th>{{ 'Email' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'State' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Locale' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Created' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
-            <tbody>{% for subscription in subscriptions %}<tr>
-                <th>{{ subscription.email }}</th>
-                <td>{{ subscription.variant ? subscription.variant.title : ('Variant #' ~ subscription.variantId) }}</td>
-                <td><span class="status {{ subscription.state == 'active' ? 'enabled' : (subscription.state == 'pendingVerification' ? 'pending' : '') }}"></span>{{ subscription.state | kebab | replace({'-': ' '}) | title }}</td>
-                <td>{{ subscription.locale ?: '—' }}</td>
-                <td>{{ subscription.dateCreated | datetime('short') }}</td>
-            </tr>{% endfor %}</tbody>
-        </table></div>
-    {% else %}<p class="zilch">{{ 'No subscriptions match these filters.' | t('craft-commerce-back-in-stock') }}</p>{% endif %}
+        <form method="get" class="bis-filterbar">
+            <pk-input name="search" value="{{ search }}" placeholder="{{ 'Search email addresses' | t('craft-commerce-back-in-stock') }}" aria-label="{{ 'Search email addresses' | t('craft-commerce-back-in-stock') }}" with-clear>
+                <pk-icon slot="start" icon="magnifying-glass"></pk-icon>
+            </pk-input>
+            <pk-select name="state" value="{{ state ?? '' }}" aria-label="{{ 'Filter by state' | t('craft-commerce-back-in-stock') }}" width="full">
+                <pk-option value="">{{ 'All states' | t('craft-commerce-back-in-stock') }}</pk-option>
+                {% for value, label in { pendingVerification: 'Pending verification', active: 'Active', notified: 'Notified', cancelled: 'Cancelled', expired: 'Expired' } %}
+                    <pk-option value="{{ value }}">{{ label | t('craft-commerce-back-in-stock') }}</pk-option>
+                {% endfor %}
+            </pk-select>
+            <div class="bis-filterbar__actions">
+                <pk-button type="submit" variant="primary">{{ 'Apply filters' | t('craft-commerce-back-in-stock') }}</pk-button>
+                {% if search or state %}<pk-button href="{{ url('back-in-stock/subscriptions') }}" variant="outline">{{ 'Clear' | t('app') }}</pk-button>{% endif %}
+            </div>
+        </form>
 
-    {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/subscriptions', params: {search: search, state: state} } %}
+        {% if subscriptions %}
+            <div class="bis-table-shell"><table class="data fullwidth">
+                <thead><tr><th>{{ 'Subscriber' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'State' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Locale' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Created' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
+                <tbody>{% for subscription in subscriptions %}
+                    {% set stateLabel = subscription.state | kebab | replace({'-': ' '}) | title %}
+                    {% set stateStatus = subscription.state == 'active' ? 'active' : (subscription.state == 'pendingVerification' ? 'pending' : (subscription.state == 'notified' ? 'enabled' : (subscription.state == 'expired' ? 'expired' : 'disabled'))) %}
+                    <tr>
+                        <th><div class="bis-primary-cell"><span class="bis-primary-cell__title">{{ subscription.email }}</span><span class="bis-primary-cell__meta">#{{ subscription.id }}</span></div></th>
+                        <td>
+                            {% if subscription.variant %}<a href="{{ subscription.variant.cpEditUrl }}">{{ subscription.variant.title }}</a>{% else %}{{ 'Variant #{id}' | t('craft-commerce-back-in-stock', {id: subscription.variantId}) }}{% endif %}
+                        </td>
+                        <td><span class="bis-status{{ subscription.state in ['active', 'notified'] ? ' bis-status--success' : (subscription.state == 'pendingVerification' ? ' bis-status--warning') }}"><pk-status status="{{ stateStatus }}" aria-label="{{ stateLabel }}"></pk-status>{{ stateLabel }}</span></td>
+                        <td>{{ subscription.locale ?: '—' }}</td>
+                        <td>{{ subscription.dateCreated | datetime('short') }}</td>
+                    </tr>
+                {% endfor %}</tbody>
+            </table></div>
+        {% else %}
+            <div class="bis-empty">
+                <div>
+                    <span class="bis-empty__icon"><pk-icon icon="magnifying-glass"></pk-icon></span>
+                    <h3>{{ 'No matching subscriptions' | t('craft-commerce-back-in-stock') }}</h3>
+                    <p>{{ 'Try another email address or lifecycle state.' | t('craft-commerce-back-in-stock') }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/subscriptions', params: {search: search, state: state} } %}
+    </div>
 {% endblock %}

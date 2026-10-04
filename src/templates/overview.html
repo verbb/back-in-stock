@@ -2,26 +2,51 @@
 
 {% set title = 'Overview' | t('craft-commerce-back-in-stock') %}
 {% set selectedSubnavItem = 'overview' %}
+{% set crumbs = [{ label: title, url: url('back-in-stock') }] %}
 
 {% block blockContent %}
-    <div class="flex flex-nowrap" style="gap: 14px; margin-bottom: 24px;">
-        {% for label, count in {
-            'Active subscriptions': counts.active,
-            'Awaiting verification': counts.pending,
-            'Notified in 30 days': counts.notified,
-            'Failed or unknown in 30 days': counts.failed,
-        } %}
-            <div class="pane" style="flex: 1; min-width: 0;">
-                <div class="light">{{ label | t('craft-commerce-back-in-stock') }}</div>
-                <div class="h1" style="margin-top: 6px;">{{ count | number }}</div>
+    <div class="bis-page">
+        <div class="bis-page-intro">
+            <div class="bis-page-intro__copy">
+                <p class="bis-eyebrow">{{ 'Demand at a glance' | t('craft-commerce-back-in-stock') }}</p>
+                <p class="bis-lead">{{ 'See current waitlist demand and the recent outcomes of availability notifications.' | t('craft-commerce-back-in-stock') }}</p>
             </div>
-        {% endfor %}
-    </div>
+        </div>
 
-    <div class="flex justify-between">
-        <h2>{{ 'Recent history' | t('craft-commerce-back-in-stock') }}</h2>
-        <a href="{{ url('back-in-stock/history') }}">{{ 'View all' | t('craft-commerce-back-in-stock') }}</a>
-    </div>
+        <div class="bis-metrics">
+            {% set metrics = [
+                { label: 'Active subscriptions', count: counts.active, meta: 'Ready for the next matching restock', icon: 'clock' },
+                { label: 'Awaiting verification', count: counts.pending, meta: 'Waiting for subscriber confirmation', icon: 'clock', tone: 'warning' },
+                { label: 'Notified in 30 days', count: counts.notified, meta: 'Customers handed to the mailer', icon: 'circle-check', tone: 'success' },
+                { label: 'Needs attention', count: counts.failed, meta: 'Failed or uncertain in the last 30 days', icon: 'triangle-exclamation', tone: counts.failed ? 'danger' : 'success' },
+            ] %}
+            {% for metric in metrics %}
+                <div class="bis-metric{{ metric.tone is defined ? ' bis-metric--' ~ metric.tone }}">
+                    <div class="bis-metric__header">
+                        <span class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</span>
+                        <span class="bis-metric__mark"><pk-icon icon="{{ metric.icon }}"></pk-icon></span>
+                    </div>
+                    <div class="bis-metric__value">{{ metric.count | number }}</div>
+                    <div class="bis-metric__meta">{{ metric.meta | t('craft-commerce-back-in-stock') }}</div>
+                </div>
+            {% endfor %}
+        </div>
 
-    {% include 'craft-commerce-back-in-stock/_includes/run-table' with { runs: runs } %}
+        <section>
+            <div class="bis-section-heading">
+                <div class="bis-section-heading__copy">
+                    <h2>{{ 'Recent history' | t('craft-commerce-back-in-stock') }}</h2>
+                    <p>{{ 'The latest availability windows and their delivery outcomes.' | t('craft-commerce-back-in-stock') }}</p>
+                </div>
+                <pk-button variant="outline" size="sm" href="{{ url('back-in-stock/history') }}">
+                    {{ 'View all history' | t('craft-commerce-back-in-stock') }}
+                    <pk-icon slot="end" icon="arrow-right"></pk-icon>
+                </pk-button>
+            </div>
+
+            <div class="bis-section-body">
+                {% include 'craft-commerce-back-in-stock/_includes/run-table' with { runs: runs } %}
+            </div>
+        </section>
+    </div>
 {% endblock %}

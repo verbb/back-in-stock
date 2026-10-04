@@ -2,8 +2,18 @@
 
 {% set title = 'History' | t('craft-commerce-back-in-stock') %}
 {% set selectedSubnavItem = 'history' %}
+{% set crumbs = [{ label: title, url: url('back-in-stock/history') }] %}
 
 {% block blockContent %}
-    {% include 'craft-commerce-back-in-stock/_includes/run-table' with { runs: runs } %}
-    {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/history', params: {} } %}
+    <div class="bis-page">
+        <div class="bis-page-intro">
+            <div class="bis-page-intro__copy">
+                <p class="bis-eyebrow">{{ '{count} notification runs' | t('craft-commerce-back-in-stock', {count: total | number}) }}</p>
+                <p class="bis-lead">{{ 'Each row represents one availability window, the subscriber cohort selected for it, and the resulting deliveries.' | t('craft-commerce-back-in-stock') }}</p>
+            </div>
+        </div>
+
+        {% include 'craft-commerce-back-in-stock/_includes/run-table' with { runs: runs } %}
+        {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/history', params: {} } %}
+    </div>
 {% endblock %}

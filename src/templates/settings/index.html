@@ -16,6 +16,7 @@
 {% if not pageTitle %}{% exit 404 %}{% endif %}
 {% set pageAction = 'craft-commerce-back-in-stock/settings/save-settings' %}
 {% set pageUrl = selectedTab == 'general' ? 'back-in-stock/settings' : 'back-in-stock/settings/' ~ selectedTab %}
+{% set crumbs = [{ label: pageTitle, url: url(pageUrl) }] %}
 
 {% block settingsContent %}
     {% include 'craft-commerce-back-in-stock/settings/_panes/' ~ selectedTab ignore missing %}

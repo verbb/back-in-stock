@@ -13,6 +13,11 @@ class BackInStockAsset extends AssetBundle
 
     public function init(): void
     {
+        $this->sourcePath = __DIR__ . '/dist';
+        $this->css = ['css/cp.css'];
+        $this->js = ['js/cp.js'];
+        $this->jsOptions = ['type' => 'module'];
+
         $this->depends = [
             VerbbCpAsset::class,
             CpAsset::class,

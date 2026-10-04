@@ -1,5 +1,5 @@
 {% if runs %}
-    <div class="tableview tablepane">
+    <div class="bis-table-shell">
         <table class="data fullwidth">
             <thead><tr>
                 <th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>
@@ -13,13 +13,14 @@
             <tbody>
             {% for item in runs %}
                 {% set run = item.record %}
+                {% set runStatus = run.status == 'completed' ? 'enabled' : (run.status == 'open' ? 'active' : (run.status == 'exhausted' ? 'warning' : 'disabled')) %}
                 <tr>
-                    <th><a href="{{ url('back-in-stock/history/' ~ run.id) }}">{{ item.variant ? item.variant.title : ('Variant #' ~ run.variantId) }}</a></th>
+                    <th><div class="bis-primary-cell"><a class="bis-primary-cell__title" href="{{ url('back-in-stock/history/' ~ run.id) }}">{{ item.variant ? item.variant.title : ('Variant #' ~ run.variantId) }}</a><span class="bis-primary-cell__meta">{{ 'Run #{id}' | t('craft-commerce-back-in-stock', {id: run.id}) }}</span></div></th>
                     <td>{{ run.notificationPolicy == 'stockMatched' ? 'Stock matched' | t('craft-commerce-back-in-stock') : 'Notify everyone' | t('craft-commerce-back-in-stock') }}</td>
-                    <td>{{ run.selectedCount }}</td>
-                    <td>{{ run.sentCount }}</td>
-                    <td>{{ run.failedCount + run.unknownCount }}</td>
-                    <td><span class="status {{ run.status == 'closed' ? '' : 'enabled' }}"></span>{{ run.status | ucfirst }}</td>
+                    <td>{{ run.selectedCount | number }} <span class="bis-cell-meta">/ {{ run.eligibleCount | number }}</span></td>
+                    <td>{{ run.sentCount | number }}</td>
+                    <td>{{ (run.failedCount + run.unknownCount) | number }}</td>
+                    <td><span class="bis-status{{ run.status == 'completed' ? ' bis-status--success' : (run.status == 'exhausted' ? ' bis-status--warning') }}"><pk-status status="{{ runStatus }}" aria-label="{{ run.status | ucfirst }}"></pk-status>{{ run.status | ucfirst }}</span></td>
                     <td>{{ run.openedAt | datetime('short') }}</td>
                 </tr>
             {% endfor %}
@@ -27,5 +28,11 @@
         </table>
     </div>
 {% else %}
-    <p class="zilch">{{ 'No notification history exists yet.' | t('craft-commerce-back-in-stock') }}</p>
+    <div class="bis-empty">
+        <div>
+            <span class="bis-empty__icon"><pk-icon icon="clock"></pk-icon></span>
+            <h3>{{ 'No notification history yet' | t('craft-commerce-back-in-stock') }}</h3>
+            <p>{{ 'History will appear after a subscribed variant becomes available.' | t('craft-commerce-back-in-stock') }}</p>
+        </div>
+    </div>
 {% endif %}
