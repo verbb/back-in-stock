@@ -46,8 +46,7 @@ final class BackInStockResponseFixtureLogs extends Logs
         $this->attempt++;
 
         if (in_array($this->attempt, [1, 4], true)) {
-            $log->id = 999999999;
-            return true;
+            return parent::saveLog($log, false);
         }
 
         $log->markAsDuplicate();
@@ -90,6 +89,7 @@ $plugin->set('logs', $fixtureLogs);
 $plugin->set('service', new BackInStockResponseFixtureService());
 $settings->sendConfirmation = true;
 $email = sprintf('security-response-%s@example.test', bin2hex(random_bytes(8)));
+$formEmail = sprintf('security-response-form-%s@example.test', bin2hex(random_bytes(8)));
 $transaction = Craft::$app->getDb()->beginTransaction();
 
 try {
@@ -97,7 +97,7 @@ try {
     $request->getHeaders()->set('Accept', 'application/json');
     $request->setBodyParams([
         'variantId' => $variant->id,
-        'email' => $email,
+        'email' => $formEmail,
     ]);
 
     $queueCount = Craft::$app->getQueue()->getTotalJobs();
