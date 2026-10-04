@@ -1,30 +1,30 @@
 <!-- feature-intro -->
-Back in Stock turns sold-out Craft Commerce variants into a reason for customers to return. Collect interest at the product, notify the right people when inventory recovers, and keep the message on brand.
+Back in Stock turns sold-out Craft Commerce variants into a reason for customers to return. Collect demand at the exact variant, notify an inventory-aware cohort when stock returns, and follow every delivery from one focused Craft control panel.
 <!-- feature-intro-end -->
 
-<!-- feature-section media-size="large" -->
-## Capture demand
+<!-- feature-section -->
+## Capture exact demand
 
-Add a notification form to a product page and subscribe guests or signed-in customers to the exact variant they want. Requests remain visible in Craft, giving the team a clear view of demand while the item is unavailable, and completed requests can be purged automatically when the privacy policy calls for it.
-
-![A project-owned sold-out product page with a notification form for the exact variant.](../screenshots/signup-form.png)
-
+Add an unstyled notification form wherever a sold-out variant appears. Guests and signed-in customers can join the list for the precise size, colour, or configuration they want, while duplicate-safe registration keeps repeated submissions from multiplying future sends.
 <!-- feature-section-end -->
 
-<!-- feature-section media-size="large" -->
-## See every request
+<!-- feature-section -->
+## Match attention to inventory
 
-Review the email address, requested variant, locale, notification state and submission date in one current Craft control-panel view. That makes demand visible before stock returns and keeps the customer journey easy to audit afterwards.
-
-![Back in Stock requests with exact variants, locales and notification states.](../screenshots/request-log.png)
-
+Notify the oldest subscribers in proportion to available units, tune how many people each unit should reach, or retain a notify-everyone policy. Every restock opens one idempotent availability window, so repeated Commerce events cannot select the same subscriber twice.
 <!-- feature-section-end -->
 
-<!-- feature-section media-size="medium" -->
-## Restock notifications
+<!-- feature-grid -->
+- :icon[mail-check] **Verified interest** Optional double opt-in keeps only confirmed recipients active.
+- :icon[layers-subtract] **Controlled batches** Queue cohorts in predictable groups with bounded retries.
+- :icon[message-cog] **Editable email** Use Craft System Messages or take over the full markup with Twig.
+- :icon[link-off] **One-click cancellation** Signed links let recipients leave without an account.
+- :icon[history] **Durable history** Trace each restock run and its sent, failed, cancelled, or uncertain outcomes.
+- :icon[refresh] **Reconciliation** Recover missed stock signals and apply lifecycle retention on schedule.
+<!-- feature-grid-end -->
 
-Choose the stock threshold that counts as available and let Craft’s queue deliver notifications when a subscribed variant crosses it. Custom subjects and Twig templates keep confirmation and availability emails consistent with your store.
+<!-- feature-section -->
+## Operate from one clear place
 
-![The bundled availability email rendered with the requested Commerce variant.](../screenshots/availability-email.png)
-
+See active demand on the Overview, inspect every Subscription, and open History for the exact cohort and delivery attempts behind a restock. The result is enough operational detail to answer what happened without turning a focused notification plugin into a general marketing platform.
 <!-- feature-section-end -->

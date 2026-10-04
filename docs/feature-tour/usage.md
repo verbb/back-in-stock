@@ -1,46 +1,50 @@
-# Usage
-To allow your users to register interest in a product that's out of stock, you'll need to provide them a form to enter their email. This will subscribe them to an email notification, when that variant becomes available.
+# How Back in Stock Works
 
-:::tip
-Check out our ready-to-go [Tailwind template](docs:template-guides/example-form).
-:::
+Back in Stock adds a small storefront action and a durable notification workflow around Craft Commerce inventory. Commerce remains the source of truth for stock and purchasability; the plugin records who is waiting, which subscribers were selected, and what happened to each delivery.
 
-Put the form in a product template where `product` is the Commerce Product being displayed. This example subscribes to its default variant and works for guests as well as signed-in customers:
+## 1. Capture a subscription
 
-```twig
-<form method="post">
-    {{ csrfInput() }}
-    {{ actionInput('craft-commerce-back-in-stock/base/register-interest') }}
-    {{ hiddenInput('variantId', product.defaultVariant.id) }}
+Place the [notification form](docs:template-guides/example-form) beside an unavailable Commerce variant. The form accepts guests and signed-in customers, and a subscription always belongs to the exact variant rather than its parent product.
 
-    <label for="back-in-stock-email">Your Email</label>
-    <input id="back-in-stock-email" type="email" name="email"
-        value="{{ currentUser ? currentUser.email : '' }}" required>
+Repeated submissions for the same recipient, variant, and store resolve to the existing active subscription. Optional JSON `options` can carry bounded template context such as the selected colour label, but do not create a second subscription identity.
 
-    <button type="submit">Notify Me When Available</button>
-</form>
-```
+New subscriptions are either `active` immediately or `pendingVerification` when email verification is enabled. Signed-in customers are linked to their Craft user while the email address remains the delivery identity.
 
-A request belongs to a variant, not the whole product. If your page lets customers choose a size or colour, update `variantId` to the selected variant before submitting. Otherwise, someone waiting for a medium shirt could be subscribed to the default size instead.
+## 2. Open an availability window
 
-You can also include an `options` value to save additional information with the form submission. This should be in the form of a JSON object. This input is entirely optional.
+Commerce inventory events enqueue a lightweight availability evaluation after stock has been committed. A scheduled reconciliation command covers updates that do not emit the expected event and also performs lifecycle expiry and retention cleanup.
 
-```twig
-{% set options = { title: 'Some Title', productAttribute: 'Some Value' } %}
+When a variant becomes available, Back in Stock opens one restock run for that variant and Commerce store. Repeated signals during the same availability window reuse the run, so the same subscription is not selected twice. The window closes when the variant becomes unavailable again; a later restock opens a new run.
 
-<input type="hidden" name="options" value="{{ options | json_encode }}">
-```
+## 3. Select the right cohort
 
-Options are limited to an 8 KB JSON object and provide template context; they do not create separate notification requests for the same email, variant, site, and locale. Registration is also temporarily limited to ten requests from the same direct connection address or for the same recipient within five minutes. Visitors behind a shared proxy or network address share that allowance, and multi-node sites should use shared cache and mutex backends.
+The stock-matched policy selects the oldest active subscriptions first. Available stock is multiplied by `subscribersPerUnit`, making it possible to notify one person per unit or deliberately contact a wider cohort. Variants with unlimited stock select every eligible subscriber.
 
-Test with an out-of-stock variant and an email address you can read. Submit the form, then check the request in Back In Stock's Logs. Increase that variant's stock above the configured `stockThreshold` and allow Craft's queue to run. The resulting availability email should identify the same variant. If it does not arrive, check failed queue jobs and Craft's email configuration before submitting more requests.
+The notify-all policy selects every eligible subscriber. Existing installations use this policy after upgrading so 4.1 notification reach does not change unexpectedly; fresh installations default to stock-matched selection.
 
-![Back In Stock notification requests in the control panel](../../screenshots/request-log.png)
+## 4. Deliver and retain outcomes
 
-![A Back In Stock availability email](../../screenshots/availability-email.png)
+Selected subscriptions are split into configurable internal queue batches. Before each send, the plugin checks that the subscription is still active and the variant is still available. Successful delivery moves the subscription to `notified`; a cancelled or expired subscription is never sent.
 
-## Confirmation Email
-You can also set an email to be sent when someone registers their interest. Enable confirmation emails and configure their subject and template in the plugin settings. Confirmation is a separate queued email from the later stock notification; test both parts of the journey.
+Each attempt finishes as `sent`, `failed`, `cancelled`, or `unknown`. Definite failures retry up to the configured maximum. An exception after handing work to the mailer is retained as `unknown` rather than retried automatically, avoiding an accidental duplicate message when acceptance cannot be proven.
 
-## Automatically Purge Notifications
-If privacy is a requirement you'll want to enable "Automatically Purge Notification Requests". This will delete the users information once they have been notified rather than being kept in the database.
+## 5. Operate from Craft
+
+The Back in Stock control-panel section contains four focused screens:
+
+- **Overview** shows current active demand, recent runs, delivery totals, and outcomes that need attention.
+- **Subscriptions** shows the recipient, exact variant, lifecycle state, locale, and relevant dates.
+- **History** lists restock runs and opens each run into its selected subscriptions and attempt outcomes.
+- **Settings** controls availability, selection, batching, verification, retention, and template overrides.
+
+## Customer-controlled lifecycle
+
+Availability and confirmation messages include a signed cancellation URL through `cancelUrl`. Verification messages include `verifyUrl`. These public actions support normal HTML responses and JSON clients without requiring a customer account.
+
+## Email content
+
+Confirmation, verification, and availability emails are Craft System Messages by default, so editors can change their subject and body without creating templates. Projects that need full markup control can provide custom site Twig templates for confirmation and availability messages.
+
+## Storefront assets
+
+Back in Stock does not register public CSS or JavaScript. The form and any progressive enhancement belong to the project, which keeps its markup, validation feedback, and design system under site control.

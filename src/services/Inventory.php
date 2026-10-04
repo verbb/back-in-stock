@@ -14,6 +14,9 @@ use yii\base\Component;
 
 use Exception;
 
+/**
+ * @deprecated in 4.2.0. Commerce inventory is authoritative; use [[Availability]] for evaluation.
+ */
 class Inventory extends Component
 {
     // Constants

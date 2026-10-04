@@ -1,65 +1,98 @@
-# Example Form
-The below HTML template gives you a head-start (using [Tailwind](https://tailwindcss.com/)) to creating a form for users to register their interest with an out of stock product.
+# Notification Form
 
-```html
-<!doctype html>
-<html lang="en" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Back In Stock Form Example</title>
-</head>
-<body class="flex min-h-full flex-col">
+Back in Stock deliberately provides an action rather than storefront markup or assets. Start with this unstyled Twig form, then adapt it to the project’s design and variant selector.
 
-{% set product = craft.products.one() %}
-{% set error = craft.app.session.getFlash('error') %}
-{% set success = craft.app.session.getFlash('notice') %}
+```twig
+{% set variant = product.defaultVariant %}
 
-{% if product %}
-    <div class="grow bg-gray-100">
-        <div class="mx-auto max-w-lg py-12 sm:px-6 lg:px-8">
-            <div class="mb-4 flex flex-wrap items-center justify-center">
-                <h2 class="flex-1 font-bold text-xl text-slate-700">{{ product.title }}</h2>
+{% if variant and not variant.hasStock() %}
+    <form method="post">
+        {{ csrfInput() }}
+        {{ actionInput('craft-commerce-back-in-stock/base/register-interest') }}
+        {{ redirectInput(product.url) }}
+        {{ hiddenInput('variantId', variant.id) }}
 
-                {% if product.defaultVariant.hasStock() %}
-                    <span class="flex-none bg-green-200 rounded-full px-3 py-1 text-xs font-semibold text-green-700">IN STOCK</span>
-                {% else %}
-                    <span class="flex-none bg-red-200 rounded-full px-3 py-1 text-xs font-semibold text-red-700">OUT OF STOCK</span>
-                {% endif %}
-            </div>
+        <label for="back-in-stock-email">Email address</label>
+        <input
+            id="back-in-stock-email"
+            type="email"
+            name="email"
+            value="{{ currentUser ? currentUser.email : '' }}"
+            autocomplete="email"
+            required
+        >
 
-            {% if error %}
-                <div class="sm:rounded-lg bg-red-200 p-4 mb-4">
-                    <h3 class="text-sm font-medium text-red-800">{{ error }}</h3>
-                </div>
-            {% endif %}
-
-            {% if success %}
-                <div class="sm:rounded-lg bg-green-100 p-4 mb-4">
-                    <h3 class="text-sm font-medium text-green-800">{{ success }}</h3>
-                </div>
-            {% endif %}
-
-            <form method="post" accept-charset="UTF-8"class="bg-white mb-4 shadow sm:rounded-lg p-6">
-                {{ actionInput('craft-commerce-back-in-stock/base/register-interest') }}
-                {{ csrfInput() }}
-
-                <input type="hidden" name="variantId" value="{{ product.defaultVariant.id }}">
-
-                <div class="mb-4">
-                    <label class="block text-slate-700 text-sm font-bold mb-2" for="email">Email</label>
-                    <input name="email" id="email" type="email" placeholder="Enter your email address" class="appearance-none border rounded w-full py-3 px-3 text-slate-700 leading-tight focus:outline-none focus:shadow-outline text-sm">
-                </div>
-
-                <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Notify Me</button>
-            </form>
-
-            <p class="text-center text-slate-400 text-xs">Your email address wont be shared or used for anything other than being notified of this item being re-stocked.</p>
-        </div>
-    </div>
+        <button type="submit">Notify me when available</button>
+    </form>
 {% endif %}
-
-</body>
-</html>
 ```
+
+Craft places the success message in the `notice` flash and validation or rate-limit failures in the `error` flash. Render those through the project’s usual flash-message component.
+
+## Variant selectors
+
+A subscription belongs to a Commerce variant. If customers can choose a size, colour, or another option, update `variantId` before submission so it matches the selected variant rather than always submitting the default.
+
+```twig
+<select name="variantId" required>
+    {% for variant in product.variants %}
+        {% if not variant.hasStock() %}
+            <option value="{{ variant.id }}">{{ variant.title }}</option>
+        {% endif %}
+    {% endfor %}
+</select>
+```
+
+## Optional template context
+
+Pass a JSON object in `options` when an email template needs bounded context that is not convenient to derive from the variant. Options are limited to an 8 KB object and do not form part of subscription uniqueness.
+
+```twig
+{% set options = {
+    productTitle: product.title,
+    selectedLabel: variant.title,
+} %}
+
+{{ hiddenInput('options', options | json_encode) }}
+```
+
+Custom email templates receive `variant`, `subscription`, `options`, `cancelUrl`, and `subject`. The verification System Message also receives `verifyUrl`.
+
+## JSON and progressive enhancement
+
+Send the same fields to the same action with an `Accept: application/json` header. A successful response preserves the existing `success` and `message` fields and adds the lifecycle `state`:
+
+```json
+{
+    "success": true,
+    "message": "customer@example.com will be notified when Medium is available.",
+    "state": "active"
+}
+```
+
+When verification is required, `state` is `pendingVerification`. Validation failures return `success: false` with an `error` string. Duplicate active submissions intentionally return the same public success shape without adding another delivery job.
+
+```js
+const form = document.querySelector('[data-back-in-stock-form]');
+
+form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const response = await fetch(form.action || window.location.href, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+        },
+        body: new FormData(form),
+    });
+    const result = await response.json();
+
+    form.querySelector('[data-back-in-stock-status]').textContent = result.message || result.error;
+});
+```
+
+Add `data-back-in-stock-form` to the form and a status element such as `<p data-back-in-stock-status aria-live="polite"></p>` if using this enhancement. The JavaScript is project-owned example code; the plugin does not enqueue it.
+
+## Rate limiting
+
+Registration is temporarily limited to ten attempts from the same direct connection address or recipient within five minutes. Visitors behind a shared proxy share that connection allowance. Multi-node installations should use shared cache and mutex backends so duplicate and abuse controls are consistent across application nodes.

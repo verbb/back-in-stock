@@ -53,11 +53,17 @@ trait PluginTrait
     // Public Methods
     // =========================================================================
 
+    /**
+     * @deprecated in 4.2.0. Use [[getSubscriptions()]] instead.
+     */
     public function getLogs(): Logs
     {
         return $this->get('logs');
     }
 
+    /**
+     * @deprecated in 4.2.0. Commerce inventory is authoritative; use [[getAvailability()]] instead.
+     */
     public function getInventory(): Inventory
     {
         return $this->get('inventory');

@@ -14,9 +14,11 @@
 - Changed stock updates to enqueue demand-led availability evaluation after Commerce has committed inventory changes.
 - Changed fresh installs to stock-matched notifications by default; upgrades retain the existing notify-everyone behaviour.
 - Changed successful, failed, cancelled and uncertain deliveries to be recorded as explicit outcomes.
+- Changed successful JSON registration responses to include the subscription lifecycle `state`, while preserving the existing response fields.
 
 ### Deprecated
 - Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.
+- Deprecated immediate post-delivery purging through `purgeRequests` in favour of bounded `historyRetention`; the existing setting remains functional throughout 4.x.
 
 ### Fixed
 - Fixed a medium-severity improper control of interaction frequency vulnerability.

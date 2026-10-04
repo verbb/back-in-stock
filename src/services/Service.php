@@ -163,6 +163,9 @@ class Service extends Component
         }
     }
 
+    /**
+     * @deprecated in 4.2.0. Use [[queueVariantEvaluation()]] instead.
+     */
     public function findInterestedEmails(int $variantId): void
     {
         $subscription = Subscription::find()
@@ -249,6 +252,9 @@ class Service extends Component
         }
     }
 
+    /**
+     * @deprecated in 4.2.0. Use [[sendSubscriptionMessage()]] instead.
+     */
     public function sendMail(LogRecord $log, string $subject, ?string $templatePath = null): bool
     {
         $view = Craft::$app->getView();

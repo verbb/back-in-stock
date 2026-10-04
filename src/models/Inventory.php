@@ -15,6 +15,9 @@ use yii\validators\InlineValidator;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 
+/**
+ * @deprecated in 4.2.0. Commerce inventory is authoritative; use [[\verbb\backinstock\services\Availability]] for evaluation.
+ */
 class Inventory extends Model
 {
     // Properties

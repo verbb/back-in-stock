@@ -17,6 +17,9 @@ use yii\validators\InlineValidator;
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
 
+/**
+ * @deprecated in 4.2.0. Use [[Subscription]] and [[\verbb\backinstock\records\Subscription]] instead.
+ */
 class Log extends Model
 {
     // Static Methods

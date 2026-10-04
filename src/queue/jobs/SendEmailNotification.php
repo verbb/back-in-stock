@@ -7,6 +7,9 @@ use verbb\backinstock\records\Log as LogRecord;
 use Craft;
 use craft\queue\BaseJob;
 
+/**
+ * @deprecated in 4.2.0. Use [[DeliverAttempt]] or [[SendSubscriptionMessage]] instead.
+ */
 class SendEmailNotification extends BaseJob
 {
     // Properties

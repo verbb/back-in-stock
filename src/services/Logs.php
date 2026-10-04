@@ -21,6 +21,9 @@ use Throwable;
 
 use craft\commerce\Plugin as Commerce;
 
+/**
+ * @deprecated in 4.2.0. Use [[Subscriptions]] and [[Availability]] instead.
+ */
 class Logs extends Component
 {
     // Constants
