@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.1.10 - 2026-10-05
 
 ### Fixed
 - Fixed a medium-severity improper control of interaction frequency vulnerability.

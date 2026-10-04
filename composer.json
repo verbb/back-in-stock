@@ -2,7 +2,7 @@
     "name": "verbb/back-in-stock",
     "description": "A Craft CMS plugin for notifying Craft Commerce customers when products are back in stock.",
     "type": "craft-plugin",
-    "version": "4.1.9",
+    "version": "4.1.10",
     "keywords": [
         "craft",
         "cms",
