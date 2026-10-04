@@ -28,8 +28,8 @@ class Subscription extends Model
         return hash('sha256', Log::normalizeRecipient($email));
     }
 
-    public static function createActiveKey(string $email, int $variantId, int $storeId): string
+    public static function createActiveKey(string $email, int $variantId, int $siteId, int $storeId, ?string $locale): string
     {
-        return hash('sha256', implode(':', [self::createRecipientKey($email), $variantId, $storeId]));
+        return hash('sha256', implode(':', [self::createRecipientKey($email), $variantId, $siteId, $storeId, $locale]));
     }
 }

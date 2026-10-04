@@ -21,6 +21,7 @@
 - Deprecated immediate post-delivery purging through `purgeRequests` in favour of bounded `historyRetention`; the existing setting remains functional throughout 4.x.
 
 ### Fixed
+- Fixed upgraded subscriptions retaining a legacy identity hash that differed from new canonical subscriptions.
 - Fixed a medium-severity improper control of interaction frequency vulnerability.
 - Fixed a low-severity information disclosure vulnerability.
 

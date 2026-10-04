@@ -2,6 +2,7 @@
 namespace verbb\backinstock\migrations;
 
 use verbb\backinstock\models\Settings;
+use verbb\backinstock\models\Subscription;
 
 use Craft;
 use craft\db\Migration;
@@ -116,7 +117,7 @@ class m261005_000000_subscription_lifecycle extends Migration
     private function _migrateSubscriptions(): void
     {
         $subscriptions = (new \craft\db\Query())
-            ->select(['id', 'email', 'siteId', 'pendingKey', 'isNotified', 'dateUpdated'])
+            ->select(['id', 'email', 'variantId', 'siteId', 'locale', 'pendingKey', 'isNotified', 'dateUpdated'])
             ->from('{{%backinstock_records}}')
             ->all();
 
@@ -139,7 +140,7 @@ class m261005_000000_subscription_lifecycle extends Migration
                 'recipientKey' => hash('sha256', $recipient),
                 'storeId' => (int)$storeId,
                 'state' => $state,
-                'activeKey' => $isNotified ? null : $subscription['pendingKey'],
+                'activeKey' => $isNotified ? null : Subscription::createActiveKey($recipient, (int)$subscription['variantId'], (int)$subscription['siteId'], (int)$storeId, $subscription['locale']),
                 'notifiedAt' => $isNotified ? $subscription['dateUpdated'] : null,
             ], ['id' => $subscription['id']], [], false);
         }

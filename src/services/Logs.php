@@ -90,7 +90,7 @@ class Logs extends Component
         $logRecord->state = $log->isNotified
             ? Subscription::STATE_NOTIFIED
             : ($settings->requireVerification && $isNewLog ? Subscription::STATE_PENDING_VERIFICATION : Subscription::STATE_ACTIVE);
-        $logRecord->activeKey = $log->isNotified ? null : Subscription::createActiveKey($log->getEmail(), $log->variantId, $store->id);
+        $logRecord->activeKey = $log->isNotified ? null : Subscription::createActiveKey($log->getEmail(), $log->variantId, $log->siteId, $store->id, $log->locale);
 
         try {
             $logRecord->save(false);

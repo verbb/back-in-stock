@@ -19,15 +19,23 @@ class SubscriptionTest extends TestCase
         );
     }
 
-    public function testActiveIdentityUsesStoreRatherThanLocale(): void
+    public function testActiveIdentityNormalizesEmailAndKeepsDeliveryContext(): void
     {
         self::assertSame(
-            Subscription::createActiveKey('customer@example.com', 42, 3),
-            Subscription::createActiveKey('CUSTOMER@example.com', 42, 3),
+            Subscription::createActiveKey('customer@example.com', 42, 1, 3, 'en-US'),
+            Subscription::createActiveKey('CUSTOMER@example.com', 42, 1, 3, 'en-US'),
         );
         self::assertNotSame(
-            Subscription::createActiveKey('customer@example.com', 42, 3),
-            Subscription::createActiveKey('customer@example.com', 42, 4),
+            Subscription::createActiveKey('customer@example.com', 42, 1, 3, 'en-US'),
+            Subscription::createActiveKey('customer@example.com', 42, 2, 3, 'en-US'),
+        );
+        self::assertNotSame(
+            Subscription::createActiveKey('customer@example.com', 42, 1, 3, 'en-US'),
+            Subscription::createActiveKey('customer@example.com', 42, 1, 4, 'en-US'),
+        );
+        self::assertNotSame(
+            Subscription::createActiveKey('customer@example.com', 42, 1, 3, 'en-US'),
+            Subscription::createActiveKey('customer@example.com', 42, 1, 3, 'fr-FR'),
         );
     }
 

@@ -29,7 +29,7 @@ class BackInStock extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '1.5.0';
+    public string $schemaVersion = '1.5.1';
 
 
     // Traits
