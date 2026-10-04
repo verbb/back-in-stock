@@ -30,11 +30,11 @@ Each attempt finishes as `sent`, `failed`, `cancelled`, or `unknown`. Definite f
 
 ## 5. Operate from Craft
 
-The Back in Stock control-panel section contains four focused screens:
+The Back in Stock control-panel section contains four focused destinations:
 
-- **Overview** shows current active demand, recent runs, delivery totals, and outcomes that need attention.
-- **Subscriptions** shows the recipient, exact variant, lifecycle state, locale, and relevant dates.
-- **History** lists restock runs and opens each run into its selected subscriptions and attempt outcomes.
+- **Products** groups present and retained demand by exact variant, with active and all-time subscription counts, oldest current wait, recent notification timing, and delivery problems. Open a product to connect its recent subscriptions with its notification history.
+- **Subscriptions** shows every recipient request across pending, active, notified, cancelled, and expired states. Search by email, filter by lifecycle state, or open the product lens from any row.
+- **History** is the delivery audit trail. It lists availability windows and opens each entry into its selected subscriptions and attempt outcomes.
 - **Settings** controls availability, selection, batching, verification, retention, and template overrides.
 
 ## Customer-controlled lifecycle

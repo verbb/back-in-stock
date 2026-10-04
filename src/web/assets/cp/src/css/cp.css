@@ -167,6 +167,21 @@
     gap: 8px;
 }
 
+.bis-context {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 15px 17px;
+    border: 1px solid color-mix(in srgb, var(--bis-accent) 20%, var(--bis-border));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bis-accent) 5%, var(--bis-surface));
+}
+
+.bis-context .bis-eyebrow {
+    display: block;
+}
+
 .bis-table-shell {
     overflow-x: auto;
     border: 1px solid var(--bis-border);
@@ -211,6 +226,14 @@
 .bis-cell-meta {
     color: var(--bis-text-subtle);
     font-size: 12px;
+}
+
+.bis-demand-count {
+    font-size: 15px;
+}
+
+.bis-demand-count--active {
+    color: var(--bis-success);
 }
 
 .bis-status {
@@ -391,6 +414,7 @@
 @media (max-width: 680px) {
     .bis-page-intro,
     .bis-section-heading,
+    .bis-context,
     .bis-run-hero__identity {
         flex-direction: column;
     }

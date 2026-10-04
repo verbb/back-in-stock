@@ -1,8 +1,10 @@
+{% set showProduct = showProduct ?? true %}
+
 {% if runs %}
     <div class="bis-table-shell">
         <table class="data fullwidth">
             <thead><tr>
-                <th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>
+                {% if showProduct %}<th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>{% endif %}
                 <th>{{ 'Policy' | t('craft-commerce-back-in-stock') }}</th>
                 <th>{{ 'Selected' | t('craft-commerce-back-in-stock') }}</th>
                 <th>{{ 'Sent' | t('craft-commerce-back-in-stock') }}</th>
@@ -15,7 +17,7 @@
                 {% set run = item.record %}
                 {% set runStatus = run.status == 'completed' ? 'enabled' : (run.status == 'open' ? 'active' : (run.status == 'exhausted' ? 'warning' : 'disabled')) %}
                 <tr>
-                    <th><div class="bis-primary-cell"><a class="bis-primary-cell__title" href="{{ url('back-in-stock/history/' ~ run.id) }}">{{ item.variant ? item.variant.title : ('Variant #' ~ run.variantId) }}</a><span class="bis-primary-cell__meta">{{ 'Run #{id}' | t('craft-commerce-back-in-stock', {id: run.id}) }}</span></div></th>
+                    {% if showProduct %}<th><a class="bis-primary-cell__title" href="{{ url('back-in-stock/history/' ~ run.id) }}">{{ item.variant ? item.variant.title : ('Variant #' ~ run.variantId) }}</a></th>{% endif %}
                     <td>{{ run.notificationPolicy == 'stockMatched' ? 'Stock matched' | t('craft-commerce-back-in-stock') : 'Notify everyone' | t('craft-commerce-back-in-stock') }}</td>
                     <td>{{ run.selectedCount | number }} <span class="bis-cell-meta">/ {{ run.eligibleCount | number }}</span></td>
                     <td>{{ run.sentCount | number }}</td>

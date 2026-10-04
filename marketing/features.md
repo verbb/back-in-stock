@@ -26,5 +26,5 @@ Notify the oldest subscribers in proportion to available units, tune how many pe
 <!-- feature-section -->
 ## Operate from one clear place
 
-See active demand on the Overview, inspect every Subscription, and open History for the exact cohort and delivery attempts behind a restock. The result is enough operational detail to answer what happened without turning a focused notification plugin into a general marketing platform.
+See current and lifetime demand by Product, inspect every Subscription, and open History for the exact cohort and delivery attempts behind a restock. Product summaries connect those two lenses without turning a focused notification plugin into a general marketing platform.
 <!-- feature-section-end -->

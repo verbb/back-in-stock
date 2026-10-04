@@ -1,0 +1,66 @@
+{% extends 'craft-commerce-back-in-stock/_layouts' %}
+
+{% set variantTitle = variant ? variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: variantId})) %}
+{% set title = variantTitle %}
+{% set selectedSubnavItem = 'products' %}
+{% set crumbs = [
+    { label: 'Products' | t('craft-commerce-back-in-stock'), url: url('back-in-stock') },
+    { label: variantTitle, url: url('back-in-stock/products/' ~ variantId) },
+] %}
+
+{% block blockContent %}
+    <div class="bis-page">
+        <div class="bis-page-intro">
+            <div class="bis-page-intro__copy">
+                <p class="bis-eyebrow">{{ 'Product demand' | t('craft-commerce-back-in-stock') }}</p>
+                <p class="bis-lead">{{ 'Current waitlist demand, lifetime interest, and recent notification activity for this exact variant.' | t('craft-commerce-back-in-stock') }}</p>
+            </div>
+            {% if variant %}<pk-button href="{{ variant.cpEditUrl }}" variant="outline" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
+        </div>
+
+        <div class="bis-metrics">
+            {% set metrics = [
+                { label: 'Active subscriptions', count: counts.active, meta: oldestActiveAt ? ('Oldest waiting since {date}' | t('craft-commerce-back-in-stock', {date: oldestActiveAt | datetime('short')})) : 'Nobody is currently waiting' | t('craft-commerce-back-in-stock'), icon: 'clock' },
+                { label: 'All-time subscriptions', count: counts.total, meta: 'Every retained request for this variant', icon: 'clock' },
+                { label: 'Notified', count: counts.notified, meta: 'Subscriptions handed to the mailer', icon: 'circle-check', tone: 'success' },
+                { label: 'Needs attention', count: counts.failed, meta: 'Failed or uncertain delivery outcomes', icon: 'triangle-exclamation', tone: counts.failed ? 'danger' : 'success' },
+            ] %}
+            {% for metric in metrics %}
+                <div class="bis-metric{{ metric.tone is defined ? ' bis-metric--' ~ metric.tone }}">
+                    <div class="bis-metric__header">
+                        <span class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</span>
+                        <span class="bis-metric__mark"><pk-icon icon="{{ metric.icon }}"></pk-icon></span>
+                    </div>
+                    <div class="bis-metric__value">{{ metric.count | number }}</div>
+                    <div class="bis-metric__meta">{{ metric.meta }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <section>
+            <div class="bis-section-heading">
+                <div class="bis-section-heading__copy">
+                    <h2>{{ 'Recent subscriptions' | t('craft-commerce-back-in-stock') }}</h2>
+                    <p>{{ 'The latest current and historical requests for this variant.' | t('craft-commerce-back-in-stock') }}</p>
+                </div>
+                <pk-button variant="outline" size="sm" href="{{ url('back-in-stock/subscriptions', {variantId: variantId}) }}">{{ 'View all subscriptions' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
+            </div>
+            <div class="bis-section-body">
+                {% include 'craft-commerce-back-in-stock/_includes/subscription-table' with { subscriptions: subscriptions, showProduct: false } %}
+            </div>
+        </section>
+
+        <section>
+            <div class="bis-section-heading">
+                <div class="bis-section-heading__copy">
+                    <h2>{{ 'Recent history' | t('craft-commerce-back-in-stock') }}</h2>
+                    <p>{{ 'Availability windows and delivery outcomes for this variant.' | t('craft-commerce-back-in-stock') }}</p>
+                </div>
+                <pk-button variant="outline" size="sm" href="{{ url('back-in-stock/history', {variantId: variantId}) }}">{{ 'View all history' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
+            </div>
+            <div class="bis-section-body">
+                {% include 'craft-commerce-back-in-stock/_includes/run-table' with { runs: runs, showProduct: false } %}
+            </div>
+        </section>
+    </div>
+{% endblock %}

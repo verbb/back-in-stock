@@ -75,8 +75,8 @@ class BackInStock extends Plugin
         $nav['url'] = 'back-in-stock';
 
         if (Craft::$app->getUser()->checkPermission('accessPlugin-craft-commerce-back-in-stock')) {
-            $nav['subnav']['overview'] = [
-                'label' => Craft::t('craft-commerce-back-in-stock', 'Overview'),
+            $nav['subnav']['products'] = [
+                'label' => Craft::t('craft-commerce-back-in-stock', 'Products'),
                 'url' => 'back-in-stock',
             ];
             $nav['subnav']['subscriptions'] = [
@@ -120,7 +120,9 @@ class BackInStock extends Plugin
     private function _registerCpRoutes(): void
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
-            $event->rules['back-in-stock'] = 'craft-commerce-back-in-stock/dashboard/overview';
+            $event->rules['back-in-stock'] = 'craft-commerce-back-in-stock/dashboard/products';
+            $event->rules['back-in-stock/overview'] = 'craft-commerce-back-in-stock/dashboard/overview';
+            $event->rules['back-in-stock/products/<variantId:\d+>'] = 'craft-commerce-back-in-stock/dashboard/product';
             $event->rules['back-in-stock/subscriptions'] = 'craft-commerce-back-in-stock/dashboard/subscriptions';
             $event->rules['back-in-stock/history'] = 'craft-commerce-back-in-stock/dashboard/history';
             $event->rules['back-in-stock/history/<runId:\\d+>'] = 'craft-commerce-back-in-stock/dashboard/history-detail';

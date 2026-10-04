@@ -1,0 +1,91 @@
+{% extends 'craft-commerce-back-in-stock/_layouts' %}
+
+{% set title = 'Products' | t('craft-commerce-back-in-stock') %}
+{% set selectedSubnavItem = 'products' %}
+{% set crumbs = [{ label: title, url: url('back-in-stock') }] %}
+
+{% block blockContent %}
+    <div class="bis-page">
+        <div class="bis-page-intro">
+            <div class="bis-page-intro__copy">
+                <p class="bis-eyebrow">{{ '{count} products with subscription history' | t('craft-commerce-back-in-stock', {count: total | number}) }}</p>
+                <p class="bis-lead">{{ 'See where customers are waiting now and how much demand each exact variant has accumulated over time.' | t('craft-commerce-back-in-stock') }}</p>
+            </div>
+        </div>
+
+        <div class="bis-metrics">
+            {% set metrics = [
+                { label: 'Products with active demand', count: counts.products, meta: 'Exact variants with customers waiting', icon: 'clock' },
+                { label: 'Active subscriptions', count: counts.active, meta: 'Ready for the next matching restock', icon: 'clock' },
+                { label: 'Awaiting verification', count: counts.pending, meta: 'Waiting for subscriber confirmation', icon: 'clock', tone: 'warning' },
+                { label: 'Needs attention', count: counts.failed, meta: 'Failed or uncertain in the last 30 days', icon: 'triangle-exclamation', tone: counts.failed ? 'danger' : 'success' },
+            ] %}
+            {% for metric in metrics %}
+                <div class="bis-metric{{ metric.tone is defined ? ' bis-metric--' ~ metric.tone }}">
+                    <div class="bis-metric__header">
+                        <span class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</span>
+                        <span class="bis-metric__mark"><pk-icon icon="{{ metric.icon }}"></pk-icon></span>
+                    </div>
+                    <div class="bis-metric__value">{{ metric.count | number }}</div>
+                    <div class="bis-metric__meta">{{ metric.meta | t('craft-commerce-back-in-stock') }}</div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <section>
+            <div class="bis-section-heading">
+                <div class="bis-section-heading__copy">
+                    <h2>{{ 'Product demand' | t('craft-commerce-back-in-stock') }}</h2>
+                    <p>{{ 'Current demand and retained subscription history, grouped by exact Commerce variant.' | t('craft-commerce-back-in-stock') }}</p>
+                </div>
+            </div>
+
+            <div class="bis-section-body">
+                {% if products %}
+                    <div class="bis-table-shell">
+                        <table class="data fullwidth">
+                            <thead><tr>
+                                <th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>
+                                <th>{{ 'Active' | t('craft-commerce-back-in-stock') }}</th>
+                                <th>{{ 'All time' | t('craft-commerce-back-in-stock') }}</th>
+                                <th>{{ 'Oldest active' | t('craft-commerce-back-in-stock') }}</th>
+                                <th>{{ 'Last notified' | t('craft-commerce-back-in-stock') }}</th>
+                                <th>{{ 'Needs attention' | t('craft-commerce-back-in-stock') }}</th>
+                            </tr></thead>
+                            <tbody>
+                            {% for product in products %}
+                                {% set variantTitle = product.variant ? product.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: product.variantId})) %}
+                                <tr>
+                                    <th>
+                                        <div class="bis-primary-cell">
+                                            <a class="bis-primary-cell__title" href="{{ url('back-in-stock/products/' ~ product.variantId) }}">{{ variantTitle }}</a>
+                                            <span class="bis-primary-cell__meta">{{ product.variant and product.variant.sku ? product.variant.sku : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: product.variantId})) }}</span>
+                                        </div>
+                                    </th>
+                                    <td><strong class="bis-demand-count{{ product.activeCount ? ' bis-demand-count--active' }}">{{ product.activeCount | number }}</strong></td>
+                                    <td>{{ product.totalCount | number }}</td>
+                                    <td>{{ product.oldestActiveAt ? product.oldestActiveAt | datetime('short') : '—' }}</td>
+                                    <td>{{ product.lastNotifiedAt ? product.lastNotifiedAt | datetime('short') : '—' }}</td>
+                                    <td>
+                                        {% if product.problemCount %}<span class="bis-status bis-status--danger"><pk-status status="red" aria-label="{{ 'Needs attention' | t('craft-commerce-back-in-stock') }}"></pk-status>{{ product.problemCount | number }}</span>{% else %}<span class="bis-cell-meta">{{ 'None' | t('craft-commerce-back-in-stock') }}</span>{% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="bis-empty">
+                        <div>
+                            <span class="bis-empty__icon"><pk-icon icon="clock"></pk-icon></span>
+                            <h3>{{ 'No product demand yet' | t('craft-commerce-back-in-stock') }}</h3>
+                            <p>{{ 'Products will appear after their first back-in-stock subscription.' | t('craft-commerce-back-in-stock') }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock', params: {} } %}
+    </div>
+{% endblock %}

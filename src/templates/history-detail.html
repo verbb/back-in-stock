@@ -6,7 +6,7 @@
 {% set selectedSubnavItem = 'history' %}
 {% set crumbs = [
     { label: 'History' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/history') },
-    { label: 'Run #{id}' | t('craft-commerce-back-in-stock', {id: record.id}), url: url('back-in-stock/history/' ~ record.id) },
+    { label: variantTitle ~ ' · ' ~ (record.openedAt | datetime('short')), url: url('back-in-stock/history/' ~ record.id) },
 ] %}
 
 {% block blockContent %}
@@ -15,7 +15,7 @@
     <div class="bis-page">
         <div class="bis-page-intro">
             <div class="bis-page-intro__copy">
-                <p class="bis-eyebrow">{{ 'Notification run #{id}' | t('craft-commerce-back-in-stock', {id: record.id}) }}</p>
+                <p class="bis-eyebrow">{{ 'Notification history' | t('craft-commerce-back-in-stock') }}</p>
                 <p class="bis-lead">{{ 'Opened {date}' | t('craft-commerce-back-in-stock', {date: record.openedAt | datetime('short')}) }}</p>
             </div>
             <span class="bis-status{{ runStatusTone }}"><pk-status status="{{ runStatus }}" aria-label="{{ record.status | ucfirst }}"></pk-status>{{ record.status | ucfirst }}</span>
@@ -25,10 +25,10 @@
             <div class="bis-run-hero__identity">
                 <div>
                     <p class="bis-eyebrow">{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</p>
-                    <h2>{% if run.variant %}<a href="{{ run.variant.cpEditUrl }}">{{ variantTitle }}</a>{% else %}{{ variantTitle }}{% endif %}</h2>
+                    <h2><a href="{{ url('back-in-stock/products/' ~ record.variantId) }}">{{ variantTitle }}</a></h2>
                     <p>{{ record.closedAt ? ('Closed {date}' | t('craft-commerce-back-in-stock', {date: record.closedAt | datetime('short')})) : ('Last evaluated {date}' | t('craft-commerce-back-in-stock', {date: record.lastEvaluatedAt | datetime('short')})) }}</p>
                 </div>
-                {% if run.variant %}<pk-button href="{{ run.variant.cpEditUrl }}" variant="outline" size="sm">{{ 'View product' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
+                {% if run.variant %}<pk-button href="{{ run.variant.cpEditUrl }}" variant="outline" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
             </div>
             <div class="bis-run-hero__facts">
                 <div class="bis-fact"><div class="bis-fact__label">{{ 'Observed stock' | t('craft-commerce-back-in-stock') }}</div><div class="bis-fact__value">{{ record.observedStock is null ? 'Unlimited' | t('craft-commerce-back-in-stock') : record.observedStock | number }}</div></div>

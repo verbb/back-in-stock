@@ -1,0 +1,26 @@
+{% set showProduct = showProduct ?? true %}
+
+{% if subscriptions %}
+    <div class="bis-table-shell"><table class="data fullwidth">
+        <thead><tr><th>{{ 'Subscriber' | t('craft-commerce-back-in-stock') }}</th>{% if showProduct %}<th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>{% endif %}<th>{{ 'State' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Locale' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Created' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
+        <tbody>{% for subscription in subscriptions %}
+            {% set stateLabel = subscription.state | kebab | replace({'-': ' '}) | title %}
+            {% set stateStatus = subscription.state == 'active' ? 'active' : (subscription.state == 'pendingVerification' ? 'pending' : (subscription.state == 'notified' ? 'enabled' : (subscription.state == 'expired' ? 'expired' : 'disabled'))) %}
+            <tr>
+                <th><div class="bis-primary-cell"><span class="bis-primary-cell__title">{{ subscription.email }}</span><span class="bis-primary-cell__meta">#{{ subscription.id }}</span></div></th>
+                {% if showProduct %}<td><a href="{{ url('back-in-stock/products/' ~ subscription.variantId) }}">{{ subscription.variant ? subscription.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: subscription.variantId})) }}</a></td>{% endif %}
+                <td><span class="bis-status{{ subscription.state in ['active', 'notified'] ? ' bis-status--success' : (subscription.state == 'pendingVerification' ? ' bis-status--warning') }}"><pk-status status="{{ stateStatus }}" aria-label="{{ stateLabel }}"></pk-status>{{ stateLabel }}</span></td>
+                <td>{{ subscription.locale ?: '—' }}</td>
+                <td>{{ subscription.dateCreated | datetime('short') }}</td>
+            </tr>
+        {% endfor %}</tbody>
+    </table></div>
+{% else %}
+    <div class="bis-empty">
+        <div>
+            <span class="bis-empty__icon"><pk-icon icon="magnifying-glass"></pk-icon></span>
+            <h3>{{ 'No matching subscriptions' | t('craft-commerce-back-in-stock') }}</h3>
+            <p>{{ 'Try another email address or lifecycle state.' | t('craft-commerce-back-in-stock') }}</p>
+        </div>
+    </div>
+{% endif %}
