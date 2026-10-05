@@ -5,57 +5,68 @@
 {% set crumbs = [{ label: title, url: url('back-in-stock/overview') }] %}
 
 {% block blockContent %}
-    {% set health = counts.failed ? 'error' : (counts.unknown ? 'warning' : 'healthy') %}
-    {% set healthIcon = counts.failed ? 'circle-exclamation' : (counts.unknown ? 'triangle-exclamation' : 'circle-check') %}
-    <div class="bis-page">
-        <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="bis-lead">{{ 'A current view of customer interest, subscription health, and anything that needs a closer look.' | t('craft-commerce-back-in-stock') }}</p></div></div>
+    <div class="bis-page bis-overview-page">
+        {% if counts.attention %}
+            <section class="bis-overview-alert bis-overview-alert--{{ counts.failed ? 'error' : 'warning' }}" aria-labelledby="bis-review-heading">
+                <span class="bis-overview-alert__icon" aria-hidden="true"><pk-icon icon="bis-notification-review"></pk-icon></span>
+                <div>
+                    <h2 id="bis-review-heading">{{ '{count, plural, =1{# notification needs review} other{# notifications need review}}' | t('craft-commerce-back-in-stock', {count: counts.attention}) }}</h2>
+                    <p>{% if counts.failed %}{{ '{count} failed to send.' | t('craft-commerce-back-in-stock', {count: counts.failed | number}) }} {% endif %}{% if counts.unknown %}{{ 'We couldn’t confirm sending for {count, plural, =1{# notification} other{# notifications}}.' | t('craft-commerce-back-in-stock', {count: counts.unknown}) }} {% endif %}{{ 'Recorded in the last 30 days.' | t('craft-commerce-back-in-stock') }}</p>
+                </div>
+                <pk-button variant="default" href="{{ url('back-in-stock/notifications/activity', {attention: 1}) }}">{{ 'Review notifications' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
+            </section>
+        {% endif %}
 
-        <section class="bis-health bis-health--{{ health }}">
-            <span class="bis-health__icon" aria-hidden="true"><pk-icon icon="{{ healthIcon }}"></pk-icon></span>
-            <div class="bis-health__copy">
-                <h2>{{ counts.attention ? ('{count, plural, =1{# delivery needs attention} other{# deliveries need attention}}' | t('craft-commerce-back-in-stock', {count: counts.attention})) : 'Notification delivery looks healthy' | t('craft-commerce-back-in-stock') }}</h2>
-                <p>{% if counts.failed and counts.unknown %}{{ '{failed} failed and {unknown} uncertain outcomes were recorded in the last 30 days.' | t('craft-commerce-back-in-stock', {failed: counts.failed, unknown: counts.unknown}) }}{% elseif counts.failed %}{{ '{count, plural, =1{# failed outcome was recorded in the last 30 days.} other{# failed outcomes were recorded in the last 30 days.}}' | t('craft-commerce-back-in-stock', {count: counts.failed}) }}{% elseif counts.unknown %}{{ '{count, plural, =1{# uncertain outcome was recorded in the last 30 days.} other{# uncertain outcomes were recorded in the last 30 days.}}' | t('craft-commerce-back-in-stock', {count: counts.unknown}) }}{% else %}{{ 'No failed or uncertain delivery outcomes were recorded in the last 30 days.' | t('craft-commerce-back-in-stock') }}{% endif %}</p>
-            </div>
-            {% if counts.attention %}<pk-button variant="default" size="sm" href="{{ url('back-in-stock/notifications/activity', {attention: 1}) }}">{{ 'Review issues' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
-        </section>
+        <div class="bis-overview">
+            <section class="bis-overview__section" aria-labelledby="bis-waiting-heading">
+                <div>
+                    <h2 id="bis-waiting-heading">{{ 'Products people are waiting for' | t('craft-commerce-back-in-stock') }}</h2>
+                    <p class="bis-overview__description">{{ '{requests} active requests across {products, plural, =1{# product variant} other{# product variants}}.' | t('craft-commerce-back-in-stock', {requests: counts.active | number, products: counts.products}) }}</p>
+                </div>
+                <ul class="bis-overview-list">
+                    {% for product in products | slice(0, 8) %}
+                        <li><a class="bis-overview-row bis-overview-product" href="{{ url('back-in-stock/products/' ~ product.variantId) }}">
+                            <div>
+                                {% set commerceProduct = product.variant ? product.variant.owner : null %}
+                                <span class="bis-overview-product__title">{{ commerceProduct ? commerceProduct.title : (product.variant ? product.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: product.variantId}))) }}{% if commerceProduct and product.variant.title != commerceProduct.title %} → {{ product.variant.title }}{% endif %}</span>
+                                <div class="bis-overview-product__meta bis-overview__meta">
+                                    {% if commerceProduct %}<span class="bis-overview-product__type">{{ commerceProduct.type.name | t('site') }}</span>{% endif %}
+                                    {% if product.variant and product.variant.sku %}<span class="bis-overview-product__sku">{{ product.variant.sku }}</span>{% endif %}
+                                </div>
+                            </div>
+                            <div class="bis-overview-product__count"><strong>{{ product.activeCount | number }}</strong><span>{{ 'waiting' | t('craft-commerce-back-in-stock') }}</span></div>
+                        </a></li>
+                    {% else %}
+                        <li class="bis-overview__empty">{{ 'Nobody is currently waiting for a product.' | t('craft-commerce-back-in-stock') }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="bis-overview__more"><pk-button variant="link" href="{{ url('back-in-stock/products', {demand: 'active'}) }}">{{ 'View all product activity' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
+            </section>
 
-        <div class="bis-summary">
-            {% set summaries = [
-                { label: 'Active subscriptions', count: counts.active, meta: 'Ready for a matching restock', href: url('back-in-stock/notifications', {state: 'active'}), icon: 'clock', tone: 'blue' },
-                { label: 'Products with active interest', count: counts.products, meta: 'Exact variants with customers waiting', href: url('back-in-stock/products', {demand: 'active'}), icon: 'eye', tone: 'purple' },
-                { label: 'Awaiting verification', count: counts.pending, meta: 'Waiting for subscriber confirmation', href: url('back-in-stock/notifications', {state: 'pendingVerification'}), icon: 'lock', tone: 'indigo' },
-            ] %}
-            {% for summary in summaries %}
-                <a class="bis-summary__item bis-summary__item--{{ summary.tone }}" href="{{ summary.href }}">
-                    <span class="bis-summary__icon" aria-hidden="true"><pk-icon icon="{{ summary.icon }}"></pk-icon></span>
-                    <span class="bis-summary__label">{{ summary.label | t('craft-commerce-back-in-stock') }}</span>
-                    <strong class="bis-summary__value">{{ summary.count | number }}</strong>
-                    <span class="bis-summary__meta">{{ summary.meta | t('craft-commerce-back-in-stock') }}</span>
-                    <span class="bis-summary__arrow" aria-hidden="true"><pk-icon icon="arrow-right"></pk-icon></span>
-                </a>
-            {% endfor %}
+            <section class="bis-overview__section" aria-labelledby="bis-activity-heading">
+                <div>
+                    <h2 id="bis-activity-heading">{{ 'Recent activity' | t('craft-commerce-back-in-stock') }}</h2>
+                    <p class="bis-overview__description">{{ 'Latest customer and notification events.' | t('craft-commerce-back-in-stock') }}</p>
+                </div>
+                <ul class="bis-overview-list bis-overview-activity">
+                    {% for item in activity | slice(0, 8) %}
+                        {% set tone = item.title == 'Customer subscribed' ? 'new' : (item.state == 'attention' ? 'error' : (item.state in ['pendingVerification', 'unconfirmed'] ? 'warning' : (item.state in ['active', 'notified', 'completed'] ? 'success' : 'neutral'))) %}
+                        {% set icon = item.title == 'Customer subscribed' ? 'bis-subscription-created' : (item.state in ['attention', 'unconfirmed'] ? 'bis-notification-review' : (item.state == 'pendingVerification' ? 'bis-verification-pending' : (item.state == 'active' ? 'bis-subscription-verified' : (item.state in ['notified', 'completed'] ? 'bis-notification-sent' : 'bis-activity')))) %}
+                        <li><a class="bis-overview-row bis-overview-event" href="{{ item.url }}">
+                            <span class="bis-overview-event__icon bis-overview-event__icon--{{ tone }}" aria-hidden="true"><pk-icon icon="{{ icon }}"></pk-icon></span>
+                            <div>
+                                <span class="bis-overview-event__title">{{ item.title | t('craft-commerce-back-in-stock') }}</span>
+                                {% set activityProduct = item.variant ? item.variant.owner : null %}
+                                <div class="bis-overview__meta">{{ activityProduct ? activityProduct.title : (item.variant ? item.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: item.variantId}))) }}{% if activityProduct and item.variant.title != activityProduct.title %} — {{ item.variant.title }}{% endif %}</div>
+                                <time class="bis-overview__meta" datetime="{{ item.occurredAt | date('c') }}" title="{{ item.occurredAt | datetime('short') }}">{{ craft.app.formatter.asRelativeTime(item.occurredAt) }}</time>
+                            </div>
+                        </a></li>
+                    {% else %}
+                        <li class="bis-overview__empty">{{ 'No activity yet.' | t('craft-commerce-back-in-stock') }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="bis-overview__more"><pk-button variant="link" href="{{ url('back-in-stock/notifications/activity') }}">{{ 'View all activity' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
+            </section>
         </div>
-
-        <section class="bis-overview-section bis-overview-section--interest">
-            <div class="bis-section-heading">
-                <div class="bis-section-heading__identity">
-                    <span class="bis-section-heading__icon" aria-hidden="true"><pk-icon icon="eye"></pk-icon></span>
-                    <div class="bis-section-heading__copy"><h2>{{ 'Products people are waiting for' | t('craft-commerce-back-in-stock') }}</h2><p>{{ 'The exact variants with active subscriptions, ranked by the number of customers waiting.' | t('craft-commerce-back-in-stock') }}</p></div>
-                </div>
-                <pk-button variant="default" size="sm" href="{{ url('back-in-stock/products', {demand: 'active'}) }}">{{ 'View all product activity' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
-            </div>
-            <div class="bis-section-body">{% include 'craft-commerce-back-in-stock/_includes/product-table' with { products: products, compact: true } %}</div>
-        </section>
-
-        <section class="bis-overview-section bis-overview-section--activity">
-            <div class="bis-section-heading">
-                <div class="bis-section-heading__identity">
-                    <span class="bis-section-heading__icon" aria-hidden="true"><pk-icon icon="clock"></pk-icon></span>
-                    <div class="bis-section-heading__copy"><h2>{{ 'Recent activity' | t('craft-commerce-back-in-stock') }}</h2><p>{{ 'The latest subscription changes and notification runs across the store.' | t('craft-commerce-back-in-stock') }}</p></div>
-                </div>
-                <pk-button variant="default" size="sm" href="{{ url('back-in-stock/notifications/activity') }}">{{ 'View all activity' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
-            </div>
-            <div class="bis-section-body">{% include 'craft-commerce-back-in-stock/_includes/activity-table' with { activity: activity } %}</div>
-        </section>
     </div>
 {% endblock %}

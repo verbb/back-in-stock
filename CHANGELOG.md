@@ -11,7 +11,10 @@
 - Added the `craft craft-commerce-back-in-stock/reconcile` command for periodic availability and lifecycle reconciliation.
 
 ### Changed
-- Redesigned the control-panel experience around a health-focused Overview and a central Notifications workspace, with native Subscriptions and Activity tabs, supporting product-interest drill-downs, compatibility redirects, consistent Plugin Kit controls, meaningful breadcrumbs, actionable summaries, dynamic delivery-health indicators, restrained icon and colour cues, and Craft-native tables, statuses, typography and empty states.
+- Changed Product Activity into a sidebar destination with clickable variant cards, a native Craft product-type sidebar outside the content pane, product/variant/SKU search, sorting, Craft-native footer pagination with 100 items per page, and element-style variant detail pages with stable Commerce identity in Craft's details sidebar plus paginated Subscriptions and Activity tabs.
+- Simplified subscription tables to show normal-weight email addresses without internal record IDs, label subscription dates clearly, and show the Craft site instead of raw locale codes only when multiple sites exist.
+- Simplified product-scoped Activity tables by removing the repeated product column and limiting event links to notification runs with an actual detail view.
+- Redesigned the control-panel experience around an Overview of customer interest and recent activity, with eight-item whole-row product and activity previews, compact product-type and SKU metadata, relative timestamps, conditional notification-review alerts, a central Notifications workspace, native Subscriptions and Activity tabs, supporting product-interest drill-downs, compatibility redirects, consistent Plugin Kit controls, meaningful breadcrumbs, restrained outline icons and semantic colours, and Craft-native tables, statuses, typography and empty states.
 - Changed stock updates to enqueue demand-led availability evaluation after Commerce has committed inventory changes.
 - Changed fresh installs to stock-matched notifications by default; upgrades retain the existing notify-everyone behaviour.
 - Changed successful, failed, cancelled and uncertain deliveries to be recorded as explicit outcomes.
@@ -22,6 +25,9 @@
 - Deprecated immediate post-delivery purging through `purgeRequests` in favour of bounded `historyRetention`; the existing setting remains functional throughout 4.x.
 
 ### Fixed
+- Fixed long product names and SKUs overflowing the Overview layout.
+- Fixed activity labels exposing internal notification-run states or implying sending had completed before confirmed hand-off.
+- Fixed notification-review button contrast on coloured Overview alerts.
 - Fixed Products and the current control-panel destination both appearing selected in the sidebar.
 - Fixed upgraded subscriptions retaining a legacy identity hash that differed from new canonical subscriptions.
 - Fixed a medium-severity improper control of interaction frequency vulnerability.

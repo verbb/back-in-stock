@@ -38,8 +38,8 @@ class DashboardController extends Controller
 
         return $this->renderTemplate('craft-commerce-back-in-stock/overview', [
             'counts' => $counts,
-            'products' => $this->_productRows(true, 0, 6),
-            'activity' => $this->_activityData(1, 6)['entries'],
+            'products' => $this->_productRows(true, 0, 8),
+            'activity' => $this->_activityData(1, 8)['entries'],
         ]);
     }
 
@@ -47,138 +47,30 @@ class DashboardController extends Controller
     {
         $this->_requireDashboardAccess();
         $page = max(1, (int)$this->request->getQueryParam('page', 1));
-        $demand = $this->request->getQueryParam('demand') === 'active' ? 'active' : null;
-        $totalQuery = (new Query())
-            ->select(new Expression('COUNT(DISTINCT [[variantId]])'))
-            ->from(Subscription::tableName());
-        $demandQuery = (new Query())
-            ->select([
-                'variantId',
-                'totalCount' => new Expression('COUNT([[id]])'),
-                'activeCount' => new Expression('SUM(CASE WHEN [[state]] = :active THEN 1 ELSE 0 END)', [':active' => SubscriptionModel::STATE_ACTIVE]),
-                'oldestActiveAt' => new Expression('MIN(CASE WHEN [[state]] = :oldestActive THEN [[dateCreated]] END)', [':oldestActive' => SubscriptionModel::STATE_ACTIVE]),
-                'lastSubscriptionAt' => new Expression('MAX([[dateCreated]])'),
-                'lastNotifiedAt' => new Expression('MAX([[notifiedAt]])'),
-            ])
-            ->from(Subscription::tableName())
-            ->groupBy(['variantId'])
-            ->orderBy(['activeCount' => SORT_DESC, 'lastSubscriptionAt' => SORT_DESC]);
+        $demand = $this->request->getQueryParam('demand', 'active');
+        $demand = in_array($demand, ['active', 'past', 'all'], true) ? $demand : 'active';
+        $search = trim((string)$this->request->getQueryParam('search', ''));
+        $typeId = max(0, (int)$this->request->getQueryParam('productType', 0));
+        $sort = $this->request->getQueryParam('sort') === 'recent' ? 'recent' : 'waiting';
+        $data = $this->_productActivityData($demand, $search, $typeId, $sort, $page);
 
-        if ($demand === 'active') {
-            $totalQuery->where(['state' => SubscriptionModel::STATE_ACTIVE]);
-            $activeVariantQuery = (new Query())
-                ->select(['variantId'])
-                ->from(Subscription::tableName())
-                ->where(['state' => SubscriptionModel::STATE_ACTIVE]);
-            $demandQuery->andWhere(['in', 'variantId', $activeVariantQuery]);
-        }
-
-        $total = (int)$totalQuery->scalar();
-        $demandRows = $demandQuery
-            ->offset(($page - 1) * self::PAGE_SIZE)
-            ->limit(self::PAGE_SIZE)
-            ->all();
-        $variantIds = array_map(fn(array $row) => (int)$row['variantId'], $demandRows);
-        $variants = $this->_variantsById($variantIds);
-        $runRows = $variantIds ? (new Query())
-            ->select([
-                'variantId',
-                'failedTotal' => new Expression('SUM([[failedCount]])'),
-                'unknownTotal' => new Expression('SUM([[unknownCount]])'),
-            ])
-            ->from(RestockRun::tableName())
-            ->where(['variantId' => $variantIds])
-            ->groupBy(['variantId'])
-            ->indexBy('variantId')
-            ->all() : [];
-        $products = array_map(function(array $row) use ($variants, $runRows) {
-            $variantId = (int)$row['variantId'];
-            $failedCount = (int)($runRows[$variantId]['failedTotal'] ?? 0);
-            $unknownCount = (int)($runRows[$variantId]['unknownTotal'] ?? 0);
-
-            return [
-                'variantId' => $variantId,
-                'variant' => $variants[$variantId] ?? null,
-                'totalCount' => (int)$row['totalCount'],
-                'activeCount' => (int)$row['activeCount'],
-                'oldestActiveAt' => $row['oldestActiveAt'],
-                'lastSubscriptionAt' => $row['lastSubscriptionAt'],
-                'lastNotifiedAt' => $row['lastNotifiedAt'],
-                'failedCount' => $failedCount,
-                'unknownCount' => $unknownCount,
-                'problemCount' => $failedCount + $unknownCount,
-            ];
-        }, $demandRows);
-
-        return $this->renderTemplate('craft-commerce-back-in-stock/products', [
-            'counts' => $this->_dashboardCounts(),
-            'products' => $products,
+        return $this->renderTemplate('craft-commerce-back-in-stock/products', $data + [
             'demand' => $demand,
-            'page' => $page,
-            'pageCount' => max(1, (int)ceil($total / self::PAGE_SIZE)),
-            'total' => $total,
+            'search' => $search,
+            'productType' => $typeId,
+            'sort' => $sort,
+            'productTypes' => \craft\commerce\Plugin::getInstance()->getProductTypes()->getAllProductTypes(),
         ]);
     }
 
     public function actionProduct(int $variantId): Response
     {
-        $this->_requireDashboardAccess();
-        $variant = $this->_variantsById([$variantId])[$variantId] ?? null;
-        $hasSubscriptions = Subscription::find()->where(['variantId' => $variantId])->exists();
-        $hasHistory = RestockRun::find()->where(['variantId' => $variantId])->exists();
+        return $this->_productDetailResponse($variantId, 'subscriptions');
+    }
 
-        if (!$variant && !$hasSubscriptions && !$hasHistory) {
-            throw new NotFoundHttpException(Craft::t('craft-commerce-back-in-stock', 'Product demand not found.'));
-        }
-
-        $stateRows = (new Query())
-            ->select(['state', 'count' => new Expression('COUNT([[id]])')])
-            ->from(Subscription::tableName())
-            ->where(['variantId' => $variantId])
-            ->groupBy(['state'])
-            ->indexBy('state')
-            ->all();
-        $counts = [
-            'pendingVerification' => 0,
-            'active' => 0,
-            'notified' => 0,
-            'cancelled' => 0,
-            'expired' => 0,
-        ];
-
-        foreach ($stateRows as $state => $row) {
-            $counts[$state] = (int)$row['count'];
-        }
-
-        $counts['total'] = array_sum($counts);
-        $issueCounts = (new Query())
-            ->select([
-                'failed' => new Expression('SUM([[failedCount]])'),
-                'unknown' => new Expression('SUM([[unknownCount]])'),
-            ])
-            ->from(RestockRun::tableName())
-            ->where(['variantId' => $variantId])
-            ->one();
-        $counts['failed'] = (int)($issueCounts['failed'] ?? 0);
-        $counts['unknown'] = (int)($issueCounts['unknown'] ?? 0);
-        $counts['attention'] = $counts['failed'] + $counts['unknown'];
-        $oldestActiveAt = Subscription::find()
-            ->where(['variantId' => $variantId, 'state' => SubscriptionModel::STATE_ACTIVE])
-            ->min('dateCreated');
-        $recentSubscriptions = Subscription::find()
-            ->where(['variantId' => $variantId])
-            ->orderBy(['dateCreated' => SORT_DESC])
-            ->limit(10)
-            ->all();
-        return $this->renderTemplate('craft-commerce-back-in-stock/product-detail', [
-            'variantId' => $variantId,
-            'variant' => $variant,
-            'counts' => $counts,
-            'oldestActiveAt' => $oldestActiveAt,
-            'subscriptions' => $this->_decorateSubscriptions($recentSubscriptions),
-            'activity' => $this->_activityData(1, 10, $variantId)['entries'],
-            'lastNotifiedAt' => Subscription::find()->where(['variantId' => $variantId])->max('notifiedAt'),
-        ]);
+    public function actionProductActivity(int $variantId): Response
+    {
+        return $this->_productDetailResponse($variantId, 'activity');
     }
 
     public function actionNotifications(): Response
@@ -287,10 +179,161 @@ class DashboardController extends Controller
     // Private Methods
     // =========================================================================
 
+    private function _productDetailResponse(int $variantId, string $selectedTab): Response
+    {
+        $this->_requireDashboardAccess();
+        $variant = $this->_variantsById([$variantId])[$variantId] ?? null;
+        $hasSubscriptions = Subscription::find()->where(['variantId' => $variantId])->exists();
+        $hasHistory = RestockRun::find()->where(['variantId' => $variantId])->exists();
+
+        if (!$variant && !$hasSubscriptions && !$hasHistory) {
+            throw new NotFoundHttpException(Craft::t('craft-commerce-back-in-stock', 'Product demand not found.'));
+        }
+
+        $page = max(1, (int)$this->request->getQueryParam('page', 1));
+        $state = null;
+        $search = '';
+        $type = null;
+        $attention = false;
+        $subscriptions = [];
+        $activityEntries = [];
+
+        if ($selectedTab === 'subscriptions') {
+            $state = $this->request->getQueryParam('state');
+            $search = trim((string)$this->request->getQueryParam('search'));
+            $query = Subscription::find()
+                ->where(['variantId' => $variantId])
+                ->orderBy(['dateCreated' => SORT_DESC]);
+
+            if (is_string($state) && in_array($state, [SubscriptionModel::STATE_PENDING_VERIFICATION, SubscriptionModel::STATE_ACTIVE, SubscriptionModel::STATE_NOTIFIED, SubscriptionModel::STATE_CANCELLED, SubscriptionModel::STATE_EXPIRED], true)) {
+                $query->andWhere(['state' => $state]);
+            } else {
+                $state = null;
+            }
+
+            if ($search !== '') {
+                $like = Craft::$app->getDb()->getIsPgsql() ? 'ILIKE' : 'LIKE';
+                $query->andWhere([$like, 'email', '%' . str_replace(' ', '%', $search) . '%', false]);
+            }
+
+            $total = (int)$query->count();
+            $subscriptions = $this->_decorateSubscriptions($query
+                ->offset(($page - 1) * self::PAGE_SIZE)
+                ->limit(self::PAGE_SIZE)
+                ->all());
+        } else {
+            $type = (string)$this->request->getQueryParam('type');
+            $type = in_array($type, ['subscription', 'notification'], true) ? $type : null;
+            $attention = (bool)$this->request->getQueryParam('attention');
+            $activity = $this->_activityData($page, self::PAGE_SIZE, $variantId, $type, $attention);
+            $activityEntries = $activity['entries'];
+            $total = $activity['total'];
+        }
+
+        return $this->renderTemplate('craft-commerce-back-in-stock/product-detail', [
+            'variantId' => $variantId,
+            'variant' => $variant,
+            'selectedTab' => $selectedTab,
+            'subscriptions' => $subscriptions,
+            'activity' => $activityEntries,
+            'state' => $state,
+            'search' => $search,
+            'type' => $type,
+            'attention' => $attention,
+            'page' => $page,
+            'pageCount' => max(1, (int)ceil($total / self::PAGE_SIZE)),
+            'pageSize' => self::PAGE_SIZE,
+            'total' => $total,
+        ]);
+    }
+
     private function _requireDashboardAccess(): void
     {
         $this->requireCpRequest();
         $this->requirePermission('accessPlugin-craft-commerce-back-in-stock');
+    }
+
+    private function _productActivityData(string $demand, string $search, int $typeId, string $sort, int $page, int $pageSize = 100): array
+    {
+        $totalQuery = (new Query())
+            ->select(new Expression('COUNT(DISTINCT [[variantId]])'))
+            ->from(Subscription::tableName());
+        $demandQuery = (new Query())
+            ->select([
+                'variantId',
+                'totalCount' => new Expression('COUNT([[id]])'),
+                'activeCount' => new Expression('SUM(CASE WHEN [[state]] = :active THEN 1 ELSE 0 END)', [':active' => SubscriptionModel::STATE_ACTIVE]),
+                'oldestActiveAt' => new Expression('MIN(CASE WHEN [[state]] = :oldestActive THEN [[dateCreated]] END)', [':oldestActive' => SubscriptionModel::STATE_ACTIVE]),
+                'lastSubscriptionAt' => new Expression('MAX([[dateCreated]])'),
+                'lastNotifiedAt' => new Expression('MAX([[notifiedAt]])'),
+            ])
+            ->from(Subscription::tableName())
+            ->groupBy(['variantId'])
+            ->orderBy(['activeCount' => SORT_DESC, 'lastSubscriptionAt' => SORT_DESC]);
+
+        if ($demand === 'active') {
+            $totalQuery->where(['state' => SubscriptionModel::STATE_ACTIVE]);
+            $activeVariantQuery = (new Query())
+                ->select(['variantId'])
+                ->from(Subscription::tableName())
+                ->where(['state' => SubscriptionModel::STATE_ACTIVE]);
+            $demandQuery->andWhere(['in', 'variantId', $activeVariantQuery]);
+        }
+
+        if ($demand === 'past') {
+            $activeVariants = (new Query())->select('variantId')->from(Subscription::tableName())->where(['state' => SubscriptionModel::STATE_ACTIVE]);
+            $totalQuery->andWhere(['not in', 'variantId', $activeVariants]);
+            $demandQuery->andWhere(['not in', 'variantId', $activeVariants]);
+        }
+
+        // Filter variants with SQL subqueries rather than materialising the catalogue
+        // or filtering an already-paginated list. Site-title joins are deduplicated.
+        if ($search !== '' || $typeId) {
+            $matchingVariants = (new Query())
+                ->select('v.id')->distinct()
+                ->from(['v' => '{{%commerce_variants}}'])
+                ->innerJoin(['p' => '{{%commerce_products}}'], '[[p.id]] = [[v.primaryOwnerId]]')
+                ->innerJoin(['purchasable' => '{{%commerce_purchasables}}'], '[[purchasable.id]] = [[v.id]]')
+                ->leftJoin(['vt' => '{{%elements_sites}}'], '[[vt.elementId]] = [[v.id]]')
+                ->leftJoin(['pt' => '{{%elements_sites}}'], '[[pt.elementId]] = [[p.id]]');
+
+            if ($typeId) {
+                $matchingVariants->andWhere(['p.typeId' => $typeId]);
+            }
+
+            if ($search !== '') {
+                $matchingVariants->andWhere(['or', ['like', 'vt.title', $search], ['like', 'pt.title', $search], ['like', 'purchasable.sku', $search]]);
+            }
+
+            $totalQuery->andWhere(['in', 'variantId', $matchingVariants]);
+            $demandQuery->andWhere(['in', 'variantId', $matchingVariants]);
+        }
+
+        $demandQuery->orderBy($sort === 'recent' ? ['lastSubscriptionAt' => SORT_DESC, 'variantId' => SORT_ASC] : ['activeCount' => SORT_DESC, 'lastSubscriptionAt' => SORT_DESC, 'variantId' => SORT_ASC]);
+
+        $total = (int)$totalQuery->scalar();
+        $pageSize = max(1, $pageSize);
+        $pageCount = max(1, (int)ceil($total / $pageSize));
+        $page = min(max(1, $page), $pageCount);
+        $demandRows = $demandQuery
+            ->offset(($page - 1) * $pageSize)
+            ->limit($pageSize)
+            ->all();
+        $variantIds = array_map(fn(array $row) => (int)$row['variantId'], $demandRows);
+        $variants = $this->_variantsById($variantIds);
+        $products = array_map(fn(array $row) => [
+            'variantId' => (int)$row['variantId'],
+            'variant' => $variants[(int)$row['variantId']] ?? null,
+            'activeCount' => (int)$row['activeCount'],
+        ], $demandRows);
+
+        return [
+            'products' => $products,
+            'page' => $page,
+            'pageCount' => $pageCount,
+            'pageSize' => $pageSize,
+            'total' => $total,
+        ];
     }
 
     private function _dashboardCounts(): array
@@ -401,14 +444,14 @@ class DashboardController extends Controller
 
         foreach ($subscriptions as $subscription) {
             $subscriptionEvents = [[
-                'title' => $subscription->state === SubscriptionModel::STATE_PENDING_VERIFICATION ? 'Awaiting verification' : 'Subscription created',
+                'title' => $subscription->state === SubscriptionModel::STATE_PENDING_VERIFICATION ? 'Confirmation requested' : 'Customer subscribed',
                 'state' => $subscription->state === SubscriptionModel::STATE_PENDING_VERIFICATION ? SubscriptionModel::STATE_PENDING_VERIFICATION : SubscriptionModel::STATE_ACTIVE,
                 'occurredAt' => $subscription->dateCreated,
             ]];
 
             foreach ([
-                'verifiedAt' => ['Subscription verified', SubscriptionModel::STATE_ACTIVE],
-                'notifiedAt' => ['Subscriber notified', SubscriptionModel::STATE_NOTIFIED],
+                'verifiedAt' => ['Subscription confirmed', SubscriptionModel::STATE_ACTIVE],
+                'notifiedAt' => ['Notification sent', SubscriptionModel::STATE_NOTIFIED],
                 'cancelledAt' => ['Subscription cancelled', SubscriptionModel::STATE_CANCELLED],
                 'expiredAt' => ['Subscription expired', SubscriptionModel::STATE_EXPIRED],
             ] as $timestamp => [$title, $state]) {
@@ -430,21 +473,22 @@ class DashboardController extends Controller
                     'variantId' => $subscription->variantId,
                     'variant' => $variants[$subscription->variantId] ?? null,
                     'occurredAt' => $subscriptionEvent['occurredAt'],
-                    'url' => UrlHelper::cpUrl('back-in-stock/notifications', ['variantId' => $subscription->variantId]),
+                    'url' => null,
                 ];
             }
         }
 
         foreach ($runs as $run) {
+            $presentation = $this->_notificationActivityPresentation($run);
             $entries[] = [
                 'kind' => 'notification',
-                'title' => 'Notification run ' . $run->status,
+                'title' => $presentation['title'],
                 'detail' => Craft::t('craft-commerce-back-in-stock', '{sent} sent · {selected} of {eligible} selected', [
                     'sent' => $run->sentCount,
                     'selected' => $run->selectedCount,
                     'eligible' => $run->eligibleCount,
                 ]),
-                'state' => ($run->failedCount || $run->unknownCount) ? 'attention' : $run->status,
+                'state' => $presentation['state'],
                 'variantId' => $run->variantId,
                 'variant' => $variants[$run->variantId] ?? null,
                 'occurredAt' => $run->openedAt,
@@ -458,6 +502,42 @@ class DashboardController extends Controller
             'entries' => array_slice($entries, ($page - 1) * $pageSize, $pageSize),
             'total' => $subscriptionTotal + $runTotal,
         ];
+    }
+
+    private function _notificationActivityPresentation(RestockRun $run): array
+    {
+        // Selection completion is not delivery completion. Only confirmed hand-offs
+        // earn a sent label; ambiguous results remain warnings rather than failures.
+        if ($run->failedCount) {
+            return [
+                'title' => $run->unknownCount ? 'Notifications need review' : ($run->sentCount ? 'Some notifications failed to send' : 'Notifications failed to send'),
+                'state' => 'attention',
+            ];
+        }
+
+        if ($run->unknownCount) {
+            return ['title' => 'Notification sending unconfirmed', 'state' => 'unconfirmed'];
+        }
+
+        $finishedCount = (int)$run->sentCount + (int)$run->cancelledCount;
+
+        if ((int)$run->selectedCount > $finishedCount) {
+            return ['title' => 'Notifications in progress', 'state' => 'open'];
+        }
+
+        if ($run->cancelledCount) {
+            return ['title' => $run->sentCount ? 'Notification sending finished' : 'Notifications cancelled', 'state' => 'closed'];
+        }
+
+        if ($run->sentCount) {
+            return ['title' => 'Notifications sent', 'state' => 'completed'];
+        }
+
+        if (!(int)$run->eligibleCount) {
+            return ['title' => 'No subscribers to notify', 'state' => 'closed'];
+        }
+
+        return ['title' => $run->status === 'closed' ? 'Notification sending stopped' : 'Waiting for available stock', 'state' => 'closed'];
     }
 
     private function _decorateSubscriptions(array $subscriptions): array

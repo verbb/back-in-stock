@@ -1,39 +1,83 @@
 {% extends 'craft-commerce-back-in-stock/_layouts' %}
 
 {% set variantTitle = variant ? variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: variantId})) %}
+{% set commerceProduct = variant ? variant.owner : null %}
 {% set title = variantTitle %}
-{% set selectedSubnavItem = 'overview' %}
+{% set selectedSubnavItem = 'products' %}
+{% set selectedTab = selectedTab ?? 'subscriptions' %}
+{% set tabs = {
+    subscriptions: { label: 'Subscriptions' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products/' ~ variantId) },
+    activity: { label: 'Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products/' ~ variantId ~ '/activity') },
+} %}
 {% set crumbs = [
-    { label: 'Overview' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/overview') },
-    { label: 'Product activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
+    { label: 'Product Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
     { label: variantTitle, url: url('back-in-stock/products/' ~ variantId) },
 ] %}
 
+{% block details %}
+    <div class="meta read-only">
+        <div class="data">
+            <h5 class="heading">{{ 'Product' | t('craft-commerce-back-in-stock') }}</h5>
+            <div class="value">{% if commerceProduct %}<a href="{{ commerceProduct.cpEditUrl }}">{{ commerceProduct.title }}</a>{% else %}—{% endif %}</div>
+        </div>
+        {% if commerceProduct and variantTitle != commerceProduct.title %}
+            <div class="data">
+                <h5 class="heading">{{ 'Variant' | t('craft-commerce-back-in-stock') }}</h5>
+                <div class="value">{{ variantTitle }}</div>
+            </div>
+        {% endif %}
+        <div class="data">
+            <h5 class="heading">{{ 'Product Type' | t('craft-commerce-back-in-stock') }}</h5>
+            <div class="value">{{ commerceProduct ? commerceProduct.type.name | t('site') : '—' }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'SKU' | t('craft-commerce-back-in-stock') }}</h5>
+            <div class="value"><code>{{ variant and variant.sku ? variant.sku : '—' }}</code></div>
+        </div>
+    </div>
+
+{% endblock %}
+
 {% block blockContent %}
     <div class="bis-page">
-        <div class="bis-page-intro">
-            <div class="bis-page-intro__copy"><p class="light">{{ 'Product activity' | t('craft-commerce-back-in-stock') }}</p><p class="bis-lead">{{ 'Who is waiting for this exact variant and what has happened since they subscribed.' | t('craft-commerce-back-in-stock') }}</p></div>
-            {% if variant %}<pk-button href="{{ variant.cpEditUrl }}" variant="default" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
-        </div>
+        {% if selectedTab == 'subscriptions' %}
+            <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="bis-lead">{{ 'Find the people who asked to be notified about this exact variant and check the current state of each request.' | t('craft-commerce-back-in-stock') }}</p></div></div>
 
-        <section class="bis-product-summary">
-            <div class="bis-product-summary__primary"><span class="bis-product-summary__label">{{ 'Customers waiting now' | t('craft-commerce-back-in-stock') }}</span><strong>{{ counts.active | number }}</strong><a class="go" href="{{ url('back-in-stock/notifications', {variantId: variantId, state: 'active'}) }}">{{ 'View active subscriptions' | t('craft-commerce-back-in-stock') }}</a></div>
-            <div class="bis-product-summary__facts">
-                <div class="bis-fact"><div class="bis-fact__label">{{ 'Oldest request' | t('craft-commerce-back-in-stock') }}</div><div class="bis-fact__value">{{ oldestActiveAt ? oldestActiveAt | datetime('short') : '—' }}</div></div>
-                <div class="bis-fact"><div class="bis-fact__label">{{ 'All-time subscriptions' | t('craft-commerce-back-in-stock') }}</div><div class="bis-fact__value">{{ counts.total | number }}</div></div>
-                <div class="bis-fact"><div class="bis-fact__label">{{ 'Last notification' | t('craft-commerce-back-in-stock') }}</div><div class="bis-fact__value">{{ lastNotifiedAt ? lastNotifiedAt | datetime('short') : '—' }}</div></div>
-                <div class="bis-fact"><div class="bis-fact__label">{{ 'Delivery issues' | t('craft-commerce-back-in-stock') }}</div><div class="bis-fact__value">{% if counts.attention %}<a href="{{ url('back-in-stock/notifications/activity', {variantId: variantId, attention: 1}) }}">{{ counts.attention | number }} {{ 'to review' | t('craft-commerce-back-in-stock') }}</a>{% else %}{{ 'None' | t('craft-commerce-back-in-stock') }}{% endif %}</div></div>
+            <form method="get" class="bis-filterbar">
+                <pk-input name="search" value="{{ search }}" placeholder="{{ 'Search email addresses' | t('craft-commerce-back-in-stock') }}" aria-label="{{ 'Search email addresses' | t('craft-commerce-back-in-stock') }}" with-clear><pk-icon slot="start" icon="magnifying-glass"></pk-icon></pk-input>
+                <pk-select name="state" value="{{ state ?? '' }}" aria-label="{{ 'Filter by state' | t('craft-commerce-back-in-stock') }}" width="full"><pk-option value="">{{ 'All states' | t('craft-commerce-back-in-stock') }}</pk-option>{% for value, label in { pendingVerification: 'Pending verification', active: 'Active', notified: 'Notified', cancelled: 'Cancelled', expired: 'Expired' } %}<pk-option value="{{ value }}">{{ label | t('craft-commerce-back-in-stock') }}</pk-option>{% endfor %}</pk-select>
+                <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filters' | t('craft-commerce-back-in-stock') }}</pk-button>{% if search or state %}<pk-button href="{{ url('back-in-stock/products/' ~ variantId) }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
+            </form>
+
+            {% include 'craft-commerce-back-in-stock/_includes/subscription-table' with { subscriptions: subscriptions, showProduct: false } %}
+            <div class="bis-report-footer">
+                {% include '_includes/pagination' with {pageInfo: {
+                    first: total ? ((page - 1) * pageSize + 1) : 0,
+                    last: min(page * pageSize, total),
+                    total: total,
+                    prevUrl: page > 1 ? url('back-in-stock/products/' ~ variantId, {search: search, state: state, page: page - 1}) : null,
+                    nextUrl: page < pageCount ? url('back-in-stock/products/' ~ variantId, {search: search, state: state, page: page + 1}) : null,
+                }, itemLabel: 'subscription' | t('craft-commerce-back-in-stock'), itemsLabel: 'subscriptions' | t('craft-commerce-back-in-stock')} %}
             </div>
-        </section>
+        {% else %}
+            <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="bis-lead">{{ 'Follow subscription changes and notification runs for this exact variant.' | t('craft-commerce-back-in-stock') }}</p></div></div>
 
-        <section>
-            <div class="bis-section-heading"><div class="bis-section-heading__copy"><h2>{{ 'Recent subscriptions' | t('craft-commerce-back-in-stock') }}</h2><p>{{ 'The latest current and historical requests for this variant.' | t('craft-commerce-back-in-stock') }}</p></div><pk-button variant="default" size="sm" href="{{ url('back-in-stock/notifications', {variantId: variantId}) }}">{{ 'View all subscriptions' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
-            <div class="bis-section-body">{% include 'craft-commerce-back-in-stock/_includes/subscription-table' with { subscriptions: subscriptions, showProduct: false } %}</div>
-        </section>
+            <form method="get" class="bis-filterbar bis-filterbar--compact">
+                <pk-select name="type" value="{{ type ?? '' }}" aria-label="{{ 'Filter by activity type' | t('craft-commerce-back-in-stock') }}" width="full"><pk-option value="">{{ 'All activity' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="subscription">{{ 'Subscription changes' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="notification">{{ 'Notification sending' | t('craft-commerce-back-in-stock') }}</pk-option></pk-select>
+                <pk-select name="attention" value="{{ attention ? '1' : '' }}" aria-label="{{ 'Filter by review state' | t('craft-commerce-back-in-stock') }}" width="full"><pk-option value="">{{ 'All review states' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="1">{{ 'Needs review' | t('craft-commerce-back-in-stock') }}</pk-option></pk-select>
+                <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filters' | t('craft-commerce-back-in-stock') }}</pk-button>{% if type or attention %}<pk-button href="{{ url('back-in-stock/products/' ~ variantId ~ '/activity') }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
+            </form>
 
-        <section>
-            <div class="bis-section-heading"><div class="bis-section-heading__copy"><h2>{{ 'Recent activity' | t('craft-commerce-back-in-stock') }}</h2><p>{{ 'Subscription changes and notification runs for this variant.' | t('craft-commerce-back-in-stock') }}</p></div><pk-button variant="default" size="sm" href="{{ url('back-in-stock/notifications/activity', {variantId: variantId}) }}">{{ 'View all activity' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
-            <div class="bis-section-body">{% include 'craft-commerce-back-in-stock/_includes/activity-table' with { activity: activity } %}</div>
-        </section>
+            {% include 'craft-commerce-back-in-stock/_includes/activity-table' with { activity: activity, showProduct: false } %}
+            <div class="bis-report-footer">
+                {% include '_includes/pagination' with {pageInfo: {
+                    first: total ? ((page - 1) * pageSize + 1) : 0,
+                    last: min(page * pageSize, total),
+                    total: total,
+                    prevUrl: page > 1 ? url('back-in-stock/products/' ~ variantId ~ '/activity', {type: type, attention: attention ? 1 : null, page: page - 1}) : null,
+                    nextUrl: page < pageCount ? url('back-in-stock/products/' ~ variantId ~ '/activity', {type: type, attention: attention ? 1 : null, page: page + 1}) : null,
+                }, itemLabel: 'lifecycle event' | t('craft-commerce-back-in-stock'), itemsLabel: 'lifecycle events' | t('craft-commerce-back-in-stock')} %}
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

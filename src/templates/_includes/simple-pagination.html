@@ -3,5 +3,5 @@
         <div>{% if page > 1 %}<pk-button variant="outline" size="sm" href="{{ url(route, params | merge({page: page - 1})) }}"><pk-icon slot="start" icon="arrow-left"></pk-icon>{{ 'Previous' | t('app') }}</pk-button>{% endif %}</div>
         <div class="bis-pagination__label">{{ 'Page {page} of {pages}' | t('craft-commerce-back-in-stock', {page: page, pages: pageCount}) }}</div>
         <div class="bis-pagination__next">{% if page < pageCount %}<pk-button variant="outline" size="sm" href="{{ url(route, params | merge({page: page + 1})) }}">{{ 'Next' | t('app') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}</div>
-    </div>
+    </nav>
 {% endif %}

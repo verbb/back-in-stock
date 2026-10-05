@@ -79,6 +79,10 @@ class BackInStock extends Plugin
                 'label' => Craft::t('craft-commerce-back-in-stock', 'Overview'),
                 'url' => 'back-in-stock/overview',
             ];
+            $nav['subnav']['products'] = [
+                'label' => Craft::t('craft-commerce-back-in-stock', 'Product Activity'),
+                'url' => 'back-in-stock/products',
+            ];
             $nav['subnav']['notifications'] = [
                 'label' => Craft::t('craft-commerce-back-in-stock', 'Notifications'),
                 'url' => 'back-in-stock/notifications',
@@ -119,6 +123,7 @@ class BackInStock extends Plugin
             $event->rules['back-in-stock'] = 'craft-commerce-back-in-stock/dashboard/overview';
             $event->rules['back-in-stock/overview'] = 'craft-commerce-back-in-stock/dashboard/overview';
             $event->rules['back-in-stock/products'] = 'craft-commerce-back-in-stock/dashboard/products';
+            $event->rules['back-in-stock/products/<variantId:\d+>/activity'] = 'craft-commerce-back-in-stock/dashboard/product-activity';
             $event->rules['back-in-stock/products/<variantId:\d+>'] = 'craft-commerce-back-in-stock/dashboard/product';
             $event->rules['back-in-stock/subscriptions'] = 'craft-commerce-back-in-stock/dashboard/subscriptions';
             $event->rules['back-in-stock/history'] = 'craft-commerce-back-in-stock/dashboard/history';

@@ -1,4 +1,5 @@
 import '@verbb/plugin-kit-web/plugin-kit.css';
+import { activityIcons } from './activityIcons';
 
 import { PkButton } from '@verbb/plugin-kit-web/components/button/pk-button.js';
 import { PkIcon } from '@verbb/plugin-kit-web/components/icon/pk-icon.js';
@@ -20,6 +21,7 @@ import {
 } from '@verbb/plugin-kit-icons';
 
 registerIcons({
+    ...activityIcons,
     arrowLeft,
     arrowRight,
     circleCheck,

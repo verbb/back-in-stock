@@ -1,16 +1,18 @@
 {% set showProduct = showProduct ?? true %}
+{% set showSite = craft.app.sites.getAllSites() | length > 1 %}
 
 {% if subscriptions %}
     <div class="bis-table-shell"><table class="data fullwidth">
-        <thead><tr><th>{{ 'Subscriber' | t('craft-commerce-back-in-stock') }}</th>{% if showProduct %}<th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>{% endif %}<th>{{ 'State' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Locale' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Created' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
+        <thead><tr><th>{{ 'Subscriber' | t('craft-commerce-back-in-stock') }}</th>{% if showProduct %}<th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>{% endif %}<th>{{ 'State' | t('craft-commerce-back-in-stock') }}</th>{% if showSite %}<th>{{ 'Site' | t('app') }}</th>{% endif %}<th>{{ 'Subscribed' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
         <tbody>{% for subscription in subscriptions %}
             {% set stateLabel = subscription.state | kebab | replace({'-': ' '}) | title %}
             {% set stateStatus = subscription.state == 'active' ? 'active' : (subscription.state == 'pendingVerification' ? 'pending' : (subscription.state == 'notified' ? 'enabled' : (subscription.state == 'expired' ? 'expired' : 'disabled'))) %}
+            {% set subscriptionSite = showSite ? craft.app.sites.getSiteById(subscription.siteId) : null %}
             <tr>
-                <th><div class="bis-primary-cell"><span class="bis-primary-cell__title">{{ subscription.email }}</span><span class="bis-primary-cell__meta">#{{ subscription.id }}</span></div></th>
+                <td>{{ subscription.email }}</td>
                 {% if showProduct %}<td><a href="{{ url('back-in-stock/products/' ~ subscription.variantId) }}">{{ subscription.variant ? subscription.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: subscription.variantId})) }}</a></td>{% endif %}
                 <td><span class="bis-status"><pk-status status="{{ stateStatus }}" aria-label="{{ stateLabel }}"></pk-status>{{ stateLabel }}</span></td>
-                <td>{{ subscription.locale ?: '—' }}</td>
+                {% if showSite %}<td>{{ subscriptionSite ? subscriptionSite.name : '—' }}</td>{% endif %}
                 <td>{{ subscription.dateCreated | datetime('short') }}</td>
             </tr>
         {% endfor %}</tbody>

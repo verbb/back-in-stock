@@ -20,7 +20,7 @@
 
         <form method="get" class="bis-filterbar bis-filterbar--compact">
             {% if variantId %}<input type="hidden" name="variantId" value="{{ variantId }}">{% endif %}
-            <pk-select name="type" value="{{ type ?? '' }}" aria-label="{{ 'Filter by activity type' | t('craft-commerce-back-in-stock') }}" width="full"><pk-option value="">{{ 'All activity' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="subscription">{{ 'Subscription changes' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="notification">{{ 'Notification runs' | t('craft-commerce-back-in-stock') }}</pk-option></pk-select>
+            <pk-select name="type" value="{{ type ?? '' }}" aria-label="{{ 'Filter by activity type' | t('craft-commerce-back-in-stock') }}" width="full"><pk-option value="">{{ 'All activity' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="subscription">{{ 'Subscription changes' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="notification">{{ 'Notification sending' | t('craft-commerce-back-in-stock') }}</pk-option></pk-select>
             <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filter' | t('craft-commerce-back-in-stock') }}</pk-button>{% if type %}<pk-button href="{{ url('back-in-stock/notifications/activity', variantId ? {variantId: variantId} : {}) }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
         </form>
 

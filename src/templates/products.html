@@ -1,22 +1,48 @@
 {% extends 'craft-commerce-back-in-stock/_layouts' %}
 
-{% set title = 'Product activity' | t('craft-commerce-back-in-stock') %}
-{% set selectedSubnavItem = 'overview' %}
-{% set crumbs = [
-    { label: 'Overview' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/overview') },
-    { label: title, url: url('back-in-stock/products') },
-] %}
+{% set title = 'Product Activity' | t('craft-commerce-back-in-stock') %}
+{% set selectedSubnavItem = 'products' %}
+{% set crumbs = [{ label: title, url: url('back-in-stock/products') }] %}
+
+{% block sidebar %}
+    {% set params = {search: search, productType: productType ?: null, demand: demand, sort: sort} %}
+            <nav aria-label="{{ 'Product activity filters' | t('craft-commerce-back-in-stock') }}">
+                {# Craft owns source headings, row spacing and selected-state styling; these remain ordinary navigation links. #}
+                <ul class="sources-list">
+                    <li class="heading">
+                        <span>{{ 'Product Types' | t('craft-commerce-back-in-stock') }}</span>
+                        <ul class="sources-list">
+                            <li><a href="{{ url('back-in-stock/products', params | merge({productType: null})) }}"{% if not productType %} class="sel" aria-current="true"{% endif %}><span class="label">{{ 'All product types' | t('craft-commerce-back-in-stock') }}</span></a></li>
+                            {% for type in productTypes %}
+                                <li><a href="{{ url('back-in-stock/products', params | merge({productType: type.id})) }}"{% if productType == type.id %} class="sel" aria-current="true"{% endif %}><span class="label">{{ type.name | t('site') }}</span></a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+{% endblock %}
 
 {% block blockContent %}
-    <div class="bis-page">
-        <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="light">{{ (demand == 'active' ? '{count, plural, =1{# product with active interest} other{# products with active interest}}' : '{count, plural, =1{# product with subscription activity} other{# products with subscription activity}}') | t('craft-commerce-back-in-stock', {count: total}) }}</p><p class="bis-lead">{{ 'Compare the exact variants customers are waiting for now with the subscription activity retained over time.' | t('craft-commerce-back-in-stock') }}</p></div></div>
-
-        <div class="btngroup">
-            <a class="btn{{ demand == 'active' ? ' active' }}" href="{{ url('back-in-stock/products', {demand: 'active'}) }}">{{ 'Waiting now' | t('craft-commerce-back-in-stock') }}</a>
-            <a class="btn{{ demand != 'active' ? ' active' }}" href="{{ url('back-in-stock/products') }}">{{ 'All product activity' | t('craft-commerce-back-in-stock') }}</a>
+    {% set params = {search: search, productType: productType ?: null, demand: demand, sort: sort} %}
+        <div class="bis-product-report">
+            <form method="get" class="bis-product-toolbar">
+                {# Rail navigation preserves search/sort; form submission preserves the selected rail filters. #}
+                <input type="hidden" name="productType" value="{{ productType ?: '' }}">
+                <input type="hidden" name="demand" value="{{ demand }}">
+                <pk-input name="search" value="{{ search }}" placeholder="{{ 'Search products, variants or SKUs' | t('craft-commerce-back-in-stock') }}" aria-label="{{ 'Search products, variants or SKUs' | t('craft-commerce-back-in-stock') }}" with-clear><pk-icon slot="start" icon="magnifying-glass"></pk-icon></pk-input>
+                <pk-select name="sort" value="{{ sort }}" aria-label="{{ 'Sort products' | t('craft-commerce-back-in-stock') }}" width="full"><pk-option value="waiting">{{ 'Most waiting' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="recent">{{ 'Newest request' | t('craft-commerce-back-in-stock') }}</pk-option></pk-select>
+                <pk-button type="submit" variant="primary">{{ 'Search' | t('app') }}</pk-button>
+                {% if search or productType or demand != 'active' or sort != 'waiting' %}<pk-button variant="link" href="{{ url('back-in-stock/products') }}">{{ 'Clear' | t('app') }}</pk-button>{% endif %}
+            </form>
+        {% include 'craft-commerce-back-in-stock/_includes/product-cards' %}
+        <div class="bis-report-footer">
+            {% include '_includes/pagination' with {pageInfo: {
+                first: total ? ((page - 1) * pageSize + 1) : 0,
+                last: min(page * pageSize, total),
+                total: total,
+                prevUrl: page > 1 ? url('back-in-stock/products', params | merge({page: page - 1})) : null,
+                nextUrl: page < pageCount ? url('back-in-stock/products', params | merge({page: page + 1})) : null,
+            }, itemLabel: 'product variant' | t('craft-commerce-back-in-stock'), itemsLabel: 'product variants' | t('craft-commerce-back-in-stock')} %}
         </div>
-
-        {% include 'craft-commerce-back-in-stock/_includes/product-table' with { products: products } %}
-        {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/products', params: {demand: demand} } %}
-    </div>
+        </div>
 {% endblock %}
