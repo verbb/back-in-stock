@@ -8,14 +8,14 @@
     <div class="bis-page">
         <div class="bis-page-intro">
             <div class="bis-page-intro__copy">
-                <p class="bis-eyebrow">{{ '{count} notification runs' | t('craft-commerce-back-in-stock', {count: total | number}) }}</p>
+                <p class="light">{{ '{count} notification runs' | t('craft-commerce-back-in-stock', {count: total | number}) }}</p>
                 <p class="bis-lead">{{ 'Each row represents one availability window, the subscriber cohort selected for it, and the resulting deliveries.' | t('craft-commerce-back-in-stock') }}</p>
             </div>
         </div>
 
         {% if variantId %}
             <div class="bis-context">
-                <div><span class="bis-eyebrow">{{ 'Filtered product' | t('craft-commerce-back-in-stock') }}</span><strong>{{ variantFilter ? variantFilter.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: variantId})) }}</strong></div>
+                <div><span class="light">{{ 'Filtered product' | t('craft-commerce-back-in-stock') }}:</span> <strong>{{ variantFilter ? variantFilter.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: variantId})) }}</strong></div>
                 <pk-button href="{{ url('back-in-stock/history') }}" variant="outline" size="sm">{{ 'View all history' | t('craft-commerce-back-in-stock') }}</pk-button>
             </div>
         {% endif %}

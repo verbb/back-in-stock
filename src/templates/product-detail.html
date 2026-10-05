@@ -12,7 +12,7 @@
     <div class="bis-page">
         <div class="bis-page-intro">
             <div class="bis-page-intro__copy">
-                <p class="bis-eyebrow">{{ 'Product demand' | t('craft-commerce-back-in-stock') }}</p>
+                <p class="light">{{ 'Product demand' | t('craft-commerce-back-in-stock') }}</p>
                 <p class="bis-lead">{{ 'Current waitlist demand, lifetime interest, and recent notification activity for this exact variant.' | t('craft-commerce-back-in-stock') }}</p>
             </div>
             {% if variant %}<pk-button href="{{ variant.cpEditUrl }}" variant="outline" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
@@ -20,17 +20,14 @@
 
         <div class="bis-metrics">
             {% set metrics = [
-                { label: 'Active subscriptions', count: counts.active, meta: oldestActiveAt ? ('Oldest waiting since {date}' | t('craft-commerce-back-in-stock', {date: oldestActiveAt | datetime('short')})) : 'Nobody is currently waiting' | t('craft-commerce-back-in-stock'), icon: 'clock' },
-                { label: 'All-time subscriptions', count: counts.total, meta: 'Every retained request for this variant', icon: 'clock' },
-                { label: 'Notified', count: counts.notified, meta: 'Subscriptions handed to the mailer', icon: 'circle-check', tone: 'success' },
-                { label: 'Needs attention', count: counts.failed, meta: 'Failed or uncertain delivery outcomes', icon: 'triangle-exclamation', tone: counts.failed ? 'danger' : 'success' },
+                { label: 'Active subscriptions', count: counts.active, meta: oldestActiveAt ? ('Oldest waiting since {date}' | t('craft-commerce-back-in-stock', {date: oldestActiveAt | datetime('short')})) : 'Nobody is currently waiting' | t('craft-commerce-back-in-stock') },
+                { label: 'All-time subscriptions', count: counts.total, meta: 'Every retained request for this variant' },
+                { label: 'Notified', count: counts.notified, meta: 'Subscriptions handed to the mailer' },
+                { label: 'Needs attention', count: counts.failed, meta: 'Failed or uncertain delivery outcomes' },
             ] %}
             {% for metric in metrics %}
-                <div class="bis-metric{{ metric.tone is defined ? ' bis-metric--' ~ metric.tone }}">
-                    <div class="bis-metric__header">
-                        <span class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</span>
-                        <span class="bis-metric__mark"><pk-icon icon="{{ metric.icon }}"></pk-icon></span>
-                    </div>
+                <div class="bis-metric">
+                    <div class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</div>
                     <div class="bis-metric__value">{{ metric.count | number }}</div>
                     <div class="bis-metric__meta">{{ metric.meta }}</div>
                 </div>

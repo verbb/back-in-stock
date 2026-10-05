@@ -9,18 +9,12 @@
             <tr>
                 <th><div class="bis-primary-cell"><span class="bis-primary-cell__title">{{ subscription.email }}</span><span class="bis-primary-cell__meta">#{{ subscription.id }}</span></div></th>
                 {% if showProduct %}<td><a href="{{ url('back-in-stock/products/' ~ subscription.variantId) }}">{{ subscription.variant ? subscription.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: subscription.variantId})) }}</a></td>{% endif %}
-                <td><span class="bis-status{{ subscription.state in ['active', 'notified'] ? ' bis-status--success' : (subscription.state == 'pendingVerification' ? ' bis-status--warning') }}"><pk-status status="{{ stateStatus }}" aria-label="{{ stateLabel }}"></pk-status>{{ stateLabel }}</span></td>
+                <td><span class="bis-status"><pk-status status="{{ stateStatus }}" aria-label="{{ stateLabel }}"></pk-status>{{ stateLabel }}</span></td>
                 <td>{{ subscription.locale ?: '—' }}</td>
                 <td>{{ subscription.dateCreated | datetime('short') }}</td>
             </tr>
         {% endfor %}</tbody>
     </table></div>
 {% else %}
-    <div class="bis-empty">
-        <div>
-            <span class="bis-empty__icon"><pk-icon icon="magnifying-glass"></pk-icon></span>
-            <h3>{{ 'No matching subscriptions' | t('craft-commerce-back-in-stock') }}</h3>
-            <p>{{ 'Try another email address or lifecycle state.' | t('craft-commerce-back-in-stock') }}</p>
-        </div>
-    </div>
+    <p class="zilch small">{{ 'No matching subscriptions. Try another email address or lifecycle state.' | t('craft-commerce-back-in-stock') }}</p>
 {% endif %}

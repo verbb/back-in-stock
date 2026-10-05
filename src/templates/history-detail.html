@@ -11,20 +11,19 @@
 
 {% block blockContent %}
     {% set runStatus = record.status == 'completed' ? 'enabled' : (record.status == 'open' ? 'active' : (record.status == 'exhausted' ? 'warning' : 'disabled')) %}
-    {% set runStatusTone = record.status == 'completed' ? ' bis-status--success' : (record.status == 'exhausted' ? ' bis-status--warning' : '') %}
     <div class="bis-page">
         <div class="bis-page-intro">
             <div class="bis-page-intro__copy">
-                <p class="bis-eyebrow">{{ 'Notification history' | t('craft-commerce-back-in-stock') }}</p>
+                <p class="light">{{ 'Notification history' | t('craft-commerce-back-in-stock') }}</p>
                 <p class="bis-lead">{{ 'Opened {date}' | t('craft-commerce-back-in-stock', {date: record.openedAt | datetime('short')}) }}</p>
             </div>
-            <span class="bis-status{{ runStatusTone }}"><pk-status status="{{ runStatus }}" aria-label="{{ record.status | ucfirst }}"></pk-status>{{ record.status | ucfirst }}</span>
+            <span class="bis-status"><pk-status status="{{ runStatus }}" aria-label="{{ record.status | ucfirst }}"></pk-status>{{ record.status | ucfirst }}</span>
         </div>
 
         <section class="bis-run-hero">
             <div class="bis-run-hero__identity">
                 <div>
-                    <p class="bis-eyebrow">{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</p>
+                    <p class="light">{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</p>
                     <h2><a href="{{ url('back-in-stock/products/' ~ record.variantId) }}">{{ variantTitle }}</a></h2>
                     <p>{{ record.closedAt ? ('Closed {date}' | t('craft-commerce-back-in-stock', {date: record.closedAt | datetime('short')})) : ('Last evaluated {date}' | t('craft-commerce-back-in-stock', {date: record.lastEvaluatedAt | datetime('short')})) }}</p>
                 </div>
@@ -38,7 +37,7 @@
             </div>
         </section>
 
-        <section class="bis-panel">
+        <section>
             <div class="bis-section-heading bis-section-heading--spaced">
                 <div class="bis-section-heading__copy">
                     <h2>{{ 'Delivery outcome' | t('craft-commerce-back-in-stock') }}</h2>
@@ -68,20 +67,14 @@
                         <tr>
                             <th><div class="bis-primary-cell"><span class="bis-primary-cell__title">{{ subscriptions[attempt.subscriptionId].email ?? ('Subscription #' ~ attempt.subscriptionId) }}</span><span class="bis-primary-cell__meta">#{{ attempt.subscriptionId }}</span></div></th>
                             <td>{{ attempt.attemptNumber }}</td>
-                            <td><span class="bis-status{{ attempt.status == 'sent' ? ' bis-status--success' : (attempt.status in ['pending', 'processing'] ? ' bis-status--warning' : (attempt.status == 'failed' ? ' bis-status--danger')) }}"><pk-status status="{{ attemptStatus }}" aria-label="{{ attempt.status | ucfirst }}"></pk-status>{{ attempt.status | ucfirst }}</span></td>
+                            <td><span class="bis-status"><pk-status status="{{ attemptStatus }}" aria-label="{{ attempt.status | ucfirst }}"></pk-status>{{ attempt.status | ucfirst }}</span></td>
                             <td>{{ attempt.dueAt | datetime('short') }}</td>
                             <td>{{ attempt.errorMessage ?: '—' }}</td>
                         </tr>
                     {% endfor %}</tbody>
                 </table></div>
                 {% else %}
-                    <div class="bis-empty">
-                        <div>
-                            <span class="bis-empty__icon"><pk-icon icon="clock"></pk-icon></span>
-                            <h3>{{ 'No delivery attempts' | t('craft-commerce-back-in-stock') }}</h3>
-                            <p>{{ record.selectedCount == 0 ? 'No subscriptions were selected for this availability window, so there was nothing to deliver.' | t('craft-commerce-back-in-stock') : 'Delivery attempts have not been created for this run yet.' | t('craft-commerce-back-in-stock') }}</p>
-                        </div>
-                    </div>
+                    <p class="zilch small">{{ record.selectedCount == 0 ? 'No subscriptions were selected for this availability window, so there was nothing to deliver.' | t('craft-commerce-back-in-stock') : 'Delivery attempts have not been created for this notification yet.' | t('craft-commerce-back-in-stock') }}</p>
                 {% endif %}
             </div>
         </section>

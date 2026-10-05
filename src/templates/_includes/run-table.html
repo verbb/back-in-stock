@@ -22,7 +22,7 @@
                     <td>{{ run.selectedCount | number }} <span class="bis-cell-meta">/ {{ run.eligibleCount | number }}</span></td>
                     <td>{{ run.sentCount | number }}</td>
                     <td>{{ (run.failedCount + run.unknownCount) | number }}</td>
-                    <td><span class="bis-status{{ run.status == 'completed' ? ' bis-status--success' : (run.status == 'exhausted' ? ' bis-status--warning') }}"><pk-status status="{{ runStatus }}" aria-label="{{ run.status | ucfirst }}"></pk-status>{{ run.status | ucfirst }}</span></td>
+                    <td><span class="bis-status"><pk-status status="{{ runStatus }}" aria-label="{{ run.status | ucfirst }}"></pk-status>{{ run.status | ucfirst }}</span></td>
                     <td>{{ run.openedAt | datetime('short') }}</td>
                 </tr>
             {% endfor %}
@@ -30,11 +30,5 @@
         </table>
     </div>
 {% else %}
-    <div class="bis-empty">
-        <div>
-            <span class="bis-empty__icon"><pk-icon icon="clock"></pk-icon></span>
-            <h3>{{ 'No notification history yet' | t('craft-commerce-back-in-stock') }}</h3>
-            <p>{{ 'History will appear after a subscribed variant becomes available.' | t('craft-commerce-back-in-stock') }}</p>
-        </div>
-    </div>
+    <p class="zilch small">{{ 'No notification history yet. History will appear after a subscribed variant becomes available.' | t('craft-commerce-back-in-stock') }}</p>
 {% endif %}

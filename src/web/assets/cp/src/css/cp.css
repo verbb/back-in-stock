@@ -1,14 +1,6 @@
 :root {
-    --bis-border: color-mix(in srgb, var(--hairline-color) 88%, transparent);
-    --bis-surface: var(--white);
-    --bis-surface-subtle: color-mix(in srgb, var(--gray-050) 72%, var(--white));
+    --bis-border: var(--hairline-color);
     --bis-text-subtle: var(--medium-text-color);
-    --bis-accent: var(--pk-color-blue-600);
-    --bis-success: var(--pk-color-teal-700);
-    --bis-warning: var(--pk-color-amber-700);
-    --bis-danger: var(--pk-color-red-700);
-    --bis-radius: 12px;
-    --bis-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 22px rgb(15 23 42 / 0.035);
 }
 
 .bis-page {
@@ -28,15 +20,6 @@
 .bis-page-intro__copy,
 .bis-section-heading__copy {
     max-width: 760px;
-}
-
-.bis-eyebrow {
-    margin: 0 0 5px;
-    color: var(--bis-text-subtle);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
 }
 
 .bis-lead,
@@ -62,68 +45,28 @@
 .bis-metrics {
     display: grid;
     grid-template-columns: repeat(4, minmax(150px, 1fr));
-    gap: 1px;
-    overflow: hidden;
-    border: 1px solid var(--bis-border);
-    border-radius: var(--bis-radius);
-    background: var(--bis-border);
-    box-shadow: var(--bis-shadow);
+    border-block: 1px solid var(--bis-border);
 }
 
 .bis-metric {
     min-width: 0;
-    min-height: 118px;
-    padding: 19px 20px;
-    background: var(--bis-surface);
+    padding: 14px 16px;
 }
 
-.bis-metric__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+.bis-metric + .bis-metric {
+    border-inline-start: 1px solid var(--bis-border);
 }
 
 .bis-metric__label {
     color: var(--bis-text-subtle);
     font-size: 12px;
-    font-weight: 650;
-}
-
-.bis-metric__mark {
-    display: inline-grid;
-    width: 28px;
-    height: 28px;
-    place-items: center;
-    border-radius: 8px;
-    background: var(--pk-color-blue-50);
-    color: var(--bis-accent);
-}
-
-.bis-metric__mark pk-icon {
-    font-size: 13px;
-}
-
-.bis-metric--success .bis-metric__mark {
-    background: var(--pk-color-teal-50);
-    color: var(--bis-success);
-}
-
-.bis-metric--warning .bis-metric__mark {
-    background: var(--pk-color-amber-50);
-    color: var(--bis-warning);
-}
-
-.bis-metric--danger .bis-metric__mark {
-    background: var(--pk-color-red-50);
-    color: var(--bis-danger);
+    font-weight: 700;
 }
 
 .bis-metric__value {
-    margin: 10px 0 6px;
-    font-size: 30px;
+    margin: 7px 0 5px;
+    font-size: 26px;
     font-weight: 700;
-    letter-spacing: -0.035em;
     line-height: 1;
 }
 
@@ -133,28 +76,10 @@
     line-height: 1.35;
 }
 
-.bis-panel {
-    min-width: 0;
-    padding: 22px;
-    border: 1px solid var(--bis-border);
-    border-radius: var(--bis-radius);
-    background: var(--bis-surface);
-    box-shadow: var(--bis-shadow);
-}
-
-.bis-panel--flush {
-    padding: 0;
-    overflow: hidden;
-}
-
 .bis-filterbar {
     display: grid;
     grid-template-columns: minmax(260px, 1fr) minmax(190px, 240px) auto;
     gap: 10px;
-    padding: 16px;
-    border: 1px solid var(--bis-border);
-    border-radius: var(--bis-radius);
-    background: var(--bis-surface-subtle);
 }
 
 .bis-filterbar pk-input,
@@ -172,54 +97,21 @@
     align-items: center;
     justify-content: space-between;
     gap: 18px;
-    padding: 15px 17px;
-    border: 1px solid color-mix(in srgb, var(--bis-accent) 20%, var(--bis-border));
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--bis-accent) 5%, var(--bis-surface));
-}
-
-.bis-context .bis-eyebrow {
-    display: block;
+    padding-block-end: 16px;
+    border-block-end: 1px solid var(--bis-border);
 }
 
 .bis-table-shell {
     overflow-x: auto;
-    border: 1px solid var(--bis-border);
-    border-radius: var(--bis-radius);
-    background: var(--bis-surface);
-    box-shadow: var(--bis-shadow);
 }
 
 .bis-table-shell table {
     margin: 0;
 }
 
-.bis-table-shell table thead th {
-    background: var(--bis-surface-subtle);
-    color: var(--bis-text-subtle);
-    font-size: 11px;
-    letter-spacing: 0.035em;
-    text-transform: uppercase;
-}
-
-.bis-table-shell table th,
-.bis-table-shell table td {
-    padding: 13px 15px;
-    vertical-align: middle;
-}
-
-.bis-table-shell table tbody tr:last-child th,
-.bis-table-shell table tbody tr:last-child td {
-    border-bottom: 0;
-}
-
 .bis-primary-cell {
     display: grid;
     gap: 3px;
-}
-
-.bis-primary-cell__title {
-    font-weight: 650;
 }
 
 .bis-primary-cell__meta,
@@ -228,56 +120,23 @@
     font-size: 12px;
 }
 
-.bis-demand-count {
-    font-size: 15px;
-}
-
-.bis-demand-count--active {
-    color: var(--bis-success);
-}
-
 .bis-status {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 4px 9px;
-    border: 1px solid var(--bis-border);
-    border-radius: 999px;
-    background: var(--bis-surface);
-    color: var(--text-color);
-    font-size: 12px;
-    font-weight: 650;
-    line-height: 1.2;
+    gap: 8px;
     white-space: nowrap;
-}
-
-.bis-status--success {
-    color: var(--bis-success);
-}
-
-.bis-status--warning {
-    color: var(--bis-warning);
-}
-
-.bis-status--danger {
-    color: var(--bis-danger);
 }
 
 .bis-run-hero {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
-    gap: 1px;
-    overflow: hidden;
-    border: 1px solid var(--bis-border);
-    border-radius: var(--bis-radius);
-    background: var(--bis-border);
-    box-shadow: var(--bis-shadow);
+    gap: 24px;
+    border-block: 1px solid var(--bis-border);
 }
 
 .bis-run-hero__identity,
 .bis-run-hero__facts {
-    padding: 24px;
-    background: var(--bis-surface);
+    padding-block: 16px;
 }
 
 .bis-run-hero__identity {
@@ -301,35 +160,34 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px 24px;
-    background: var(--bis-surface-subtle);
+    padding-inline-start: 24px;
+    border-inline-start: 1px solid var(--bis-border);
 }
 
 .bis-fact__label {
     margin-bottom: 4px;
     color: var(--bis-text-subtle);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 12px;
 }
 
 .bis-fact__value {
     font-size: 14px;
-    font-weight: 650;
+    font-weight: 700;
     line-height: 1.35;
 }
 
 .bis-delivery-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(120px, 1fr));
-    gap: 12px;
+    border-block: 1px solid var(--bis-border);
 }
 
 .bis-delivery-stat {
-    padding: 16px;
-    border: 1px solid var(--bis-border);
-    border-radius: 10px;
-    background: var(--bis-surface-subtle);
+    padding: 14px 16px;
+}
+
+.bis-delivery-stat + .bis-delivery-stat {
+    border-inline-start: 1px solid var(--bis-border);
 }
 
 .bis-delivery-stat__value {
@@ -341,43 +199,6 @@
 .bis-delivery-stat__label {
     color: var(--bis-text-subtle);
     font-size: 12px;
-}
-
-.bis-empty {
-    display: grid;
-    min-height: 180px;
-    padding: 30px;
-    place-items: center;
-    border: 1px dashed color-mix(in srgb, var(--bis-border) 75%, var(--pk-color-gray-400));
-    border-radius: var(--bis-radius);
-    background: var(--bis-surface-subtle);
-    text-align: center;
-}
-
-.bis-empty__icon {
-    display: inline-grid;
-    width: 42px;
-    height: 42px;
-    margin-bottom: 13px;
-    place-items: center;
-    border-radius: 12px;
-    background: var(--pk-color-blue-50);
-    color: var(--bis-accent);
-}
-
-.bis-empty__icon pk-icon {
-    font-size: 18px;
-}
-
-.bis-empty h3 {
-    margin: 0 0 6px;
-}
-
-.bis-empty p {
-    max-width: 500px;
-    margin: 0;
-    color: var(--bis-text-subtle);
-    line-height: 1.5;
 }
 
 .bis-pagination {
@@ -409,6 +230,22 @@
     .bis-run-hero {
         grid-template-columns: 1fr;
     }
+
+    .bis-metric:nth-child(odd),
+    .bis-delivery-stat:nth-child(odd) {
+        border-inline-start: 0;
+    }
+
+    .bis-metric:nth-child(n + 3),
+    .bis-delivery-stat:nth-child(n + 3) {
+        border-block-start: 1px solid var(--bis-border);
+    }
+
+    .bis-run-hero__facts {
+        padding-inline-start: 0;
+        border-block-start: 1px solid var(--bis-border);
+        border-inline-start: 0;
+    }
 }
 
 @media (max-width: 680px) {
@@ -431,5 +268,11 @@
 
     .bis-run-hero__facts {
         grid-template-columns: 1fr;
+    }
+
+    .bis-metric + .bis-metric,
+    .bis-delivery-stat + .bis-delivery-stat {
+        border-block-start: 1px solid var(--bis-border);
+        border-inline-start: 0;
     }
 }
