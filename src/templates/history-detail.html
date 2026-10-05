@@ -27,7 +27,7 @@
                     <h2><a href="{{ url('back-in-stock/products/' ~ record.variantId) }}">{{ variantTitle }}</a></h2>
                     <p>{{ record.closedAt ? ('Closed {date}' | t('craft-commerce-back-in-stock', {date: record.closedAt | datetime('short')})) : ('Last evaluated {date}' | t('craft-commerce-back-in-stock', {date: record.lastEvaluatedAt | datetime('short')})) }}</p>
                 </div>
-                {% if run.variant %}<pk-button href="{{ run.variant.cpEditUrl }}" variant="outline" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
+                {% if run.variant %}<pk-button href="{{ run.variant.cpEditUrl }}" variant="default" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
             </div>
             <div class="bis-run-hero__facts">
                 <div class="bis-fact"><div class="bis-fact__label">{{ 'Observed stock' | t('craft-commerce-back-in-stock') }}</div><div class="bis-fact__value">{{ record.observedStock is null ? 'Unlimited' | t('craft-commerce-back-in-stock') : record.observedStock | number }}</div></div>

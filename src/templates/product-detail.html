@@ -15,7 +15,7 @@
                 <p class="light">{{ 'Product demand' | t('craft-commerce-back-in-stock') }}</p>
                 <p class="bis-lead">{{ 'Current waitlist demand, lifetime interest, and recent notification activity for this exact variant.' | t('craft-commerce-back-in-stock') }}</p>
             </div>
-            {% if variant %}<pk-button href="{{ variant.cpEditUrl }}" variant="outline" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
+            {% if variant %}<pk-button href="{{ variant.cpEditUrl }}" variant="default" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
         </div>
 
         {% set attentionHealth = counts.failed ? 'error' : (counts.unknown ? 'warning' : 'healthy') %}
@@ -56,7 +56,7 @@
                     <h2>{{ 'Recent subscriptions' | t('craft-commerce-back-in-stock') }}</h2>
                     <p>{{ 'The latest current and historical requests for this variant.' | t('craft-commerce-back-in-stock') }}</p>
                 </div>
-                <pk-button variant="outline" size="sm" href="{{ url('back-in-stock/subscriptions', {variantId: variantId}) }}">{{ 'View all subscriptions' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
+                <pk-button variant="default" size="sm" href="{{ url('back-in-stock/subscriptions', {variantId: variantId}) }}">{{ 'View all subscriptions' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
             </div>
             <div class="bis-section-body">
                 {% include 'craft-commerce-back-in-stock/_includes/subscription-table' with { subscriptions: subscriptions, showProduct: false } %}
@@ -69,7 +69,7 @@
                     <h2>{{ 'Recent history' | t('craft-commerce-back-in-stock') }}</h2>
                     <p>{{ 'Availability windows and delivery outcomes for this variant.' | t('craft-commerce-back-in-stock') }}</p>
                 </div>
-                <pk-button variant="outline" size="sm" href="{{ url('back-in-stock/history', {variantId: variantId}) }}">{{ 'View all history' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
+                <pk-button variant="default" size="sm" href="{{ url('back-in-stock/history', {variantId: variantId}) }}">{{ 'View all history' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
             </div>
             <div class="bis-section-body">
                 {% include 'craft-commerce-back-in-stock/_includes/run-table' with { runs: runs, showProduct: false } %}
