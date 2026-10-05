@@ -30,13 +30,14 @@ Each attempt finishes as `sent`, `failed`, `cancelled`, or `unknown`. Definite f
 
 ## 5. Operate from Craft
 
-The Back in Stock control-panel section contains three focused destinations:
+The Back in Stock control-panel section contains four focused destinations:
 
-- **Overview** is the operational home. Its health state is green when no action is required, orange for uncertain delivery outcomes, and red for definite failures. The summary links open the exact subscriptions, product activity, or delivery issues behind each count. The page also ranks the variants customers are waiting for and shows recent lifecycle activity without turning the plugin into a general analytics dashboard.
+- **Overview** shows where customers are waiting and what has changed recently. Store-wide request totals sit above a short preview of the most-watched product variants, alongside recent subscription and notification activity. Follow the links below either list to see the full report. When notifications need review, a banner opens the affected activity: red means a notification failed to send, while orange means sending couldn't be confirmed. A notification with an unconfirmed sending result may already have been handed to the mailer, so it isn't blindly retried. No health banner appears when there is nothing to review.
+- **Product Activity** lets you explore the full list of variants with recorded customer interest, using searchable, filterable cards.
 - **Notifications** brings customer requests and lifecycle evidence together. The **Subscriptions** tab shows every recipient request across pending, active, notified, cancelled, and expired states; search by email, filter by lifecycle state, or open the related product from any row. The **Activity** tab combines subscription changes with notification runs in chronological order, and each run opens into its selected cohort and delivery attempts.
 - **Settings** controls availability, selection, batching, verification, retention, and template overrides.
 
-Product activity remains available as supporting detail from Overview and Notifications. The report compares exact variants by current and lifetime interest, while each product summary connects the customers waiting now with its recent notification activity. It is deliberately not a top-level catalogue view: products appear only after Back in Stock records subscription activity for them.
+**Product Activity** shows variants with customers currently waiting, using the same clickable cards as Overview. Choose a product type in the sidebar beside the content pane. Above the cards, search by product title, variant title or SKU and sort by Most waiting or Newest request, then select Search to apply those choices. The sidebar preserves your applied search and sorting when you change product types. On smaller screens, use Craft's sidebar toggle to access the product types. The footer shows the visible range and total, with controls for previous and next pages. For example, searching “Organic cotton tee” shows each matching size and colour separately, with its current waiting count. Open a card to inspect that exact variant. Product, variant, product type and SKU context appear in Craft's details sidebar. Use the paginated **Subscriptions** tab to search recipients and filter lifecycle state, or open **Activity** to filter the complete variant history by event type and review state.
 
 ## Customer-controlled lifecycle
 
