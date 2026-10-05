@@ -12,6 +12,8 @@ import {
     circleCheck,
     circleExclamation,
     clock,
+    eye,
+    lock,
     magnifyingGlass,
     registerIcons,
     triangleExclamation,
@@ -23,6 +25,8 @@ registerIcons({
     circleCheck,
     circleExclamation,
     clock,
+    eye,
+    lock,
     magnifyingGlass,
     triangleExclamation,
 });
