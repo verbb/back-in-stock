@@ -49,6 +49,8 @@
 }
 
 .bis-metric {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
     padding: 14px 16px;
 }
@@ -76,6 +78,12 @@
     line-height: 1.35;
 }
 
+.bis-metric__action {
+    margin-block-start: auto;
+    padding-block-start: 9px;
+    font-size: 12px;
+}
+
 .bis-filterbar {
     display: grid;
     grid-template-columns: minmax(260px, 1fr) minmax(190px, 240px) auto;
@@ -99,6 +107,11 @@
     gap: 18px;
     padding-block-end: 16px;
     border-block-end: 1px solid var(--bis-border);
+}
+
+.bis-context__filters {
+    display: grid;
+    gap: 4px;
 }
 
 .bis-table-shell {

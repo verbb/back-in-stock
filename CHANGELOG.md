@@ -11,7 +11,7 @@
 - Added the `craft craft-commerce-back-in-stock/reconcile` command for periodic availability and lifecycle reconciliation.
 
 ### Changed
-- Redesigned the control-panel experience around product-demand and subscription lenses, with Plugin Kit controls, meaningful breadcrumbs, concise summaries and Craft-native tables, statuses, typography and empty states.
+- Redesigned the control-panel experience around product-demand and subscription lenses, with Plugin Kit controls, meaningful breadcrumbs, actionable summaries and Craft-native tables, statuses, typography and empty states.
 - Changed stock updates to enqueue demand-led availability evaluation after Commerce has committed inventory changes.
 - Changed fresh installs to stock-matched notifications by default; upgrades retain the existing notify-everyone behaviour.
 - Changed successful, failed, cancelled and uncertain deliveries to be recorded as explicit outcomes.

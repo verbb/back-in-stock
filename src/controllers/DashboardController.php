@@ -39,12 +39,12 @@ class DashboardController extends Controller
     {
         $this->_requireDashboardAccess();
         $page = max(1, (int)$this->request->getQueryParam('page', 1));
+        $demand = $this->request->getQueryParam('demand') === 'active' ? 'active' : null;
         $thirtyDaysAgo = Db::prepareDateForDb((new DateTime())->modify('-30 days'));
-        $total = (int)(new Query())
+        $totalQuery = (new Query())
             ->select(new Expression('COUNT(DISTINCT [[variantId]])'))
-            ->from(Subscription::tableName())
-            ->scalar();
-        $demandRows = (new Query())
+            ->from(Subscription::tableName());
+        $demandQuery = (new Query())
             ->select([
                 'variantId',
                 'totalCount' => new Expression('COUNT([[id]])'),
@@ -55,7 +55,19 @@ class DashboardController extends Controller
             ])
             ->from(Subscription::tableName())
             ->groupBy(['variantId'])
-            ->orderBy(['activeCount' => SORT_DESC, 'lastSubscriptionAt' => SORT_DESC])
+            ->orderBy(['activeCount' => SORT_DESC, 'lastSubscriptionAt' => SORT_DESC]);
+
+        if ($demand === 'active') {
+            $totalQuery->where(['state' => SubscriptionModel::STATE_ACTIVE]);
+            $activeVariantQuery = (new Query())
+                ->select(['variantId'])
+                ->from(Subscription::tableName())
+                ->where(['state' => SubscriptionModel::STATE_ACTIVE]);
+            $demandQuery->andWhere(['in', 'variantId', $activeVariantQuery]);
+        }
+
+        $total = (int)$totalQuery->scalar();
+        $demandRows = $demandQuery
             ->offset(($page - 1) * self::PAGE_SIZE)
             ->limit(self::PAGE_SIZE)
             ->all();
@@ -97,6 +109,7 @@ class DashboardController extends Controller
                 'failed' => DeliveryAttempt::find()->where(['status' => [DeliveryAttemptModel::STATUS_FAILED, DeliveryAttemptModel::STATUS_UNKNOWN]])->andWhere(['>=', 'dateCreated', $thirtyDaysAgo])->count(),
             ],
             'products' => $products,
+            'demand' => $demand,
             'page' => $page,
             'pageCount' => max(1, (int)ceil($total / self::PAGE_SIZE)),
             'total' => $total,
@@ -208,10 +221,18 @@ class DashboardController extends Controller
         $this->_requireDashboardAccess();
         $page = max(1, (int)$this->request->getQueryParam('page', 1));
         $variantId = max(0, (int)$this->request->getQueryParam('variantId'));
+        $attention = (bool)$this->request->getQueryParam('attention');
         $query = RestockRun::find()->orderBy(['openedAt' => SORT_DESC]);
 
         if ($variantId) {
             $query->andWhere(['variantId' => $variantId]);
+        }
+
+        if ($attention) {
+            $thirtyDaysAgo = Db::prepareDateForDb((new DateTime())->modify('-30 days'));
+            $query
+                ->andWhere(['or', ['>', 'failedCount', 0], ['>', 'unknownCount', 0]])
+                ->andWhere(['>=', 'openedAt', $thirtyDaysAgo]);
         }
 
         $total = (int)$query->count();
@@ -224,6 +245,7 @@ class DashboardController extends Controller
             'runs' => $this->_decorateRuns($runs),
             'variantId' => $variantId,
             'variantFilter' => $variantId ? ($this->_variantsById([$variantId])[$variantId] ?? null) : null,
+            'attention' => $attention,
             'page' => $page,
             'pageCount' => max(1, (int)ceil($total / self::PAGE_SIZE)),
             'total' => $total,

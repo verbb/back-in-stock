@@ -8,26 +8,34 @@
     <div class="bis-page">
         <div class="bis-page-intro">
             <div class="bis-page-intro__copy">
-                <p class="light">{{ '{count} products with subscription history' | t('craft-commerce-back-in-stock', {count: total | number}) }}</p>
+                <p class="light">{{ (demand == 'active' ? '{count, plural, =1{# product with active demand} other{# products with active demand}}' : '{count, plural, =1{# product with subscription history} other{# products with subscription history}}') | t('craft-commerce-back-in-stock', {count: total}) }}</p>
                 <p class="bis-lead">{{ 'See where customers are waiting now and how much demand each exact variant has accumulated over time.' | t('craft-commerce-back-in-stock') }}</p>
             </div>
         </div>
 
         <div class="bis-metrics">
             {% set metrics = [
-                { label: 'Products with active demand', count: counts.products, meta: 'Exact variants with customers waiting' },
-                { label: 'Active subscriptions', count: counts.active, meta: 'Ready for the next matching restock' },
-                { label: 'Awaiting verification', count: counts.pending, meta: 'Waiting for subscriber confirmation' },
-                { label: 'Needs attention', count: counts.failed, meta: 'Failed or uncertain in the last 30 days' },
+                { label: 'Products with active demand', count: counts.products, meta: 'Exact variants with customers waiting', action: 'View active products', href: url('back-in-stock', {demand: 'active'}) },
+                { label: 'Active subscriptions', count: counts.active, meta: 'Ready for the next matching restock', action: 'View active subscriptions', href: url('back-in-stock/subscriptions', {state: 'active'}) },
+                { label: 'Awaiting verification', count: counts.pending, meta: 'Waiting for subscriber confirmation', action: 'Review subscriptions', href: url('back-in-stock/subscriptions', {state: 'pendingVerification'}) },
+                { label: 'Needs attention', count: counts.failed, meta: 'Failed or uncertain in the last 30 days', action: 'Review history', href: url('back-in-stock/history', {attention: 1}) },
             ] %}
             {% for metric in metrics %}
                 <div class="bis-metric">
                     <div class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</div>
                     <div class="bis-metric__value">{{ metric.count | number }}</div>
                     <div class="bis-metric__meta">{{ metric.meta | t('craft-commerce-back-in-stock') }}</div>
+                    <div class="bis-metric__action"><a class="go" href="{{ metric.href }}">{{ metric.action | t('craft-commerce-back-in-stock') }}</a></div>
                 </div>
             {% endfor %}
         </div>
+
+        {% if demand == 'active' %}
+            <div class="bis-context">
+                <div><span class="light">{{ 'Showing' | t('craft-commerce-back-in-stock') }}:</span> <strong>{{ 'Products with active demand' | t('craft-commerce-back-in-stock') }}</strong></div>
+                <pk-button href="{{ url('back-in-stock') }}" variant="outline" size="sm">{{ 'View all products' | t('craft-commerce-back-in-stock') }}</pk-button>
+            </div>
+        {% endif %}
 
         <section>
             <div class="bis-section-heading">
@@ -77,6 +85,6 @@
             </div>
         </section>
 
-        {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock', params: {} } %}
+        {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock', params: {demand: demand} } %}
     </div>
 {% endblock %}

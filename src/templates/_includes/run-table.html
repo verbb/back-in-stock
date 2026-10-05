@@ -1,4 +1,5 @@
 {% set showProduct = showProduct ?? true %}
+{% set emptyMessage = emptyMessage ?? 'No notification history yet. History will appear after a subscribed variant becomes available.' %}
 
 {% if runs %}
     <div class="bis-table-shell">
@@ -30,5 +31,5 @@
         </table>
     </div>
 {% else %}
-    <p class="zilch small">{{ 'No notification history yet. History will appear after a subscribed variant becomes available.' | t('craft-commerce-back-in-stock') }}</p>
+    <p class="zilch small">{{ emptyMessage | t('craft-commerce-back-in-stock') }}</p>
 {% endif %}
