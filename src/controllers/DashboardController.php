@@ -8,9 +8,10 @@ use verbb\backinstock\records\RestockRun;
 use verbb\backinstock\records\Subscription;
 
 use Craft;
-use craft\helpers\Db;
-use craft\web\Controller;
 use craft\db\Query;
+use craft\helpers\Db;
+use craft\helpers\UrlHelper;
+use craft\web\Controller;
 
 use DateTime;
 use yii\db\Expression;
@@ -32,7 +33,7 @@ class DashboardController extends Controller
 
     public function actionOverview(): Response
     {
-        return $this->actionProducts();
+        return $this->redirect(UrlHelper::cpUrl('back-in-stock/products', $this->request->getQueryParams()));
     }
 
     public function actionProducts(): Response

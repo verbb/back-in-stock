@@ -5,6 +5,8 @@
 
 {% requireAdmin %}
 
+{% set selectedSubnavItem = 'settings' %}
+
 {% set crumbs = [
     { label: 'Settings' | t('app'), url: url('settings') },
     { label: 'Plugins' | t('app'), url: url('settings/plugins') },

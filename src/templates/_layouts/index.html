@@ -7,7 +7,7 @@
 {% endif %}
 
 {% set crumbs = [
-    { label: craft.backInStock.getPluginName() | t('craft-commerce-back-in-stock'), url: url('back-in-stock') },
+    { label: craft.backInStock.getPluginName() | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
 ] | merge(crumbs ?? []) %}
 
 {% block content %}

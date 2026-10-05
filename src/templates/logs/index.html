@@ -3,7 +3,7 @@
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
 
 {% set crumbs = [
-    { label: craft.backInStock.getPluginName() | t('craft-commerce-back-in-stock'), url: url('back-in-stock') },
+    { label: craft.backInStock.getPluginName() | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
     { label: 'Logs' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/logs') },
 ] %}
 
