@@ -108,6 +108,127 @@
     font-size: 12px;
 }
 
+.bis-health {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--bis-border);
+    border-inline-start-width: 4px;
+    border-radius: var(--large-border-radius);
+}
+
+.bis-health--healthy {
+    border-inline-start-color: var(--pk-color-green-600);
+}
+
+.bis-health--warning {
+    border-inline-start-color: var(--pk-color-orange-500);
+}
+
+.bis-health--error {
+    border-inline-start-color: var(--pk-color-red-600);
+}
+
+.bis-health__icon {
+    display: inline-flex;
+    font-size: 22px;
+}
+
+.bis-health--healthy .bis-health__icon {
+    color: var(--pk-color-green-600);
+}
+
+.bis-health--warning .bis-health__icon {
+    color: var(--pk-color-orange-500);
+}
+
+.bis-health--error .bis-health__icon {
+    color: var(--pk-color-red-600);
+}
+
+.bis-health__copy h2,
+.bis-health__copy p {
+    margin: 0;
+}
+
+.bis-health__copy h2 {
+    margin-bottom: 3px;
+    font-size: 15px;
+}
+
+.bis-health__copy p {
+    color: var(--bis-text-subtle);
+    font-size: 13px;
+}
+
+.bis-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-block: 1px solid var(--bis-border);
+}
+
+.bis-summary__item {
+    display: grid;
+    gap: 5px;
+    padding: 14px 16px;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.bis-summary__item + .bis-summary__item {
+    border-inline-start: 1px solid var(--bis-border);
+}
+
+.bis-summary__item:hover .bis-summary__label {
+    color: var(--link-color);
+}
+
+.bis-summary__label,
+.bis-summary__meta,
+.bis-product-summary__label {
+    color: var(--bis-text-subtle);
+    font-size: 12px;
+}
+
+.bis-summary__value {
+    font-size: 25px;
+    line-height: 1;
+}
+
+.bis-product-summary {
+    display: grid;
+    grid-template-columns: minmax(200px, 0.35fr) minmax(0, 1fr);
+    border-block: 1px solid var(--bis-border);
+}
+
+.bis-product-summary__primary {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+    padding: 18px 20px;
+}
+
+.bis-product-summary__primary strong {
+    font-size: 34px;
+    line-height: 1;
+}
+
+.bis-product-summary__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 24px;
+    padding: 18px 20px;
+    border-inline-start: 1px solid var(--bis-border);
+}
+
+.bis-filterbar--compact {
+    grid-template-columns: minmax(220px, 280px) auto;
+    justify-content: start;
+}
+
 .bis-filterbar {
     display: grid;
     grid-template-columns: minmax(260px, 1fr) minmax(190px, 240px) auto;
@@ -260,12 +381,22 @@
 
 @media (max-width: 980px) {
     .bis-metrics,
+    .bis-summary,
     .bis-delivery-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .bis-run-hero {
         grid-template-columns: 1fr;
+    }
+
+    .bis-product-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .bis-product-summary__facts {
+        border-block-start: 1px solid var(--bis-border);
+        border-inline-start: 0;
     }
 
     .bis-metric:nth-child(odd),
@@ -295,6 +426,7 @@
 
     .bis-filterbar,
     .bis-metrics,
+    .bis-summary,
     .bis-delivery-grid {
         grid-template-columns: 1fr;
     }
@@ -304,6 +436,24 @@
     }
 
     .bis-run-hero__facts {
+        grid-template-columns: 1fr;
+    }
+
+    .bis-health {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .bis-health pk-button {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .bis-summary__item + .bis-summary__item {
+        border-block-start: 1px solid var(--bis-border);
+        border-inline-start: 0;
+    }
+
+    .bis-product-summary__facts {
         grid-template-columns: 1fr;
     }
 

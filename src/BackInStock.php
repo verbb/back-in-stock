@@ -75,17 +75,13 @@ class BackInStock extends Plugin
         $nav['url'] = 'back-in-stock';
 
         if (Craft::$app->getUser()->checkPermission('accessPlugin-craft-commerce-back-in-stock')) {
-            $nav['subnav']['products'] = [
-                'label' => Craft::t('craft-commerce-back-in-stock', 'Products'),
-                'url' => 'back-in-stock/products',
+            $nav['subnav']['overview'] = [
+                'label' => Craft::t('craft-commerce-back-in-stock', 'Overview'),
+                'url' => 'back-in-stock/overview',
             ];
-            $nav['subnav']['subscriptions'] = [
-                'label' => Craft::t('craft-commerce-back-in-stock', 'Subscriptions'),
-                'url' => 'back-in-stock/subscriptions',
-            ];
-            $nav['subnav']['history'] = [
-                'label' => Craft::t('craft-commerce-back-in-stock', 'History'),
-                'url' => 'back-in-stock/history',
+            $nav['subnav']['notifications'] = [
+                'label' => Craft::t('craft-commerce-back-in-stock', 'Notifications'),
+                'url' => 'back-in-stock/notifications',
             ];
         }
 
@@ -127,6 +123,9 @@ class BackInStock extends Plugin
             $event->rules['back-in-stock/subscriptions'] = 'craft-commerce-back-in-stock/dashboard/subscriptions';
             $event->rules['back-in-stock/history'] = 'craft-commerce-back-in-stock/dashboard/history';
             $event->rules['back-in-stock/history/<runId:\\d+>'] = 'craft-commerce-back-in-stock/dashboard/history-detail';
+            $event->rules['back-in-stock/notifications'] = 'craft-commerce-back-in-stock/dashboard/notifications';
+            $event->rules['back-in-stock/notifications/activity'] = 'craft-commerce-back-in-stock/dashboard/activity';
+            $event->rules['back-in-stock/notifications/activity/<runId:\\d+>'] = 'craft-commerce-back-in-stock/dashboard/activity-detail';
             $event->rules['back-in-stock/logs'] = 'craft-commerce-back-in-stock/dashboard/subscriptions';
             $event->rules['back-in-stock/settings'] = 'craft-commerce-back-in-stock/plugin/settings';
             $event->rules['back-in-stock/settings/<settingsNavItem:{handle}>'] = 'craft-commerce-back-in-stock/plugin/settings';

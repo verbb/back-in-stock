@@ -7,11 +7,11 @@
 - Added stock-matched notification cohorts with oldest-first selection, configurable internal batches and bounded retries.
 - Added optional double opt-in verification and signed one-click cancellation links.
 - Added editable Craft System Messages for confirmation, verification and availability emails, while retaining custom Twig template overrides.
-- Added Products, Subscriptions and History control-panel views, including per-variant demand summaries.
+- Added an operational Overview, a central Notifications workspace, lifecycle Activity, and per-variant interest summaries to the control panel.
 - Added the `craft craft-commerce-back-in-stock/reconcile` command for periodic availability and lifecycle reconciliation.
 
 ### Changed
-- Redesigned the control-panel experience around product-demand and subscription lenses, with consistent Plugin Kit controls and contextual actions, meaningful breadcrumbs, actionable summaries, dynamic delivery-health indicators and Craft-native tables, statuses, typography and empty states.
+- Redesigned the control-panel experience around a health-focused Overview and a central Notifications workspace, with native Subscriptions and Activity tabs, supporting product-interest drill-downs, compatibility redirects, consistent Plugin Kit controls, meaningful breadcrumbs, actionable summaries, dynamic delivery-health indicators and Craft-native tables, statuses, typography and empty states.
 - Changed stock updates to enqueue demand-led availability evaluation after Commerce has committed inventory changes.
 - Changed fresh installs to stock-matched notifications by default; upgrades retain the existing notify-everyone behaviour.
 - Changed successful, failed, cancelled and uncertain deliveries to be recorded as explicit outcomes.

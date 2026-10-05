@@ -1,0 +1,30 @@
+{% extends 'craft-commerce-back-in-stock/_layouts' %}
+
+{% set title = 'Notifications' | t('craft-commerce-back-in-stock') %}
+{% set selectedSubnavItem = 'notifications' %}
+{% set selectedTab = 'activity' %}
+{% set tabs = {
+    subscriptions: { label: 'Subscriptions' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/notifications') },
+    activity: { label: 'Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/notifications/activity') },
+} %}
+{% set crumbs = [
+    { label: title, url: url('back-in-stock/notifications') },
+    { label: 'Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/notifications/activity') },
+] %}
+
+{% block blockContent %}
+    <div class="bis-page">
+        <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="light">{{ '{count} lifecycle events' | t('craft-commerce-back-in-stock', {count: total | number}) }}</p><p class="bis-lead">{{ 'Follow subscription changes and notification runs as one chronological story.' | t('craft-commerce-back-in-stock') }}</p></div></div>
+
+        {% if variantId or attention %}<div class="bis-context"><div class="bis-context__filters">{% if variantId %}<div><span class="light">{{ 'Filtered product' | t('craft-commerce-back-in-stock') }}:</span> <strong>{{ variantFilter ? variantFilter.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: variantId})) }}</strong></div>{% endif %}{% if attention %}<div><span class="light">{{ 'Showing' | t('craft-commerce-back-in-stock') }}:</span> <strong>{{ 'Delivery issues from the last 30 days' | t('craft-commerce-back-in-stock') }}</strong></div>{% endif %}</div><pk-button href="{{ url('back-in-stock/notifications/activity') }}" variant="default" size="sm">{{ 'View all activity' | t('craft-commerce-back-in-stock') }}</pk-button></div>{% endif %}
+
+        <form method="get" class="bis-filterbar bis-filterbar--compact">
+            {% if variantId %}<input type="hidden" name="variantId" value="{{ variantId }}">{% endif %}
+            <pk-select name="type" value="{{ type ?? '' }}" aria-label="{{ 'Filter by activity type' | t('craft-commerce-back-in-stock') }}" width="full"><pk-option value="">{{ 'All activity' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="subscription">{{ 'Subscription changes' | t('craft-commerce-back-in-stock') }}</pk-option><pk-option value="notification">{{ 'Notification runs' | t('craft-commerce-back-in-stock') }}</pk-option></pk-select>
+            <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filter' | t('craft-commerce-back-in-stock') }}</pk-button>{% if type %}<pk-button href="{{ url('back-in-stock/notifications/activity', variantId ? {variantId: variantId} : {}) }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
+        </form>
+
+        {% include 'craft-commerce-back-in-stock/_includes/activity-table' with { activity: activity } %}
+        {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/notifications/activity', params: {type: type, variantId: variantId ?: null, attention: attention ? 1 : null} } %}
+    </div>
+{% endblock %}

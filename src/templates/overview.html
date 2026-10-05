@@ -1,1 +1,41 @@
-{% extends 'craft-commerce-back-in-stock/products' %}
+{% extends 'craft-commerce-back-in-stock/_layouts' %}
+
+{% set title = 'Overview' | t('craft-commerce-back-in-stock') %}
+{% set selectedSubnavItem = 'overview' %}
+{% set crumbs = [{ label: title, url: url('back-in-stock/overview') }] %}
+
+{% block blockContent %}
+    {% set health = counts.failed ? 'error' : (counts.unknown ? 'warning' : 'healthy') %}
+    {% set healthIcon = counts.failed ? 'circle-exclamation' : (counts.unknown ? 'triangle-exclamation' : 'circle-check') %}
+    <div class="bis-page">
+        <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="bis-lead">{{ 'A current view of customer interest, subscription health, and anything that needs a closer look.' | t('craft-commerce-back-in-stock') }}</p></div></div>
+
+        <section class="bis-health bis-health--{{ health }}">
+            <span class="bis-health__icon"><pk-icon icon="{{ healthIcon }}"></pk-icon></span>
+            <div class="bis-health__copy">
+                <h2>{{ counts.attention ? ('{count, plural, =1{# delivery needs attention} other{# deliveries need attention}}' | t('craft-commerce-back-in-stock', {count: counts.attention})) : 'Notification delivery looks healthy' | t('craft-commerce-back-in-stock') }}</h2>
+                <p>{% if counts.failed and counts.unknown %}{{ '{failed} failed and {unknown} uncertain outcomes were recorded in the last 30 days.' | t('craft-commerce-back-in-stock', {failed: counts.failed, unknown: counts.unknown}) }}{% elseif counts.failed %}{{ '{count, plural, =1{# failed outcome was recorded in the last 30 days.} other{# failed outcomes were recorded in the last 30 days.}}' | t('craft-commerce-back-in-stock', {count: counts.failed}) }}{% elseif counts.unknown %}{{ '{count, plural, =1{# uncertain outcome was recorded in the last 30 days.} other{# uncertain outcomes were recorded in the last 30 days.}}' | t('craft-commerce-back-in-stock', {count: counts.unknown}) }}{% else %}{{ 'No failed or uncertain delivery outcomes were recorded in the last 30 days.' | t('craft-commerce-back-in-stock') }}{% endif %}</p>
+            </div>
+            {% if counts.attention %}<pk-button variant="default" size="sm" href="{{ url('back-in-stock/notifications/activity', {attention: 1}) }}">{{ 'Review issues' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
+        </section>
+
+        <div class="bis-summary">
+            {% set summaries = [
+                { label: 'Active subscriptions', count: counts.active, meta: 'Ready for a matching restock', href: url('back-in-stock/notifications', {state: 'active'}) },
+                { label: 'Products with active interest', count: counts.products, meta: 'Exact variants with customers waiting', href: url('back-in-stock/products', {demand: 'active'}) },
+                { label: 'Awaiting verification', count: counts.pending, meta: 'Waiting for subscriber confirmation', href: url('back-in-stock/notifications', {state: 'pendingVerification'}) },
+            ] %}
+            {% for summary in summaries %}<a class="bis-summary__item" href="{{ summary.href }}"><span class="bis-summary__label">{{ summary.label | t('craft-commerce-back-in-stock') }}</span><strong class="bis-summary__value">{{ summary.count | number }}</strong><span class="bis-summary__meta">{{ summary.meta | t('craft-commerce-back-in-stock') }}</span></a>{% endfor %}
+        </div>
+
+        <section>
+            <div class="bis-section-heading"><div class="bis-section-heading__copy"><h2>{{ 'Products people are waiting for' | t('craft-commerce-back-in-stock') }}</h2><p>{{ 'The exact variants with active subscriptions, ranked by the number of customers waiting.' | t('craft-commerce-back-in-stock') }}</p></div><pk-button variant="default" size="sm" href="{{ url('back-in-stock/products', {demand: 'active'}) }}">{{ 'View all product activity' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
+            <div class="bis-section-body">{% include 'craft-commerce-back-in-stock/_includes/product-table' with { products: products, compact: true } %}</div>
+        </section>
+
+        <section>
+            <div class="bis-section-heading"><div class="bis-section-heading__copy"><h2>{{ 'Recent activity' | t('craft-commerce-back-in-stock') }}</h2><p>{{ 'The latest subscription changes and notification runs across the store.' | t('craft-commerce-back-in-stock') }}</p></div><pk-button variant="default" size="sm" href="{{ url('back-in-stock/notifications/activity') }}">{{ 'View all activity' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
+            <div class="bis-section-body">{% include 'craft-commerce-back-in-stock/_includes/activity-table' with { activity: activity } %}</div>
+        </section>
+    </div>
+{% endblock %}

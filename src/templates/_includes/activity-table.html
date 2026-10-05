@@ -1,0 +1,9 @@
+{% if activity %}
+    <div class="bis-table-shell"><table class="data fullwidth">
+        <thead><tr><th>{{ 'Event' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Details' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'When' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
+        <tbody>{% for item in activity %}
+            {% set stateStatus = item.state == 'attention' ? 'red' : (item.state == 'pendingVerification' ? 'pending' : (item.state in ['active', 'open'] ? 'active' : (item.state in ['notified', 'completed'] ? 'enabled' : 'disabled'))) %}
+            <tr><th><a class="bis-status" href="{{ item.url }}"><pk-status status="{{ stateStatus }}"></pk-status>{{ item.title | t('craft-commerce-back-in-stock') }}</a></th><td><a href="{{ url('back-in-stock/products/' ~ item.variantId) }}">{{ item.variant ? item.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: item.variantId})) }}</a></td><td>{{ item.detail }}</td><td>{{ item.occurredAt | datetime('short') }}</td></tr>
+        {% endfor %}</tbody>
+    </table></div>
+{% else %}<p class="zilch small">{{ 'No matching activity yet.' | t('craft-commerce-back-in-stock') }}</p>{% endif %}

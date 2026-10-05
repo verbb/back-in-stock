@@ -1,109 +1,22 @@
 {% extends 'craft-commerce-back-in-stock/_layouts' %}
 
-{% set title = 'Products' | t('craft-commerce-back-in-stock') %}
-{% set selectedSubnavItem = 'products' %}
-{% set crumbs = [{ label: title, url: url('back-in-stock/products') }] %}
+{% set title = 'Product activity' | t('craft-commerce-back-in-stock') %}
+{% set selectedSubnavItem = 'overview' %}
+{% set crumbs = [
+    { label: 'Overview' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/overview') },
+    { label: title, url: url('back-in-stock/products') },
+] %}
 
 {% block blockContent %}
     <div class="bis-page">
-        <div class="bis-page-intro">
-            <div class="bis-page-intro__copy">
-                <p class="light">{{ (demand == 'active' ? '{count, plural, =1{# product with active demand} other{# products with active demand}}' : '{count, plural, =1{# product with subscription history} other{# products with subscription history}}') | t('craft-commerce-back-in-stock', {count: total}) }}</p>
-                <p class="bis-lead">{{ 'See where customers are waiting now and how much demand each exact variant has accumulated over time.' | t('craft-commerce-back-in-stock') }}</p>
-            </div>
+        <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="light">{{ (demand == 'active' ? '{count, plural, =1{# product with active interest} other{# products with active interest}}' : '{count, plural, =1{# product with subscription activity} other{# products with subscription activity}}') | t('craft-commerce-back-in-stock', {count: total}) }}</p><p class="bis-lead">{{ 'Compare the exact variants customers are waiting for now with the subscription activity retained over time.' | t('craft-commerce-back-in-stock') }}</p></div></div>
+
+        <div class="btngroup">
+            <a class="btn{{ demand == 'active' ? ' active' }}" href="{{ url('back-in-stock/products', {demand: 'active'}) }}">{{ 'Waiting now' | t('craft-commerce-back-in-stock') }}</a>
+            <a class="btn{{ demand != 'active' ? ' active' }}" href="{{ url('back-in-stock/products') }}">{{ 'All product activity' | t('craft-commerce-back-in-stock') }}</a>
         </div>
 
-        {% set attentionHealth = counts.failed ? 'error' : (counts.unknown ? 'warning' : 'healthy') %}
-        {% set attentionIcon = counts.failed ? 'circle-exclamation' : (counts.unknown ? 'triangle-exclamation' : 'circle-check') %}
-        {% set attentionLabel = counts.failed ? 'Delivery failures need attention' : (counts.unknown ? 'Uncertain delivery outcomes need attention' : 'No delivery issues') %}
-        {% if counts.failed and counts.unknown %}
-            {% set attentionMeta = '{failed} failed and {unknown} uncertain in the last 30 days' | t('craft-commerce-back-in-stock', {failed: counts.failed, unknown: counts.unknown}) %}
-        {% elseif counts.failed %}
-            {% set attentionMeta = '{count, plural, =1{# failed delivery in the last 30 days} other{# failed deliveries in the last 30 days}}' | t('craft-commerce-back-in-stock', {count: counts.failed}) %}
-        {% elseif counts.unknown %}
-            {% set attentionMeta = '{count, plural, =1{# uncertain delivery in the last 30 days} other{# uncertain deliveries in the last 30 days}}' | t('craft-commerce-back-in-stock', {count: counts.unknown}) %}
-        {% else %}
-            {% set attentionMeta = 'No delivery issues in the last 30 days' | t('craft-commerce-back-in-stock') %}
-        {% endif %}
-        <div class="bis-metrics">
-            {% set metrics = [
-                { label: 'Products with active demand', count: counts.products, meta: 'Exact variants with customers waiting' | t('craft-commerce-back-in-stock'), action: 'View active products', href: url('back-in-stock/products', {demand: 'active'}) },
-                { label: 'Active subscriptions', count: counts.active, meta: 'Ready for the next matching restock' | t('craft-commerce-back-in-stock'), action: 'View active subscriptions', href: url('back-in-stock/subscriptions', {state: 'active'}) },
-                { label: 'Awaiting verification', count: counts.pending, meta: 'Waiting for subscriber confirmation' | t('craft-commerce-back-in-stock'), action: 'Review subscriptions', href: url('back-in-stock/subscriptions', {state: 'pendingVerification'}) },
-                { label: 'Needs attention', count: counts.attention, meta: attentionMeta, action: 'Review history', href: url('back-in-stock/history', {attention: 1}), health: attentionHealth, healthIcon: attentionIcon, healthLabel: attentionLabel },
-            ] %}
-            {% for metric in metrics %}
-                <div class="bis-metric">
-                    <div class="bis-metric__heading">
-                        <div class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</div>
-                        {% if metric.health ?? null %}<span class="bis-metric__health bis-metric__health--{{ metric.health }}"><pk-icon icon="{{ metric.healthIcon }}" label="{{ metric.healthLabel | t('craft-commerce-back-in-stock') }}"></pk-icon></span>{% endif %}
-                    </div>
-                    <div class="bis-metric__value">{{ metric.count | number }}</div>
-                    <div class="bis-metric__meta">{{ metric.meta }}</div>
-                    <div class="bis-metric__action"><a class="go" href="{{ metric.href }}">{{ metric.action | t('craft-commerce-back-in-stock') }}</a></div>
-                </div>
-            {% endfor %}
-        </div>
-
-        {% if demand == 'active' %}
-            <div class="bis-context">
-                <div><span class="light">{{ 'Showing' | t('craft-commerce-back-in-stock') }}:</span> <strong>{{ 'Products with active demand' | t('craft-commerce-back-in-stock') }}</strong></div>
-                <pk-button href="{{ url('back-in-stock/products') }}" variant="outline" size="sm">{{ 'View all products' | t('craft-commerce-back-in-stock') }}</pk-button>
-            </div>
-        {% endif %}
-
-        <section>
-            <div class="bis-section-heading">
-                <div class="bis-section-heading__copy">
-                    <h2>{{ 'Product demand' | t('craft-commerce-back-in-stock') }}</h2>
-                    <p>{{ 'Current demand and retained subscription history, grouped by exact Commerce variant.' | t('craft-commerce-back-in-stock') }}</p>
-                </div>
-            </div>
-
-            <div class="bis-section-body">
-                {% if products %}
-                    <div class="bis-table-shell">
-                        <table class="data fullwidth">
-                            <thead><tr>
-                                <th>{{ 'Product / variant' | t('craft-commerce-back-in-stock') }}</th>
-                                <th>{{ 'Active' | t('craft-commerce-back-in-stock') }}</th>
-                                <th>{{ 'All time' | t('craft-commerce-back-in-stock') }}</th>
-                                <th>{{ 'Oldest active' | t('craft-commerce-back-in-stock') }}</th>
-                                <th>{{ 'Last notified' | t('craft-commerce-back-in-stock') }}</th>
-                                <th>{{ 'Needs attention' | t('craft-commerce-back-in-stock') }}</th>
-                            </tr></thead>
-                            <tbody>
-                            {% for product in products %}
-                                {% set variantTitle = product.variant ? product.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: product.variantId})) %}
-                                <tr>
-                                    <th>
-                                        <div class="bis-primary-cell">
-                                            <a class="bis-primary-cell__title" href="{{ url('back-in-stock/products/' ~ product.variantId) }}">{{ variantTitle }}</a>
-                                            <span class="bis-primary-cell__meta">{{ product.variant and product.variant.sku ? product.variant.sku : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: product.variantId})) }}</span>
-                                        </div>
-                                    </th>
-                                    <td><strong>{{ product.activeCount | number }}</strong></td>
-                                    <td>{{ product.totalCount | number }}</td>
-                                    <td>{{ product.oldestActiveAt ? product.oldestActiveAt | datetime('short') : '—' }}</td>
-                                    <td>{{ product.lastNotifiedAt ? product.lastNotifiedAt | datetime('short') : '—' }}</td>
-                                    <td>
-                                        {% if product.problemCount %}
-                                            {% set problemStatus = product.failedCount ? 'red' : 'orange' %}
-                                            {% set problemLabel = product.failedCount ? 'Delivery failures need attention' : 'Uncertain delivery outcomes need attention' %}
-                                            <span class="bis-status"><pk-status status="{{ problemStatus }}" aria-label="{{ problemLabel | t('craft-commerce-back-in-stock') }}"></pk-status>{{ product.problemCount | number }}</span>
-                                        {% else %}<span class="bis-cell-meta">{{ 'None' | t('craft-commerce-back-in-stock') }}</span>{% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <p class="zilch small">{{ 'No product demand yet. Products will appear after their first back-in-stock subscription.' | t('craft-commerce-back-in-stock') }}</p>
-                {% endif %}
-            </div>
-        </section>
-
+        {% include 'craft-commerce-back-in-stock/_includes/product-table' with { products: products } %}
         {% include 'craft-commerce-back-in-stock/_includes/simple-pagination' with { route: 'back-in-stock/products', params: {demand: demand} } %}
     </div>
 {% endblock %}

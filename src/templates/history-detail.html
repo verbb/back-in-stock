@@ -3,10 +3,11 @@
 {% set record = run.record %}
 {% set variantTitle = run.variant ? run.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: record.variantId})) %}
 {% set title = variantTitle %}
-{% set selectedSubnavItem = 'history' %}
+{% set selectedSubnavItem = 'notifications' %}
 {% set crumbs = [
-    { label: 'History' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/history') },
-    { label: variantTitle ~ ' · ' ~ (record.openedAt | datetime('short')), url: url('back-in-stock/history/' ~ record.id) },
+    { label: 'Notifications' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/notifications') },
+    { label: 'Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/notifications/activity') },
+    { label: variantTitle ~ ' · ' ~ (record.openedAt | datetime('short')), url: url('back-in-stock/notifications/activity/' ~ record.id) },
 ] %}
 
 {% block blockContent %}
@@ -14,7 +15,7 @@
     <div class="bis-page">
         <div class="bis-page-intro">
             <div class="bis-page-intro__copy">
-                <p class="light">{{ 'Notification history' | t('craft-commerce-back-in-stock') }}</p>
+                <p class="light">{{ 'Notification activity' | t('craft-commerce-back-in-stock') }}</p>
                 <p class="bis-lead">{{ 'Opened {date}' | t('craft-commerce-back-in-stock', {date: record.openedAt | datetime('short')}) }}</p>
             </div>
             <span class="bis-status"><pk-status status="{{ runStatus }}" aria-label="{{ record.status | ucfirst }}"></pk-status>{{ record.status | ucfirst }}</span>
