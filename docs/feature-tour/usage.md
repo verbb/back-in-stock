@@ -32,7 +32,7 @@ Each attempt finishes as `sent`, `failed`, `cancelled`, or `unknown`. Definite f
 
 The Back in Stock control-panel section contains four focused destinations:
 
-- **Products** groups present and retained demand by exact variant, with active and all-time subscription counts, oldest current wait, recent notification timing, and delivery problems. Summary counts open the matching filtered products, subscriptions, or history, while each product connects its recent subscriptions with its notification history.
+- **Products** groups present and retained demand by exact variant, with active and all-time subscription counts, oldest current wait, recent notification timing, and delivery problems. The delivery-health indicator is green when no action is required, orange for uncertain outcomes, and red for definite failures. Summary counts open the matching filtered products, subscriptions, or history, while each product connects its recent subscriptions with its notification history.
 - **Subscriptions** shows every recipient request across pending, active, notified, cancelled, and expired states. Search by email, filter by lifecycle state, or open the product lens from any row.
 - **History** is the delivery audit trail. It lists availability windows and opens each entry into its selected subscriptions and attempt outcomes.
 - **Settings** controls availability, selection, batching, verification, retention, and template overrides.

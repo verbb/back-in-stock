@@ -2487,5 +2487,5 @@ var e=Object.defineProperty,t=(t,n)=>{let r={};for(var i in t)e(r,i,{get:t[i],en
                 role="status"
                 aria-label=${this.ariaLabel??j}
             ></span>
-        `}};F([M({reflect:!0})],so.prototype,`status`,void 0),F([M({attribute:`aria-label`})],so.prototype,`ariaLabel`,void 0),so=F([P(`pk-status`)],so),Gn({arrowLeft:pt,arrowRight:mt,circleCheck:jt,clock:Ft,magnifyingGlass:_n,triangleExclamation:En});var co=[R,Qn,V,H,$,so];function lo(){for(let e of co)if(typeof e!=`function`)throw Error(`Back in Stock Plugin Kit constructor missing from bundle.`)}lo();
+        `}};F([M({reflect:!0})],so.prototype,`status`,void 0),F([M({attribute:`aria-label`})],so.prototype,`ariaLabel`,void 0),so=F([P(`pk-status`)],so),Gn({arrowLeft:pt,arrowRight:mt,circleCheck:jt,circleExclamation:Mt,clock:Ft,magnifyingGlass:_n,triangleExclamation:En});var co=[R,Qn,V,H,$,so];function lo(){for(let e of co)if(typeof e!=`function`)throw Error(`Back in Stock Plugin Kit constructor missing from bundle.`)}lo();
 //# sourceMappingURL=cp.js.map

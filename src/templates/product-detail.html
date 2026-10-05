@@ -18,16 +18,31 @@
             {% if variant %}<pk-button href="{{ variant.cpEditUrl }}" variant="outline" size="sm">{{ 'View in Commerce' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>{% endif %}
         </div>
 
+        {% set attentionHealth = counts.failed ? 'error' : (counts.unknown ? 'warning' : 'healthy') %}
+        {% set attentionIcon = counts.failed ? 'circle-exclamation' : (counts.unknown ? 'triangle-exclamation' : 'circle-check') %}
+        {% set attentionLabel = counts.failed ? 'Delivery failures need attention' : (counts.unknown ? 'Uncertain delivery outcomes need attention' : 'No delivery issues') %}
+        {% if counts.failed and counts.unknown %}
+            {% set attentionMeta = '{failed} failed and {unknown} uncertain' | t('craft-commerce-back-in-stock', {failed: counts.failed, unknown: counts.unknown}) %}
+        {% elseif counts.failed %}
+            {% set attentionMeta = '{count, plural, =1{# failed delivery} other{# failed deliveries}}' | t('craft-commerce-back-in-stock', {count: counts.failed}) %}
+        {% elseif counts.unknown %}
+            {% set attentionMeta = '{count, plural, =1{# uncertain delivery} other{# uncertain deliveries}}' | t('craft-commerce-back-in-stock', {count: counts.unknown}) %}
+        {% else %}
+            {% set attentionMeta = 'No delivery issues' | t('craft-commerce-back-in-stock') %}
+        {% endif %}
         <div class="bis-metrics">
             {% set metrics = [
                 { label: 'Active subscriptions', count: counts.active, meta: oldestActiveAt ? ('Oldest waiting since {date}' | t('craft-commerce-back-in-stock', {date: oldestActiveAt | datetime('short')})) : 'Nobody is currently waiting' | t('craft-commerce-back-in-stock'), action: 'View active subscriptions', href: url('back-in-stock/subscriptions', {variantId: variantId, state: 'active'}) },
-                { label: 'All-time subscriptions', count: counts.total, meta: 'Every retained request for this variant', action: 'View all subscriptions', href: url('back-in-stock/subscriptions', {variantId: variantId}) },
-                { label: 'Notified', count: counts.notified, meta: 'Subscriptions handed to the mailer', action: 'View notified subscriptions', href: url('back-in-stock/subscriptions', {variantId: variantId, state: 'notified'}) },
-                { label: 'Needs attention', count: counts.failed, meta: 'Failed or uncertain delivery outcomes', action: 'Review history', href: url('back-in-stock/history', {variantId: variantId}) },
+                { label: 'All-time subscriptions', count: counts.total, meta: 'Every retained request for this variant' | t('craft-commerce-back-in-stock'), action: 'View all subscriptions', href: url('back-in-stock/subscriptions', {variantId: variantId}) },
+                { label: 'Notified', count: counts.notified, meta: 'Subscriptions handed to the mailer' | t('craft-commerce-back-in-stock'), action: 'View notified subscriptions', href: url('back-in-stock/subscriptions', {variantId: variantId, state: 'notified'}) },
+                { label: 'Needs attention', count: counts.attention, meta: attentionMeta, action: 'Review history', href: url('back-in-stock/history', {variantId: variantId}), health: attentionHealth, healthIcon: attentionIcon, healthLabel: attentionLabel },
             ] %}
             {% for metric in metrics %}
                 <div class="bis-metric">
-                    <div class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</div>
+                    <div class="bis-metric__heading">
+                        <div class="bis-metric__label">{{ metric.label | t('craft-commerce-back-in-stock') }}</div>
+                        {% if metric.health ?? null %}<span class="bis-metric__health bis-metric__health--{{ metric.health }}"><pk-icon icon="{{ metric.healthIcon }}" label="{{ metric.healthLabel | t('craft-commerce-back-in-stock') }}"></pk-icon></span>{% endif %}
+                    </div>
                     <div class="bis-metric__value">{{ metric.count | number }}</div>
                     <div class="bis-metric__meta">{{ metric.meta }}</div>
                     <div class="bis-metric__action"><a class="go" href="{{ metric.href }}">{{ metric.action | t('craft-commerce-back-in-stock') }}</a></div>

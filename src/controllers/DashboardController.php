@@ -76,15 +76,29 @@ class DashboardController extends Controller
         $runRows = $variantIds ? (new Query())
             ->select([
                 'variantId',
-                'problemCount' => new Expression('SUM([[failedCount]] + [[unknownCount]])'),
+                'failedTotal' => new Expression('SUM([[failedCount]])'),
+                'unknownTotal' => new Expression('SUM([[unknownCount]])'),
             ])
             ->from(RestockRun::tableName())
             ->where(['variantId' => $variantIds])
             ->groupBy(['variantId'])
             ->indexBy('variantId')
             ->all() : [];
+        $issueRows = (new Query())
+            ->select(['status', 'count' => new Expression('COUNT([[id]])')])
+            ->from(DeliveryAttempt::tableName())
+            ->where(['status' => [DeliveryAttemptModel::STATUS_FAILED, DeliveryAttemptModel::STATUS_UNKNOWN]])
+            ->andWhere(['>=', 'dateCreated', $thirtyDaysAgo])
+            ->groupBy(['status'])
+            ->indexBy('status')
+            ->all();
+        $failedCount = (int)($issueRows[DeliveryAttemptModel::STATUS_FAILED]['count'] ?? 0);
+        $unknownCount = (int)($issueRows[DeliveryAttemptModel::STATUS_UNKNOWN]['count'] ?? 0);
         $products = array_map(function(array $row) use ($variants, $runRows) {
             $variantId = (int)$row['variantId'];
+            $failedCount = (int)($runRows[$variantId]['failedTotal'] ?? 0);
+            $unknownCount = (int)($runRows[$variantId]['unknownTotal'] ?? 0);
+
             return [
                 'variantId' => $variantId,
                 'variant' => $variants[$variantId] ?? null,
@@ -93,7 +107,9 @@ class DashboardController extends Controller
                 'oldestActiveAt' => $row['oldestActiveAt'],
                 'lastSubscriptionAt' => $row['lastSubscriptionAt'],
                 'lastNotifiedAt' => $row['lastNotifiedAt'],
-                'problemCount' => (int)($runRows[$variantId]['problemCount'] ?? 0),
+                'failedCount' => $failedCount,
+                'unknownCount' => $unknownCount,
+                'problemCount' => $failedCount + $unknownCount,
             ];
         }, $demandRows);
 
@@ -106,7 +122,9 @@ class DashboardController extends Controller
                     ->scalar(),
                 'active' => Subscription::find()->where(['state' => SubscriptionModel::STATE_ACTIVE])->count(),
                 'pending' => Subscription::find()->where(['state' => SubscriptionModel::STATE_PENDING_VERIFICATION])->count(),
-                'failed' => DeliveryAttempt::find()->where(['status' => [DeliveryAttemptModel::STATUS_FAILED, DeliveryAttemptModel::STATUS_UNKNOWN]])->andWhere(['>=', 'dateCreated', $thirtyDaysAgo])->count(),
+                'attention' => $failedCount + $unknownCount,
+                'failed' => $failedCount,
+                'unknown' => $unknownCount,
             ],
             'products' => $products,
             'demand' => $demand,
@@ -147,9 +165,17 @@ class DashboardController extends Controller
         }
 
         $counts['total'] = array_sum($counts);
-        $counts['failed'] = (int)RestockRun::find()
+        $issueCounts = (new Query())
+            ->select([
+                'failed' => new Expression('SUM([[failedCount]])'),
+                'unknown' => new Expression('SUM([[unknownCount]])'),
+            ])
+            ->from(RestockRun::tableName())
             ->where(['variantId' => $variantId])
-            ->sum(new Expression('[[failedCount]] + [[unknownCount]]'));
+            ->one();
+        $counts['failed'] = (int)($issueCounts['failed'] ?? 0);
+        $counts['unknown'] = (int)($issueCounts['unknown'] ?? 0);
+        $counts['attention'] = $counts['failed'] + $counts['unknown'];
         $oldestActiveAt = Subscription::find()
             ->where(['variantId' => $variantId, 'state' => SubscriptionModel::STATE_ACTIVE])
             ->min('dateCreated');

@@ -59,6 +59,13 @@
     border-inline-start: 1px solid var(--bis-border);
 }
 
+.bis-metric__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
 .bis-metric__label {
     color: var(--bis-text-subtle);
     font-size: 12px;
@@ -76,6 +83,23 @@
     color: var(--bis-text-subtle);
     font-size: 12px;
     line-height: 1.35;
+}
+
+.bis-metric__health {
+    display: inline-flex;
+    font-size: 18px;
+}
+
+.bis-metric__health--healthy {
+    color: var(--pk-color-green-600);
+}
+
+.bis-metric__health--warning {
+    color: var(--pk-color-orange-500);
+}
+
+.bis-metric__health--error {
+    color: var(--pk-color-red-600);
 }
 
 .bis-metric__action {
