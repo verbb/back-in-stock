@@ -8,5 +8,5 @@ Add an unstyled notification form to any product page for guests or signed-in cu
 - Keep subscriptions variant-specific, duplicate-safe, and optionally protected by email verification.
 - Deliver oldest-first cohorts in configurable batches with bounded retry handling.
 - Edit confirmation, verification, and availability emails through Craft System Messages, with full Twig template overrides when needed.
-- Use the Craft overview as an operational health check, then inspect subscribers, lifecycle activity, product interest, and delivery outcomes from one Notifications workspace.
+- Use Overview as an operational starting point, then find exact variants or subscriber emails and inspect their retained lifecycle activity from one Restock Activity workspace.
 - Reconcile availability and expire or purge lifecycle data on a predictable schedule.
