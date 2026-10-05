@@ -1,5 +1,7 @@
 {% extends 'craft-commerce-back-in-stock/_layouts' %}
 
+{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
+
 {% set variantTitle = variant ? variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: variantId})) %}
 {% set commerceProduct = variant ? variant.owner : null %}
 {% set title = variantTitle %}
@@ -10,7 +12,7 @@
     activity: { label: 'Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products/' ~ variantId ~ '/activity') },
 } %}
 {% set crumbs = [
-    { label: 'Product Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
+    { label: 'Restock Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
     { label: variantTitle, url: url('back-in-stock/products/' ~ variantId) },
 ] %}
 
@@ -43,22 +45,13 @@
         {% if selectedTab == 'subscriptions' %}
             <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="bis-lead">{{ 'Find the people who asked to be notified about this exact variant and check the current state of each request.' | t('craft-commerce-back-in-stock') }}</p></div></div>
 
-            <form method="get" class="bis-filterbar">
-                <pk-input name="search" value="{{ search }}" placeholder="{{ 'Search email addresses' | t('craft-commerce-back-in-stock') }}" aria-label="{{ 'Search email addresses' | t('craft-commerce-back-in-stock') }}" with-clear><pk-icon slot="start" icon="magnifying-glass"></pk-icon></pk-input>
+            <form id="bis-subscription-filters" method="get" class="bis-filterbar bis-filterbar--compact">
+                <input id="bis-subscription-search" type="hidden" name="search" value="{{ search }}">
                 <pk-select name="state" value="{{ state ?? '' }}" aria-label="{{ 'Filter by state' | t('craft-commerce-back-in-stock') }}" width="full"><pk-option value="">{{ 'All states' | t('craft-commerce-back-in-stock') }}</pk-option>{% for value, label in { pendingVerification: 'Pending verification', active: 'Active', notified: 'Notified', cancelled: 'Cancelled', expired: 'Expired' } %}<pk-option value="{{ value }}">{{ label | t('craft-commerce-back-in-stock') }}</pk-option>{% endfor %}</pk-select>
-                <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filters' | t('craft-commerce-back-in-stock') }}</pk-button>{% if search or state %}<pk-button href="{{ url('back-in-stock/products/' ~ variantId) }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
+                <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filter' | t('craft-commerce-back-in-stock') }}</pk-button>{% if state != 'active' %}<pk-button href="{{ url('back-in-stock/products/' ~ variantId) }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
             </form>
 
-            {% include 'craft-commerce-back-in-stock/_includes/subscription-table' with { subscriptions: subscriptions, showProduct: false } %}
-            <div class="bis-report-footer">
-                {% include '_includes/pagination' with {pageInfo: {
-                    first: total ? ((page - 1) * pageSize + 1) : 0,
-                    last: min(page * pageSize, total),
-                    total: total,
-                    prevUrl: page > 1 ? url('back-in-stock/products/' ~ variantId, {search: search, state: state, page: page - 1}) : null,
-                    nextUrl: page < pageCount ? url('back-in-stock/products/' ~ variantId, {search: search, state: state, page: page + 1}) : null,
-                }, itemLabel: 'subscription' | t('craft-commerce-back-in-stock'), itemsLabel: 'subscriptions' | t('craft-commerce-back-in-stock')} %}
-            </div>
+            <div id="bis-subscription-vue-admin-table" class="bis-filtered-admin-table"></div>
         {% else %}
             <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="bis-lead">{{ 'Follow subscription changes and notification runs for this exact variant.' | t('craft-commerce-back-in-stock') }}</p></div></div>
 
@@ -68,16 +61,74 @@
                 <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filters' | t('craft-commerce-back-in-stock') }}</pk-button>{% if type or attention %}<pk-button href="{{ url('back-in-stock/products/' ~ variantId ~ '/activity') }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
             </form>
 
-            {% include 'craft-commerce-back-in-stock/_includes/activity-table' with { activity: activity, showProduct: false } %}
-            <div class="bis-report-footer">
-                {% include '_includes/pagination' with {pageInfo: {
-                    first: total ? ((page - 1) * pageSize + 1) : 0,
-                    last: min(page * pageSize, total),
-                    total: total,
-                    prevUrl: page > 1 ? url('back-in-stock/products/' ~ variantId ~ '/activity', {type: type, attention: attention ? 1 : null, page: page - 1}) : null,
-                    nextUrl: page < pageCount ? url('back-in-stock/products/' ~ variantId ~ '/activity', {type: type, attention: attention ? 1 : null, page: page + 1}) : null,
-                }, itemLabel: 'lifecycle event' | t('craft-commerce-back-in-stock'), itemsLabel: 'lifecycle events' | t('craft-commerce-back-in-stock')} %}
-            </div>
+            <div id="bis-activity-vue-admin-table" class="bis-filtered-admin-table"></div>
         {% endif %}
     </div>
 {% endblock %}
+
+{% js %}
+    {% if selectedTab == 'subscriptions' %}
+        var subscriptionColumns = [
+            { name: 'subscriber', title: Craft.t('craft-commerce-back-in-stock', 'Subscriber'), sortField: 'subscriber' },
+            { name: 'state', title: Craft.t('craft-commerce-back-in-stock', 'State'), sortField: 'state', callback: function(value) {
+                return '<span class="status ' + Craft.escapeHtml(value.status) + '"></span>' + Craft.escapeHtml(value.label);
+            } },
+            {% if showSite %}{ name: 'site', title: Craft.t('app', 'Site'), sortField: 'site' },{% endif %}
+            { name: 'subscribed', title: Craft.t('craft-commerce-back-in-stock', 'Subscribed'), sortField: 'subscribed' },
+        ];
+
+        new Craft.VueAdminTable({
+            columns: subscriptionColumns,
+            container: '#bis-subscription-vue-admin-table',
+            emptyMessage: Craft.t('craft-commerce-back-in-stock', 'No subscriptions exist for this variant yet.'),
+            itemLabels: {
+                singular: Craft.t('craft-commerce-back-in-stock', 'subscription'),
+                plural: Craft.t('craft-commerce-back-in-stock', 'subscriptions'),
+            },
+            noSearchResults: Craft.t('craft-commerce-back-in-stock', 'No subscriptions match that email address.'),
+            onQueryParams: function(params) {
+                params.variantId = {{ variantId }};
+                params.state = {{ (state ?? '') | json_encode | raw }};
+                return params;
+            },
+            perPage: 50,
+            search: true,
+            searchPlaceholder: Craft.t('craft-commerce-back-in-stock', 'Search email addresses'),
+            tableDataEndpoint: Craft.getActionUrl('craft-commerce-back-in-stock/dashboard/subscription-table'),
+        });
+
+        document.getElementById('bis-subscription-filters').addEventListener('submit', function() {
+            document.getElementById('bis-subscription-search').value = new URL(window.location.href).searchParams.get('search') || '';
+        });
+    {% else %}
+        var activityColumns = [
+            { name: 'event', title: Craft.t('craft-commerce-back-in-stock', 'Event'), callback: function(value) {
+                var content = '<span class="status ' + Craft.escapeHtml(value.status) + '"></span>' + Craft.escapeHtml(value.label);
+
+                return value.url
+                    ? '<a class="bis-status" href="' + Craft.escapeHtml(value.url) + '">' + content + '</a>'
+                    : '<span class="bis-status">' + content + '</span>';
+            } },
+            { name: 'when', title: Craft.t('craft-commerce-back-in-stock', 'When') },
+        ];
+
+        new Craft.VueAdminTable({
+            columns: activityColumns,
+            container: '#bis-activity-vue-admin-table',
+            emptyMessage: Craft.t('craft-commerce-back-in-stock', 'No matching activity yet.'),
+            itemLabels: {
+                singular: Craft.t('craft-commerce-back-in-stock', 'lifecycle event'),
+                plural: Craft.t('craft-commerce-back-in-stock', 'lifecycle events'),
+            },
+            onQueryParams: function(params) {
+                params.variantId = {{ variantId }};
+                params.type = {{ (type ?? '') | json_encode | raw }};
+                params.attention = {{ attention ? 'true' : 'false' }};
+                return params;
+            },
+            perPage: 50,
+            search: false,
+            tableDataEndpoint: Craft.getActionUrl('craft-commerce-back-in-stock/dashboard/activity-table'),
+        });
+    {% endif %}
+{% endjs %}

@@ -1,12 +1,14 @@
 <ul class="bis-overview-list bis-product-list">
     {% for product in products %}
         {% set commerceProduct = product.variant ? product.variant.owner : null %}
-        <li><a class="bis-overview-row bis-overview-product" href="{{ url('back-in-stock/products/' ~ product.variantId) }}">
+        {% set detailParams = product.matchingSubscriberCount ? {search: search} : (product.activeCount ? {} : {state: 'all'}) %}
+        <li><a class="bis-overview-row bis-overview-product" href="{{ url('back-in-stock/products/' ~ product.variantId, detailParams) }}">
             <div>
                 <span class="bis-overview-product__title">{{ commerceProduct ? commerceProduct.title : (product.variant ? product.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: product.variantId}))) }}{% if commerceProduct and product.variant.title != commerceProduct.title %} → {{ product.variant.title }}{% endif %}</span>
                 <div class="bis-overview-product__meta bis-overview__meta">
                     {% if commerceProduct %}<span>{{ commerceProduct.type.name | t('site') }}</span>{% endif %}
                     {% if product.variant and product.variant.sku %}<span class="bis-overview-product__sku">{{ product.variant.sku }}</span>{% endif %}
+                    {% if product.matchingSubscriberCount %}<span>{{ '{count, plural, =1{# matching subscriber} other{# matching subscribers}}' | t('craft-commerce-back-in-stock', {count: product.matchingSubscriberCount}) }}</span>{% endif %}
                 </div>
             </div>
             <div class="bis-overview-product__count"><strong>{{ product.activeCount | number }}</strong><span>{{ 'waiting' | t('craft-commerce-back-in-stock') }}</span></div>
