@@ -30,12 +30,13 @@ Each attempt finishes as `sent`, `failed`, `cancelled`, or `unknown`. Definite f
 
 ## 5. Operate from Craft
 
-The Back in Stock control-panel section contains four focused destinations:
+The Back in Stock control-panel section contains three focused destinations:
 
-- **Products** groups present and retained demand by exact variant, with active and all-time subscription counts, oldest current wait, recent notification timing, and delivery problems. The delivery-health indicator is green when no action is required, orange for uncertain outcomes, and red for definite failures. Summary counts open the matching filtered products, subscriptions, or history, while each product connects its recent subscriptions with its notification history.
-- **Subscriptions** shows every recipient request across pending, active, notified, cancelled, and expired states. Search by email, filter by lifecycle state, or open the product lens from any row.
-- **History** is the delivery audit trail. It lists availability windows and opens each entry into its selected subscriptions and attempt outcomes.
+- **Overview** is the operational home. Its health state is green when no action is required, orange for uncertain delivery outcomes, and red for definite failures. The summary links open the exact subscriptions, product activity, or delivery issues behind each count. The page also ranks the variants customers are waiting for and shows recent lifecycle activity without turning the plugin into a general analytics dashboard.
+- **Notifications** brings customer requests and lifecycle evidence together. The **Subscriptions** tab shows every recipient request across pending, active, notified, cancelled, and expired states; search by email, filter by lifecycle state, or open the related product from any row. The **Activity** tab combines subscription changes with notification runs in chronological order, and each run opens into its selected cohort and delivery attempts.
 - **Settings** controls availability, selection, batching, verification, retention, and template overrides.
+
+Product activity remains available as supporting detail from Overview and Notifications. The report compares exact variants by current and lifetime interest, while each product summary connects the customers waiting now with its recent notification activity. It is deliberately not a top-level catalogue view: products appear only after Back in Stock records subscription activity for them.
 
 ## Customer-controlled lifecycle
 

@@ -26,5 +26,5 @@ Notify the oldest subscribers in proportion to available units, tune how many pe
 <!-- feature-section -->
 ## Operate from one clear place
 
-See current and lifetime demand by Product, inspect every Subscription, and open History for the exact cohort and delivery attempts behind a restock. Product summaries connect those two lenses without turning a focused notification plugin into a general marketing platform.
+Start with an operational Overview, then use Notifications to find every subscriber or follow lifecycle Activity from registration through delivery. Product-interest summaries reveal which exact variants customers are waiting for without presenting the whole Commerce catalogue or turning a focused notification plugin into a general marketing platform.
 <!-- feature-section-end -->
