@@ -3,7 +3,7 @@
 
 {% set craftSettings = craft.app.getProjectConfig().get('email') %}
 
-<p class="notice with-icon">{{ 'Default confirmation, verification and availability content is managed in Utilities → System Messages. Set a template below only when you need a complete Twig HTML override.' | t('craft-commerce-back-in-stock') }}</p>
+<p>{{ 'Default confirmation, verification and availability content is managed in Craft’s' | t('craft-commerce-back-in-stock') }} <a href="{{ cpUrl('utilities/system-messages') }}">{{ 'System Messages' | t('app') }}</a>. {{ 'Set a template below only when you need a complete Twig HTML override.' | t('craft-commerce-back-in-stock') }}</p>
 
 {{ forms.autosuggestField({
     label: 'From Email Address' | t('craft-commerce-back-in-stock'),
@@ -84,14 +84,3 @@
     errors: settings.getErrors('emailSubject'),
     warning: macros.configWarning('emailSubject', 'craft-commerce-back-in-stock'),
 }) }}
-
-{{ forms.lightswitchField({
-    label: 'Purge Notification Requests' | t('craft-commerce-back-in-stock'),
-    instructions: 'Purge notification requests from the database when a notification is successfully sent.' | t('craft-commerce-back-in-stock'),
-    name: 'purgeRequests',
-    on: settings.purgeRequests,
-    errors: settings.getErrors('purgeRequests'),
-    warning: macros.configWarning('purgeRequests', 'craft-commerce-back-in-stock'),
-}) }}
-
-<p class="warning with-icon">{{ 'Purge Notification Requests is retained for compatibility and is deprecated. Prefer History Retention so delivery outcomes remain available for diagnosis.' | t('craft-commerce-back-in-stock') }}</p>

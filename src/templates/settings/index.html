@@ -10,7 +10,9 @@
 {% set fullPageForm = true %}
 {% set pageTabs = {
     general: { title: 'General Settings' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings') },
-    notifications: { title: 'Notifications' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings/notifications') },
+    delivery: { title: 'Delivery' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings/delivery') },
+    subscriptions: { title: 'Subscription' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings/subscriptions') },
+    notifications: { title: 'Email' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/settings/notifications') },
 } %}
 {% set pageTitle = pageTabs[selectedTab].title ?? pageTabs[selectedTab].heading ?? null %}
 {% if not pageTitle %}{% exit 404 %}{% endif %}

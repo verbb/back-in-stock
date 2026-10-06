@@ -1,0 +1,94 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.selectField({
+    label: 'Notification Recipients' | t('craft-commerce-back-in-stock'),
+    instructions: 'Choose how many waiting customers are notified when a variant returns to stock. Match available stock selects the oldest subscribers according to the stock on hand. Notify all waiting subscribers contacts everyone, even when demand exceeds stock.' | t('craft-commerce-back-in-stock'),
+    id: 'notificationPolicy',
+    name: 'notificationPolicy',
+    value: settings.notificationPolicy,
+    toggle: true,
+    targetPrefix: 'notification-policy-',
+    options: [
+        { label: 'Match available stock' | t('craft-commerce-back-in-stock'), value: 'stockMatched' },
+        { label: 'Notify all waiting subscribers' | t('craft-commerce-back-in-stock'), value: 'all' },
+    ],
+    errors: settings.getErrors('notificationPolicy'),
+    warning: macros.configWarning('notificationPolicy', 'craft-commerce-back-in-stock'),
+}) }}
+
+<div id="notification-policy-stockMatched" class="{{ settings.notificationPolicy != 'stockMatched' ? 'hidden' }}">
+    {{ forms.textField({
+        label: 'Subscribers per Available Unit' | t('craft-commerce-back-in-stock'),
+        instructions: 'For each available unit, notify this many of the oldest waiting subscribers. For example, 5 units with a value of 2 selects up to 10 people. Use a higher value when not every notified customer is expected to purchase. Variants with unlimited stock notify everyone who is waiting.' | t('craft-commerce-back-in-stock'),
+        id: 'subscribersPerUnit',
+        name: 'subscribersPerUnit',
+        value: settings.subscribersPerUnit,
+        type: 'number',
+        min: 1,
+        size: 3,
+        errors: settings.getErrors('subscribersPerUnit'),
+        warning: macros.configWarning('subscribersPerUnit', 'craft-commerce-back-in-stock'),
+    }) }}
+</div>
+
+{{ forms.textField({
+    label: 'Stock Threshold' | t('craft-commerce-back-in-stock'),
+    instructions: 'Notifications can be sent only when a variant’s stock is greater than this value. With 0, the variant needs at least 1 unit in stock.' | t('craft-commerce-back-in-stock'),
+    id: 'stockThreshold',
+    name: 'stockThreshold',
+    value: settings.stockThreshold,
+    type: 'number',
+    size: 3,
+    errors: settings.getErrors('stockThreshold'),
+    warning: macros.configWarning('stockThreshold', 'craft-commerce-back-in-stock'),
+}) }}
+
+{{ forms.lightswitchField({
+    label: 'Require Available for Purchase' | t('craft-commerce-back-in-stock'),
+    instructions: 'Only send notifications when Commerce also considers the variant available for purchase.' | t('craft-commerce-back-in-stock'),
+    id: 'includeAvailableForPurchase',
+    name: 'includeAvailableForPurchase',
+    on: settings.includeAvailableForPurchase,
+    errors: settings.getErrors('includeAvailableForPurchase'),
+    warning: macros.configWarning('includeAvailableForPurchase', 'craft-commerce-back-in-stock'),
+}) }}
+
+{{ forms.textField({
+    label: 'Batch Size' | t('craft-commerce-back-in-stock'),
+    instructions: 'The maximum number of selected notifications scheduled in each queue batch.' | t('craft-commerce-back-in-stock'),
+    id: 'batchSize',
+    name: 'batchSize',
+    value: settings.batchSize,
+    type: 'number',
+    min: 1,
+    size: 5,
+    errors: settings.getErrors('batchSize'),
+    warning: macros.configWarning('batchSize', 'craft-commerce-back-in-stock'),
+}) }}
+
+{{ forms.textField({
+    label: 'Batch Delay (seconds)' | t('craft-commerce-back-in-stock'),
+    instructions: 'The delay before each additional notification batch is scheduled.' | t('craft-commerce-back-in-stock'),
+    id: 'batchDelay',
+    name: 'batchDelay',
+    value: settings.batchDelay,
+    type: 'number',
+    min: 0,
+    size: 5,
+    errors: settings.getErrors('batchDelay'),
+    warning: macros.configWarning('batchDelay', 'craft-commerce-back-in-stock'),
+}) }}
+
+{{ forms.textField({
+    label: 'Maximum Delivery Attempts' | t('craft-commerce-back-in-stock'),
+    instructions: 'Retry confirmed delivery failures up to this many total attempts. Unconfirmed sending results are not retried automatically.' | t('craft-commerce-back-in-stock'),
+    id: 'maximumAttempts',
+    name: 'maximumAttempts',
+    value: settings.maximumAttempts,
+    type: 'number',
+    min: 1,
+    size: 3,
+    errors: settings.getErrors('maximumAttempts'),
+    warning: macros.configWarning('maximumAttempts', 'craft-commerce-back-in-stock'),
+}) }}

@@ -1,0 +1,63 @@
+{% import '_includes/forms' as forms %}
+{% import 'verbb-base/_macros' as macros %}
+
+{{ forms.lightswitchField({
+    label: 'Require Email Verification' | t('craft-commerce-back-in-stock'),
+    instructions: 'Require subscribers to confirm their email address before they can receive availability notifications.' | t('craft-commerce-back-in-stock'),
+    id: 'requireVerification',
+    name: 'requireVerification',
+    on: settings.requireVerification,
+    toggle: '.verification-settings',
+    errors: settings.getErrors('requireVerification'),
+    warning: macros.configWarning('requireVerification', 'craft-commerce-back-in-stock'),
+}) }}
+
+<div class="verification-settings {{ not settings.requireVerification ? 'hidden' }}">
+    {{ forms.textField({
+        label: 'Verification Link Expiry (hours)' | t('craft-commerce-back-in-stock'),
+        instructions: 'A customer must open the verification link within this many hours of subscribing. After that time, the link can no longer confirm the request.' | t('craft-commerce-back-in-stock'),
+        name: 'verificationWindow',
+        value: settings.verificationWindow,
+        type: 'number',
+        min: 1,
+        size: 4,
+        errors: settings.getErrors('verificationWindow'),
+        warning: macros.configWarning('verificationWindow', 'craft-commerce-back-in-stock'),
+    }) }}
+
+    {{ forms.textField({
+        label: 'Unverified Request Expiry (days)' | t('craft-commerce-back-in-stock'),
+        instructions: 'During reconciliation, mark a request as expired when the customer has not verified it within this many days. Expired requests are not notified and no longer prevent the customer from subscribing again. Use a period at least as long as the verification link expiry.' | t('craft-commerce-back-in-stock'),
+        name: 'pendingExpiry',
+        value: settings.pendingExpiry,
+        type: 'number',
+        min: 1,
+        size: 4,
+        errors: settings.getErrors('pendingExpiry'),
+        warning: macros.configWarning('pendingExpiry', 'craft-commerce-back-in-stock'),
+    }) }}
+</div>
+
+{{ forms.textField({
+    label: 'Waiting Request Expiry (days)' | t('craft-commerce-back-in-stock'),
+    instructions: 'During reconciliation, mark an active request as expired after this many days without a successful availability notification. Expired requests are no longer notified and the customer can subscribe again.' | t('craft-commerce-back-in-stock'),
+    name: 'activeExpiry',
+    value: settings.activeExpiry,
+    type: 'number',
+    min: 1,
+    size: 4,
+    errors: settings.getErrors('activeExpiry'),
+    warning: macros.configWarning('activeExpiry', 'craft-commerce-back-in-stock'),
+}) }}
+
+{{ forms.textField({
+    label: 'Completed History Retention (days)' | t('craft-commerce-back-in-stock'),
+    instructions: 'During reconciliation, remove notified, cancelled and expired requests after this many days. This does not affect requests that are still waiting or awaiting verification. Use 0 to retain completed history indefinitely.' | t('craft-commerce-back-in-stock'),
+    name: 'historyRetention',
+    value: settings.historyRetention,
+    type: 'number',
+    min: 0,
+    size: 4,
+    errors: settings.getErrors('historyRetention'),
+    warning: macros.configWarning('historyRetention', 'craft-commerce-back-in-stock'),
+}) }}
