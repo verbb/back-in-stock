@@ -1,4 +1,4 @@
-# Notification Form
+# Example Form
 
 Back in Stock deliberately provides an action rather than storefront markup or assets. Start with this unstyled Twig form, then adapt it to the project’s design and variant selector.
 
@@ -29,7 +29,7 @@ Back in Stock deliberately provides an action rather than storefront markup or a
 
 Craft places the success message in the `notice` flash and validation or rate-limit failures in the `error` flash. Render those through the project’s usual flash-message component.
 
-## Variant selectors
+## Variant Selectors
 
 A subscription belongs to a Commerce variant. If customers can choose a size, colour, or another option, update `variantId` before submission so it matches the selected variant rather than always submitting the default.
 
@@ -43,7 +43,7 @@ A subscription belongs to a Commerce variant. If customers can choose a size, co
 </select>
 ```
 
-## Optional template context
+## Optional Template Context
 
 Pass a JSON object in `options` when an email template needs bounded context that is not convenient to derive from the variant. Options are limited to an 8 KB object and do not form part of subscription uniqueness.
 
@@ -58,9 +58,9 @@ Pass a JSON object in `options` when an email template needs bounded context tha
 
 Custom email templates receive `variant`, `subscription`, `options`, `cancelUrl`, and `subject`. The verification System Message also receives `verifyUrl`.
 
-## JSON and progressive enhancement
+## JSON and Progressive Enhancement
 
-Send the same fields to the same action with an `Accept: application/json` header. A successful response preserves the existing `success` and `message` fields and adds the lifecycle `state`:
+Send the same fields to the same action with an `Accept: application/json` header. A successful response contains `success`, `message`, and the subscription `state`:
 
 ```json
 {
@@ -93,6 +93,6 @@ form?.addEventListener('submit', async (event) => {
 
 Add `data-back-in-stock-form` to the form and a status element such as `<p data-back-in-stock-status aria-live="polite"></p>` if using this enhancement. The JavaScript is project-owned example code; the plugin does not enqueue it.
 
-## Rate limiting
+## Rate Limiting
 
 Registration is temporarily limited to ten attempts from the same direct connection address or recipient within five minutes. Visitors behind a shared proxy share that connection allowance. Multi-node installations should use shared cache and mutex backends so duplicate and abuse controls are consistent across application nodes.

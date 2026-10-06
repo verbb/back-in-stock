@@ -1,25 +1,25 @@
 # Configuration
 
-Configure Back in Stock from **Settings → Back in Stock**, or create `craft-commerce-back-in-stock.php` in the Craft project’s `config` directory. A PHP configuration file is useful when settings need to be consistent across environments.
+You can customise Back in Stock’s settings using a PHP configuration file. This is optional: settings that are not included in the file retain their defaults.
+
+To override a setting, create `craft-commerce-back-in-stock.php` in the Craft project’s `/config` directory and return an array of setting names and values. For example, the following changes the name displayed in the control panel:
 
 ```php
 <?php
 
 return [
-    'notificationPolicy' => 'stockMatched',
-    'subscribersPerUnit' => 1,
-    'batchSize' => 100,
-    'batchDelay' => 60,
-    'requireVerification' => true,
+    'pluginName' => 'Product Alerts',
 ];
 ```
 
-Values in the PHP file override control-panel values. Settings that are not listed keep their defaults.
+Values in this file override settings saved through the control panel. Add only the settings that need to differ for the project or environment.
 
-## General settings
+## Configuration Options
+
+### General Settings
 
 ::: reference
-### `pluginName`
+#### `pluginName`
 
 **Type:** `string` · **Default:** `'Back in Stock'`
 
@@ -27,125 +27,131 @@ The name displayed for the plugin in the control panel.
 :::
 
 ::: reference
-### `hasCpSection`
+#### `hasCpSection`
 
 **Type:** `bool` · **Default:** `true`
 
 Whether Back in Stock appears in the main control-panel navigation.
 :::
 
-::: reference
-### `stockThreshold`
-
-**Type:** `int` · **Default:** `0`
-
-The stock level a tracked variant must exceed before it is considered available. With the default of `0`, a stock level of `1` or more is available.
-:::
+### Delivery
 
 ::: reference
-### `includeAvailableForPurchase`
-
-**Type:** `bool` · **Default:** `false`
-
-Whether a variant must also be enabled for purchase before it is considered available.
-:::
-
-## Notification selection
-
-::: reference
-### `notificationPolicy`
+#### `notificationPolicy`
 
 **Type:** `string` · **Default:** `'stockMatched'`
 
-Use `'stockMatched'` to select a cohort based on current stock, or `'all'` to notify every eligible subscriber in the availability window. Existing installations upgraded from 4.1 retain `'all'` until this setting is changed.
+Controls how many waiting customers are selected when a variant becomes available. Use `'stockMatched'` to select the oldest eligible subscribers according to the stock on hand, or `'all'` to notify every eligible subscriber even when demand exceeds stock.
 :::
 
 ::: reference
-### `subscribersPerUnit`
+#### `subscribersPerUnit`
 
 **Type:** `int` · **Default:** `1`
 
-The number of oldest eligible subscribers selected for each available unit under the stock-matched policy. For example, stock of `3` with a value of `2` selects up to six subscribers.
+The number of oldest eligible subscribers selected for each available unit when `notificationPolicy` is `'stockMatched'`. For example, stock of `3` with a value of `2` selects up to six subscribers. A value greater than `1` can account for notified customers who do not complete a purchase.
+
+This field is shown in the control panel only when **Notification Recipients** is set to **Match available stock**.
 :::
 
 ::: reference
-### `batchSize`
+#### `stockThreshold`
+
+**Type:** `int` · **Default:** `0`
+
+The stock level a tracked variant must exceed before it is considered available. With the default of `0`, the variant needs at least one unit in stock.
+:::
+
+::: reference
+#### `includeAvailableForPurchase`
+
+**Type:** `bool` · **Default:** `false`
+
+Whether Commerce must also consider a variant available for purchase before Back in Stock sends notifications.
+:::
+
+::: reference
+#### `batchSize`
 
 **Type:** `int` · **Default:** `100`
 
-The number of selected deliveries scheduled in each internal queue batch.
+The maximum number of selected deliveries scheduled in each internal queue batch.
 :::
 
 ::: reference
-### `batchDelay`
+#### `batchDelay`
 
 **Type:** `int` · **Default:** `60`
 
-The delay in seconds between internal queue batches. A value of `0` schedules every batch immediately.
+The delay in seconds before each additional notification batch is scheduled. A value of `0` schedules every batch immediately.
 :::
 
 ::: reference
-### `maximumAttempts`
+#### `maximumAttempts`
 
 **Type:** `int` · **Default:** `3`
 
-The maximum number of delivery attempts for a failed notification. Retries use a bounded exponential delay. An uncertain outcome is retained for review and is not retried automatically because the mail transport may have accepted it.
+The maximum number of delivery attempts for a notification that definitely failed. Sending results that cannot be confirmed are retained for review and are not retried automatically because the mail transport may already have accepted the message.
 :::
 
-## Subscription lifecycle
+### Subscription
 
 ::: reference
-### `requireVerification`
+#### `requireVerification`
 
 **Type:** `bool` · **Default:** `false`
 
-Whether a new subscription must be confirmed through a signed email link before it can receive a stock notification.
+Whether a new subscription must be confirmed through a signed email link before it can receive an availability notification.
 :::
 
 ::: reference
-### `verificationWindow`
+#### `verificationWindow`
 
 **Type:** `int` · **Default:** `48`
 
-The number of hours a verification link remains valid.
+The number of hours after subscribing that a customer can use the emailed verification link. Once this window closes, the link can no longer activate the request.
+
+This field is shown in the control panel only when **Require Email Verification** is enabled.
 :::
 
 ::: reference
-### `pendingExpiry`
+#### `pendingExpiry`
 
 **Type:** `int` · **Default:** `7`
 
-The number of days an unverified subscription can remain pending before reconciliation marks it expired.
+The number of days an unverified request can remain pending before reconciliation marks it expired. Expired requests are not eligible for notifications and no longer prevent the customer from subscribing again. Use a period at least as long as `verificationWindow`.
+
+This field is shown in the control panel only when **Require Email Verification** is enabled.
 :::
 
 ::: reference
-### `activeExpiry`
+#### `activeExpiry`
 
 **Type:** `int` · **Default:** `365`
 
-The number of days an active subscription can remain without notification before reconciliation marks it expired.
+The number of days a waiting request can remain without a successful availability notification before reconciliation marks it expired. Expired requests are no longer eligible for notifications and the customer can subscribe again.
 :::
 
 ::: reference
-### `historyRetention`
+#### `historyRetention`
 
 **Type:** `int` · **Default:** `90`
 
-The number of days notified, cancelled, and expired subscriptions remain available before reconciliation purges them. Use `0` to retain lifecycle history indefinitely.
+The number of days notified, cancelled, and expired requests remain visible under **Products** before reconciliation removes them. Pending and waiting requests are unaffected. Use `0` to retain completed history indefinitely.
 :::
 
-## Email settings
+### Email
 
 ::: reference
-### `sendConfirmation`
+#### `sendConfirmation`
 
 **Type:** `bool` · **Default:** `false`
 
-Whether to send a confirmation after an immediately active subscription is created. When verification is required, Back in Stock sends the verification message instead.
+Whether to send a confirmation after an immediately active subscription is created. When email verification is required, Back in Stock sends the verification message instead.
 :::
 
 ::: reference
-### `fromEmail`
+#### `fromEmail`
 
 **Type:** `string|null` · **Default:** `null`
 
@@ -153,7 +159,7 @@ The sender email address. Environment variables and aliases are supported. When 
 :::
 
 ::: reference
-### `fromName`
+#### `fromName`
 
 **Type:** `string|null` · **Default:** `null`
 
@@ -161,7 +167,7 @@ The sender name. Environment variables and aliases are supported. When omitted, 
 :::
 
 ::: reference
-### `confirmationEmailTemplate`
+#### `confirmationEmailTemplate`
 
 **Type:** `string|null` · **Default:** `null`
 
@@ -169,7 +175,7 @@ An optional site Twig template that completely replaces the `back_in_stock_confi
 :::
 
 ::: reference
-### `confirmationEmailSubject`
+#### `confirmationEmailSubject`
 
 **Type:** `string` · **Default:** `'Back in stock notification confirmation for {{ variant.title }}'`
 
@@ -177,7 +183,7 @@ The Twig-enabled subject used with `confirmationEmailTemplate`. Craft’s editab
 :::
 
 ::: reference
-### `emailTemplate`
+#### `emailTemplate`
 
 **Type:** `string|null` · **Default:** `null`
 
@@ -185,33 +191,31 @@ An optional site Twig template that completely replaces the `back_in_stock_avail
 :::
 
 ::: reference
-### `emailSubject`
+#### `emailSubject`
 
 **Type:** `string` · **Default:** `'Order today, {{ variant.title }} is now in stock'`
 
 The Twig-enabled subject used with `emailTemplate`. Craft’s editable System Message subject is used when no custom template is configured.
 :::
 
-## Deprecated compatibility setting
+## Control Panel
 
-::: reference
-### `purgeRequests`
-
-**Type:** `bool` · **Default:** `false`
-
-Deletes a subscription immediately after successful delivery. This 4.1 setting remains supported throughout 4.x, but `historyRetention` is preferred because it preserves delivery history for a bounded period.
-:::
+You can manage the same settings through **Settings → Plugins → Back in Stock**. The settings are separated into General Settings, Delivery, Subscription, and Email. Options that depend on stock matching or email verification appear only when the related feature is enabled.
 
 ## System Messages
 
-When a custom Twig template is not configured, edit the three Back in Stock emails under **Settings → Email → System Messages**. The available keys are `back_in_stock_confirmation`, `back_in_stock_verification`, and `back_in_stock_available`.
+When a custom Twig template is not configured, edit the confirmation, verification, and availability emails under **Utilities → System Messages**. The message keys are `back_in_stock_confirmation`, `back_in_stock_verification`, and `back_in_stock_available`.
 
-## Reconciliation
+## Scheduled Reconciliation
 
-Run the reconciliation command on a regular schedule so missed Commerce signals are recovered and lifecycle retention is applied:
+Normal Commerce inventory changes trigger availability checks automatically and do not depend on this command. Schedule reconciliation when the store needs to recover inventory changes from imports or integrations that do not produce the expected Commerce event, or when the subscription expiry and history-retention settings should be enforced.
 
 ```shell
 php craft craft-commerce-back-in-stock/reconcile
 ```
 
-The command is safe to run repeatedly. A five-minute interval is a reasonable starting point for most stores; queue workers must also be running to deliver scheduled jobs.
+The command is safe to run repeatedly. A five-minute interval is a reasonable starting point for most stores.
+
+::: tip
+Ensure Craft’s queue is being processed, either by its automatic queue runner or a dedicated worker. Availability checks and notification deliveries use queued jobs and will wait until the queue runs.
+:::

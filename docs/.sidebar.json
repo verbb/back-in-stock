@@ -5,29 +5,32 @@
         "children": [
             "get-started/installation-setup",
             "get-started/requirements",
-            "get-started/configuration",
-            "get-started/upgrading-from-4.1"
+            "get-started/configuration"
         ]
     },
     {
         "title": "Feature Tour",
         "collapsable": false,
         "children": [
-            "feature-tour/usage"
+            "feature-tour/how-it-works",
+            "feature-tour/products-and-demand",
+            "feature-tour/subscriptions",
+            "feature-tour/notification-activity",
+            "feature-tour/email-messages"
         ]
     },
     {
         "title": "Template Guides",
         "collapsable": false,
         "children": [
-            "template-guides/example-form"
+            "template-guides/example-form",
+            "template-guides/custom-email-templates"
         ]
     },
     {
         "title": "Developers",
         "collapsable": false,
         "children": [
-            "developers/api",
             "developers/events"
         ]
     }

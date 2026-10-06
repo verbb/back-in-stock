@@ -1,10 +1,10 @@
 # Events
 
-Back in Stock retains its 4.1 log save events as part of the 4.x compatibility layer. Existing modules can continue listening to them while moving toward the [subscription API](docs:developers/api).
+Back in Stock provides save events on its Logs service. Modules and plugins can register listeners, typically in their `init()` methods, when they need to inspect or modify data saved through that service.
 
-## The `beforeSaveLog` event
+## The `beforeSaveLog` Event
 
-Triggered before a legacy Log model is persisted into canonical subscription storage.
+The event that is triggered before a Log model is saved.
 
 ```php
 use verbb\backinstock\events\LogEvent;
@@ -14,13 +14,13 @@ use yii\base\Event;
 Event::on(Logs::class, Logs::EVENT_BEFORE_SAVE_LOG, function(LogEvent $event) {
     $log = $event->log;
     $isNew = $event->isNew;
-    // Modify or inspect the compatibility model.
+    // Modify or inspect the log before it is saved.
 });
 ```
 
-## The `afterSaveLog` event
+## The `afterSaveLog` Event
 
-Triggered after a legacy Log model has been persisted into canonical subscription storage.
+The event that is triggered after a Log model has been saved.
 
 ```php
 use verbb\backinstock\events\LogEvent;
@@ -30,8 +30,6 @@ use yii\base\Event;
 Event::on(Logs::class, Logs::EVENT_AFTER_SAVE_LOG, function(LogEvent $event) {
     $log = $event->log;
     $isNew = $event->isNew;
-    // Respond to the saved compatibility model.
+    // Respond to the saved log.
 });
 ```
-
-No new domain events are introduced in 4.2. Use the canonical services for explicit application integration and keep event listeners limited to legacy compatibility needs.

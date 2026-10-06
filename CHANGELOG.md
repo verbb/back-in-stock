@@ -3,36 +3,27 @@
 ## Unreleased
 
 ### Added
-- Added canonical subscription lifecycle states, durable restock runs and delivery attempts.
-- Added stock-matched notification cohorts with oldest-first selection, configurable internal batches and bounded retries.
-- Added optional double opt-in verification and signed one-click cancellation links.
+- Added durable subscription lifecycle states with optional email verification and signed one-click cancellation.
+- Added durable restock runs and delivery attempts with stock-matched, oldest-first selection, configurable queue batches and bounded retries.
 - Added editable Craft System Messages for confirmation, verification and availability emails, while retaining custom Twig template overrides.
-- Added an operational Overview, a unified Restock Activity workspace, retained lifecycle Activity, and per-variant interest summaries to the control panel.
+- Added an Overview of current demand and recent activity, plus Products for finding variants or subscriber emails and reviewing subscription and notification history.
 - Added the `craft craft-commerce-back-in-stock/reconcile` command for periodic availability and lifecycle reconciliation.
 
 ### Changed
+- Split plugin settings into focused `General Settings`, `Delivery`, `Subscription`, and `Email` pages, conditionally showing stock-matching and verification fields only when they apply.
 - Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
-- Changed Restock Activity into the central sidebar destination for exact variants with retained Back in Stock data, using Craft's Vue admin tables with native search, sortable columns and Ajax pagination across the variant index and its Subscriptions and Activity tabs, plus a native Craft product-type sidebar, product/variant/SKU/subscriber-email search, and element-style variant detail pages with stable Commerce identity in Craft's details sidebar.
-- Simplified subscription tables to show normal-weight email addresses without internal record IDs, label subscription dates clearly, and show the Craft site instead of raw locale codes only when multiple sites exist.
-- Simplified product-scoped Activity tables by removing the repeated product and summary-detail columns, separating filters from results, and limiting event links to notification runs with an actual detail view.
-- Aligned notification details with Craft element pages by moving product and notification metadata into the details sidebar, using the recorded outcome as the page title, emphasizing exact variant context, simplifying run summaries, and giving delivery diagnostics full-width space beneath each attempt.
-- Clarified notification review state separately from delivery-attempt outcomes and aligned unconfirmed warning indicators across Activity and notification detail views.
-- Redesigned the control-panel experience around an Overview of customer interest and recent activity, with eight-item whole-row product and activity previews, compact product-type and SKU metadata, relative timestamps, conditional notification-review alerts, a unified Restock Activity workspace, variant-scoped Subscriptions and Activity tabs with Craft-native footer counts and pagination, compatibility redirects from the former global notification views, consistent Plugin Kit controls, meaningful breadcrumbs, restrained outline icons and semantic colours, and Craft-native tables, statuses, typography and empty states.
-- Changed stock updates to enqueue demand-led availability evaluation after Commerce has committed inventory changes.
-- Changed fresh installs to stock-matched notifications by default; upgrades retain the existing notify-everyone behaviour.
-- Changed successful, failed, cancelled and uncertain deliveries to be recorded as explicit outcomes.
+- Changed the control panel to use Craft-native searchable, sortable and paginated tables, product-type navigation, variant detail pages and delivery diagnostics, with compatibility redirects from the former notification views.
+- Changed stock updates to enqueue demand-led availability evaluation after Commerce commits inventory changes; fresh installations use stock-matched notification selection while upgrades retain their existing notify-everyone behaviour.
+- Changed notification processing to retain explicit sent, failed, cancelled and unconfirmed delivery outcomes.
 - Changed successful JSON registration responses to include the subscription lifecycle `state`, while preserving the existing response fields.
 
 ### Deprecated
 - Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.
 - Deprecated immediate post-delivery purging through `purgeRequests` in favour of bounded `historyRetention`; the existing setting remains functional throughout 4.x.
 
+## 4.1.10 - 2026-10-05
+
 ### Fixed
-- Fixed long product names and SKUs overflowing the Overview layout.
-- Fixed activity labels exposing internal notification-run states or implying sending had completed before confirmed hand-off.
-- Fixed notification-review button contrast on coloured Overview alerts.
-- Fixed Products and the current control-panel destination both appearing selected in the sidebar.
-- Fixed upgraded subscriptions retaining a legacy identity hash that differed from new canonical subscriptions.
 - Fixed a medium-severity improper control of interaction frequency vulnerability.
 - Fixed a low-severity information disclosure vulnerability.
 
