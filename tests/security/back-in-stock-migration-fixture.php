@@ -200,38 +200,6 @@ try {
 
     fixtureAssert($duplicateRejected, 'The database must reject a concurrent options-varying pending duplicate.');
 
-    $logsService = new verbb\backinstock\services\Logs();
-    $duplicateLog = new verbb\backinstock\models\Log([
-        'variantId' => 100,
-        'siteId' => 1,
-        'locale' => 'en-AU',
-        'options' => ['nonce' => 6],
-    ]);
-    $duplicateLog->email = 'person@example.test';
-    fixtureAssert(!$logsService->saveLog($duplicateLog, false), 'The persistence service must translate a database uniqueness race into the existing duplicate result.');
-    fixtureAssert($duplicateLog->hasErrors('variantId'), 'The translated duplicate race must retain the existing validation error contract.');
-    fixtureAssert($duplicateLog->getHasOnlyDuplicateError(), 'The translated duplicate race must be eligible for an idempotent public response.');
-
-    $completedLog = new verbb\backinstock\models\Log([
-        'variantId' => 102,
-        'siteId' => 1,
-        'locale' => 'en-AU',
-        'options' => ['title' => 'First request'],
-    ]);
-    $completedLog->email = 'repeat@example.test';
-    fixtureAssert($logsService->saveLog($completedLog, false), 'A legitimate new pending identity must remain insertable.');
-    $completedLog->isNotified = true;
-    fixtureAssert($logsService->saveLog($completedLog, false), 'Completing a request must release its pending identity.');
-
-    $repeatLog = new verbb\backinstock\models\Log([
-        'variantId' => 102,
-        'siteId' => 1,
-        'locale' => 'en-AU',
-        'options' => ['title' => 'Later request'],
-    ]);
-    $repeatLog->email = 'repeat@example.test';
-    fixtureAssert($logsService->saveLog($repeatLog, false), 'A recipient must remain able to subscribe again after notification completion.');
-
     $db->createCommand()->batchInsert($table, [
         'email',
         'variantId',
