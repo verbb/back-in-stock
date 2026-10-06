@@ -405,8 +405,9 @@
     gap: 8px;
 }
 
-.bis-filtered-admin-table {
-    margin-block-start: 20px;
+#bis-subscription-vue-admin-table .vue-admin-tablepane,
+#bis-activity-vue-admin-table .vue-admin-tablepane {
+    margin-block-start: 0;
 }
 
 .bis-product-report {

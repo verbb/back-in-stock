@@ -33,4 +33,12 @@ A single notification activity can cover many recipients, and one recipient can 
 
 Open a variant’s **Activity** tab to follow subscription changes and restock notifications in chronological order. Subscription events explain when a customer joined, verified, or left the waiting list. Notification entries open a detail page containing recipient selection, current outcomes, timestamps, and delivery diagnostics.
 
+![The Activity tab for an exact variant, showing subscription changes and notification outcomes in chronological order.](../../screenshots/product-activity.png)
+
 Failed and unconfirmed outcomes are marked for review on the detail page and in the Overview alert. The recorded error code and message can help distinguish a mail configuration problem from an eligibility or stock change.
+
+![The Overview alert for failed and unconfirmed notification activity.](../../screenshots/overview-notifications.png)
+
+Open an affected notification to see how many subscribers were waiting, how many were selected, and the latest outcome for each recipient. Diagnostic details appear beneath the relevant attempt so longer mail transport messages remain readable.
+
+![A notification detail page with recipient outcomes and diagnostic information for failed delivery attempts.](../../screenshots/notification-detail.png)

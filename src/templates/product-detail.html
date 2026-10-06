@@ -51,7 +51,7 @@
                 <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filter' | t('craft-commerce-back-in-stock') }}</pk-button>{% if state != 'active' %}<pk-button href="{{ url('back-in-stock/products/' ~ variantId) }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
             </form>
 
-            <div id="bis-subscription-vue-admin-table" class="bis-filtered-admin-table"></div>
+            <div id="bis-subscription-vue-admin-table"></div>
         {% else %}
             <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="bis-lead">{{ 'Follow subscription changes and notification runs for this exact variant.' | t('craft-commerce-back-in-stock') }}</p></div></div>
 
@@ -61,7 +61,7 @@
                 <div class="bis-filterbar__actions"><pk-button type="submit" variant="primary">{{ 'Apply filters' | t('craft-commerce-back-in-stock') }}</pk-button>{% if type or attention %}<pk-button href="{{ url('back-in-stock/products/' ~ variantId ~ '/activity') }}" variant="default">{{ 'Clear' | t('app') }}</pk-button>{% endif %}</div>
             </form>
 
-            <div id="bis-activity-vue-admin-table" class="bis-filtered-admin-table"></div>
+            <div id="bis-activity-vue-admin-table"></div>
         {% endif %}
     </div>
 {% endblock %}
