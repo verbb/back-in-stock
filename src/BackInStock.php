@@ -80,7 +80,7 @@ class BackInStock extends Plugin
                 'url' => 'back-in-stock/overview',
             ];
             $nav['subnav']['products'] = [
-                'label' => Craft::t('craft-commerce-back-in-stock', 'Restock Activity'),
+                'label' => Craft::t('craft-commerce-back-in-stock', 'Products'),
                 'url' => 'back-in-stock/products',
             ];
         }

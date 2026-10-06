@@ -6,7 +6,7 @@
 {% set title = run.title | t('craft-commerce-back-in-stock') %}
 {% set selectedSubnavItem = 'products' %}
 {% set crumbs = [
-    { label: 'Restock Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
+    { label: 'Products' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
     { label: variantTitle, url: url('back-in-stock/products/' ~ record.variantId) },
     { label: 'Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products/' ~ record.variantId ~ '/activity') },
     { label: title, url: url('back-in-stock/products/' ~ record.variantId ~ '/activity/' ~ record.id) },
@@ -124,7 +124,7 @@
                     {% endfor %}</tbody>
                 </table></div>
                 {% else %}
-                    <p class="zilch small">{{ record.selectedCount == 0 ? 'No subscriptions were selected for this availability window, so there was nothing to deliver.' | t('craft-commerce-back-in-stock') : 'Delivery attempts have not been created for this notification yet.' | t('craft-commerce-back-in-stock') }}</p>
+                    <p class="zilch small">{{ record.selectedCount == 0 ? 'No subscriptions were selected for this restock, so there was nothing to deliver.' | t('craft-commerce-back-in-stock') : 'Delivery attempts have not been created for this notification yet.' | t('craft-commerce-back-in-stock') }}</p>
                 {% endif %}
             </div>
         </section>

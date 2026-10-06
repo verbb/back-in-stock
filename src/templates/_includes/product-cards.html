@@ -14,6 +14,6 @@
             <div class="bis-overview-product__count"><strong>{{ product.activeCount | number }}</strong><span>{{ 'waiting' | t('craft-commerce-back-in-stock') }}</span></div>
         </a></li>
     {% else %}
-        <li class="bis-overview__empty">{{ 'No matching product activity.' | t('craft-commerce-back-in-stock') }}</li>
+        <li class="bis-overview__empty">{{ 'No matching products or variants.' | t('craft-commerce-back-in-stock') }}</li>
     {% endfor %}
 </ul>

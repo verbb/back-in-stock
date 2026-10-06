@@ -3,7 +3,7 @@ namespace verbb\backinstock\helpers;
 
 use verbb\backinstock\models\Settings;
 
-class Cohort
+class RecipientSelection
 {
     // Static Methods
     // =========================================================================

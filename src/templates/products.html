@@ -2,13 +2,13 @@
 
 {% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
 
-{% set title = 'Restock Activity' | t('craft-commerce-back-in-stock') %}
+{% set title = 'Products' | t('craft-commerce-back-in-stock') %}
 {% set selectedSubnavItem = 'products' %}
 {% set crumbs = [{ label: title, url: url('back-in-stock/products') }] %}
 
 {% block sidebar %}
     {% set params = {search: search, productType: productType ?: null, demand: demand, sort: sort, attention: attention ? 1 : null} %}
-    <nav aria-label="{{ 'Restock activity filters' | t('craft-commerce-back-in-stock') }}">
+    <nav aria-label="{{ 'Product filters' | t('craft-commerce-back-in-stock') }}">
         {# Craft owns source headings, row spacing and selected-state styling; these remain ordinary navigation links. #}
         <ul class="sources-list">
             <li class="heading">
@@ -25,7 +25,7 @@
 {% endblock %}
 
 {% block blockContent %}
-    {% if attention %}<div class="bis-context"><div><span class="light">{{ 'Showing' | t('craft-commerce-back-in-stock') }}:</span> <strong>{{ 'Products with notifications needing review in the last 30 days' | t('craft-commerce-back-in-stock') }}</strong></div><pk-button href="{{ url('back-in-stock/products') }}" variant="default" size="sm">{{ 'View all restock activity' | t('craft-commerce-back-in-stock') }}</pk-button></div>{% endif %}
+    {% if attention %}<div class="bis-context"><div><span class="light">{{ 'Showing' | t('craft-commerce-back-in-stock') }}:</span> <strong>{{ 'Products with notifications needing review in the last 30 days' | t('craft-commerce-back-in-stock') }}</strong></div><pk-button href="{{ url('back-in-stock/products') }}" variant="default" size="sm">{{ 'View all products' | t('craft-commerce-back-in-stock') }}</pk-button></div>{% endif %}
     <div id="restock-activity-vue-admin-table"></div>
 {% endblock %}
 
@@ -41,7 +41,7 @@
     new Craft.VueAdminTable({
         columns: columns,
         container: '#restock-activity-vue-admin-table',
-        emptyMessage: Craft.t('craft-commerce-back-in-stock', 'No restock activity exists yet.'),
+        emptyMessage: Craft.t('craft-commerce-back-in-stock', 'No products have Back in Stock activity yet.'),
         itemLabels: {
             singular: Craft.t('craft-commerce-back-in-stock', 'product variant'),
             plural: Craft.t('craft-commerce-back-in-stock', 'product variants'),

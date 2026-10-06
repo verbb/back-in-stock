@@ -2,7 +2,7 @@
 namespace verbb\backinstock\services;
 
 use verbb\backinstock\BackInStock;
-use verbb\backinstock\helpers\Cohort;
+use verbb\backinstock\helpers\RecipientSelection;
 use verbb\backinstock\models\DeliveryAttempt as DeliveryAttemptModel;
 use verbb\backinstock\models\RestockRun as RestockRunModel;
 use verbb\backinstock\models\Settings;
@@ -81,7 +81,7 @@ class Availability extends Component
         $run->lastEvaluatedAt = $now;
         $run->save(false);
 
-        $this->_selectCohort($run, $variant);
+        $this->_selectRecipients($run, $variant);
 
         return $run;
     }
@@ -110,7 +110,7 @@ class Availability extends Component
     // Private Methods
     // =========================================================================
 
-    private function _selectCohort(RestockRun $run, Variant $variant): void
+    private function _selectRecipients(RestockRun $run, Variant $variant): void
     {
         $settings = BackInStock::$plugin->getSettings();
         $eligibleQuery = Subscription::find()
@@ -123,7 +123,7 @@ class Availability extends Component
         $alreadySelected = (int)DeliveryAttempt::find()
             ->where(['runId' => $run->id, 'attemptNumber' => 1])
             ->count();
-        $selectionLimit = Cohort::selectionLimit(
+        $selectionLimit = RecipientSelection::selectionLimit(
             $run->notificationPolicy,
             $variant->inventoryTracked,
             (int)$variant->stock,

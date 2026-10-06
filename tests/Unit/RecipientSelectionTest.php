@@ -1,13 +1,13 @@
 <?php
 namespace verbb\backinstock\tests\Unit;
 
-use verbb\backinstock\helpers\Cohort;
+use verbb\backinstock\helpers\RecipientSelection;
 use verbb\backinstock\models\Settings;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-class CohortTest extends TestCase
+class RecipientSelectionTest extends TestCase
 {
     // Static Methods
     // =========================================================================
@@ -31,6 +31,6 @@ class CohortTest extends TestCase
     #[DataProvider('selectionScenarios')]
     public function testSelectionLimit(string $policy, bool $tracked, int $stock, int $ratio, int $eligible, int $selected, int $expected): void
     {
-        self::assertSame($expected, Cohort::selectionLimit($policy, $tracked, $stock, $ratio, $eligible, $selected));
+        self::assertSame($expected, RecipientSelection::selectionLimit($policy, $tracked, $stock, $ratio, $eligible, $selected));
     }
 }
