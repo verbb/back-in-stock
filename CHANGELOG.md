@@ -3,23 +3,23 @@
 ## Unreleased
 
 ### Added
-- Added durable subscription lifecycle states with optional email verification and signed one-click cancellation.
-- Added durable restock runs and delivery attempts with stock-matched, oldest-first selection, configurable queue batches and bounded retries.
+- Added optional email verification, signed one-click cancellation, and tracked states for pending, active, notified, cancelled and expired requests.
+- Added stock-aware notification selection, with the oldest waiting customers selected according to available inventory and a configurable subscribers-per-unit ratio.
+- Added notification history with per-recipient delivery attempts, configurable queue batches, retries for confirmed failures, and sent, failed, cancelled and unconfirmed outcomes.
 - Added editable Craft System Messages for confirmation, verification and availability emails, while retaining custom Twig template overrides.
-- Added an Overview of current demand and recent activity, plus Products for finding variants or subscriber emails and reviewing subscription and notification history.
-- Added the `craft craft-commerce-back-in-stock/reconcile` command for periodic availability and lifecycle reconciliation.
+- Added an Overview of current demand and recent activity, plus Products for filtering by product type, searching variants, SKUs or subscriber emails, and reviewing subscription and notification history.
+- Added the `craft craft-commerce-back-in-stock/reconcile` command to recover missed inventory changes, expire old requests and remove completed history.
 
 ### Changed
-- Split plugin settings into focused `General Settings`, `Delivery`, `Subscription`, and `Email` pages, conditionally showing stock-matching and verification fields only when they apply.
 - Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
-- Changed the control panel to use Craft-native searchable, sortable and paginated tables, product-type navigation, variant detail pages and delivery diagnostics, with compatibility redirects from the former notification views.
-- Changed stock updates to enqueue demand-led availability evaluation after Commerce commits inventory changes; fresh installations use stock-matched notification selection while upgrades retain their existing notify-everyone behaviour.
-- Changed notification processing to retain explicit sent, failed, cancelled and unconfirmed delivery outcomes.
+- Split plugin settings into `General Settings`, `Delivery`, `Subscription`, and `Email` pages, showing stock-matching and verification fields only when they apply.
+- Changed stock updates to queue availability checks after Commerce commits inventory changes and to check stock again before each notification is sent.
+- Changed fresh installations to match notification recipients to available stock by default; upgraded installations retain their existing notify-everyone behaviour until the setting is changed.
 - Changed successful JSON registration responses to include the subscription lifecycle `state`, while preserving the existing response fields.
 
 ### Deprecated
 - Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.
-- Deprecated immediate post-delivery purging through `purgeRequests` in favour of bounded `historyRetention`; the existing setting remains functional throughout 4.x.
+- Deprecated immediate post-delivery purging through `purgeRequests`; use `historyRetention` to keep completed history for a configurable period. The existing setting remains functional throughout 4.x.
 
 ## 4.1.10 - 2026-10-05
 
