@@ -3,6 +3,7 @@ namespace verbb\backinstock\services;
 
 use verbb\backinstock\BackInStock;
 use verbb\backinstock\events\LogEvent;
+use verbb\backinstock\events\SubscriptionEvent;
 use verbb\backinstock\models\Log;
 use verbb\backinstock\records\Log as LogRecord;
 use verbb\backinstock\models\Subscription;
@@ -92,6 +93,26 @@ class Logs extends Component
             : ($settings->requireVerification && $isNewLog ? Subscription::STATE_PENDING_VERIFICATION : Subscription::STATE_ACTIVE);
         $logRecord->activeKey = $log->isNotified ? null : Subscription::createActiveKey($log->getEmail(), $log->variantId, $log->siteId, $store->id, $log->locale);
 
+        if ($isNewLog) {
+            $event = new SubscriptionEvent(['subscription' => $logRecord]);
+            BackInStock::$plugin->getSubscriptions()->trigger(Subscriptions::EVENT_BEFORE_CREATE_SUBSCRIPTION, $event);
+
+            if (!$event->isValid) {
+                $log->addError('email', Craft::t('craft-commerce-back-in-stock', 'The notification request could not be created.'));
+                return false;
+            }
+
+            // Identity values must reflect any safe field changes made by listeners.
+            $logRecord->recipientKey = Subscription::createRecipientKey($logRecord->email);
+            $logRecord->pendingKey = in_array($logRecord->state, Subscription::ACTIVE_STATES, true)
+                ? Log::createPendingKey($logRecord->email, $logRecord->variantId, $logRecord->siteId, $logRecord->locale)
+                : null;
+            $logRecord->activeKey = in_array($logRecord->state, Subscription::ACTIVE_STATES, true)
+                ? Subscription::createActiveKey($logRecord->email, $logRecord->variantId, $logRecord->siteId, $logRecord->storeId, $logRecord->locale)
+                : null;
+            $logRecord->isNotified = $logRecord->state === Subscription::STATE_NOTIFIED;
+        }
+
         try {
             $logRecord->save(false);
         } catch (IntegrityException $e) {
@@ -112,6 +133,12 @@ class Logs extends Component
             $this->trigger(self::EVENT_AFTER_SAVE_LOG, new LogEvent([
                 'log' => $log,
                 'isNew' => $isNewLog,
+            ]));
+        }
+
+        if ($isNewLog) {
+            BackInStock::$plugin->getSubscriptions()->trigger(Subscriptions::EVENT_AFTER_CREATE_SUBSCRIPTION, new SubscriptionEvent([
+                'subscription' => $logRecord,
             ]));
         }
 

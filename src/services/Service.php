@@ -2,6 +2,7 @@
 namespace verbb\backinstock\services;
 
 use verbb\backinstock\BackInStock;
+use verbb\backinstock\events\SubscriptionMessageEvent;
 use verbb\backinstock\models\Log;
 use verbb\backinstock\models\Inventory;
 use verbb\backinstock\models\Settings;
@@ -29,6 +30,8 @@ class Service extends Component
 {
     // Constants
     // =========================================================================
+
+    public const EVENT_BEFORE_SEND_SUBSCRIPTION_MESSAGE = 'beforeSendSubscriptionMessage';
 
     private const REGISTRATION_ATTEMPT_LIMIT = 10;
     private const REGISTRATION_ATTEMPT_WINDOW = 300;
@@ -238,6 +241,18 @@ class Service extends Component
 
             if ($settings->getFromEmail()) {
                 $message->setFrom([$settings->getFromEmail() => $settings->getFromName()]);
+            }
+
+            $event = new SubscriptionMessageEvent([
+                'subscription' => $subscription,
+                'variant' => $variant,
+                'message' => $message,
+                'messageKey' => $messageKey,
+            ]);
+            $this->trigger(self::EVENT_BEFORE_SEND_SUBSCRIPTION_MESSAGE, $event);
+
+            if (!$event->isValid) {
+                return ['status' => 'cancelled', 'code' => 'send-cancelled', 'message' => 'Message delivery was cancelled by an event listener.'];
             }
 
             if (!Craft::$app->getMailer()->send($message)) {

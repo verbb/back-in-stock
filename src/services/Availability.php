@@ -2,6 +2,7 @@
 namespace verbb\backinstock\services;
 
 use verbb\backinstock\BackInStock;
+use verbb\backinstock\events\RecipientSelectionEvent;
 use verbb\backinstock\helpers\RecipientSelection;
 use verbb\backinstock\models\DeliveryAttempt as DeliveryAttemptModel;
 use verbb\backinstock\models\RestockRun as RestockRunModel;
@@ -24,6 +25,12 @@ use craft\commerce\elements\Variant;
 
 class Availability extends Component
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_AFTER_SELECT_NOTIFICATION_RECIPIENTS = 'afterSelectNotificationRecipients';
+
+
     // Public Methods
     // =========================================================================
 
@@ -148,6 +155,7 @@ class Availability extends Component
             ->limit($selectionLimit)
             ->all();
         $now = new DateTime();
+        $selectedSubscriptions = [];
 
         foreach ($subscriptions as $index => $subscription) {
             $batch = intdiv($alreadySelected + $index, $settings->batchSize);
@@ -168,6 +176,7 @@ class Availability extends Component
 
             $delay = max(0, $dueAt->getTimestamp() - time());
             Craft::$app->getQueue()->delay($delay)->push(new DeliverAttempt(['attemptId' => $attempt->id]));
+            $selectedSubscriptions[] = $subscription;
         }
 
         $run->selectedCount = (int)DeliveryAttempt::find()
@@ -179,5 +188,13 @@ class Availability extends Component
             ->where(['runId' => $run->id, 'status' => DeliveryAttemptModel::STATUS_PENDING])
             ->min('dueAt');
         $run->save(false);
+
+        if ($selectedSubscriptions) {
+            $this->trigger(self::EVENT_AFTER_SELECT_NOTIFICATION_RECIPIENTS, new RecipientSelectionEvent([
+                'run' => $run,
+                'variant' => $variant,
+                'subscriptions' => $selectedSubscriptions,
+            ]));
+        }
     }
 }

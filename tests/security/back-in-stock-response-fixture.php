@@ -2,9 +2,13 @@
 
 use verbb\backinstock\BackInStock;
 use verbb\backinstock\controllers\BaseController;
+use verbb\backinstock\events\SubscriptionEvent;
 use verbb\backinstock\models\Log;
 use verbb\backinstock\services\Logs;
 use verbb\backinstock\services\Service;
+use verbb\backinstock\services\Subscriptions;
+
+use yii\base\Event;
 
 use craft\commerce\elements\Variant;
 
@@ -90,6 +94,23 @@ $plugin->set('service', new BackInStockResponseFixtureService());
 $settings->sendConfirmation = true;
 $email = sprintf('security-response-%s@example.test', bin2hex(random_bytes(8)));
 $formEmail = sprintf('security-response-form-%s@example.test', bin2hex(random_bytes(8)));
+$cancelledEmail = sprintf('security-response-cancelled-%s@example.test', bin2hex(random_bytes(8)));
+$beforeCreateCount = 0;
+$afterCreateCount = 0;
+$beforeCreateHandler = function(SubscriptionEvent $event) use (&$beforeCreateCount, $cancelledEmail): void {
+    fixtureAssert($event->subscription->getIsNewRecord(), 'The before-create event must expose the unsaved subscription.');
+    $beforeCreateCount++;
+
+    if ($event->subscription->email === $cancelledEmail) {
+        $event->isValid = false;
+    }
+};
+$afterCreateHandler = function(SubscriptionEvent $event) use (&$afterCreateCount): void {
+    fixtureAssert(!$event->subscription->getIsNewRecord(), 'The after-create event must expose the saved subscription.');
+    $afterCreateCount++;
+};
+Event::on(Subscriptions::class, Subscriptions::EVENT_BEFORE_CREATE_SUBSCRIPTION, $beforeCreateHandler);
+Event::on(Subscriptions::class, Subscriptions::EVENT_AFTER_CREATE_SUBSCRIPTION, $afterCreateHandler);
 $transaction = Craft::$app->getDb()->beginTransaction();
 
 try {
@@ -145,7 +166,20 @@ try {
     fixtureAssert(Craft::$app->getSession()->getFlash('error', null, true) === null, 'A duplicate form request must not expose an error flash.');
     fixtureAssert(Craft::$app->getQueue()->getTotalJobs() === $formQueueCount, 'A duplicate form request must not queue another confirmation.');
     fixtureAssert($fixtureLogs->attempt === 5, 'The controller must classify each fixture save result exactly once.');
+
+    $cancelledLog = new Log([
+        'variantId' => $variant->id,
+        'siteId' => $siteId,
+        'locale' => Craft::$app->language,
+    ]);
+    $cancelledLog->email = $cancelledEmail;
+    fixtureAssert(!$originalLogs->saveLog($cancelledLog, false), 'A before-create listener must be able to stop subscription creation.');
+    fixtureAssert($cancelledLog->id === null, 'A cancelled subscription must remain unsaved.');
+    fixtureAssert($beforeCreateCount === 3, 'The before-create event must run once for each new subscription attempt.');
+    fixtureAssert($afterCreateCount === 2, 'The after-create event must run once for each saved subscription only.');
 } finally {
+    Event::off(Subscriptions::class, Subscriptions::EVENT_BEFORE_CREATE_SUBSCRIPTION, $beforeCreateHandler);
+    Event::off(Subscriptions::class, Subscriptions::EVENT_AFTER_CREATE_SUBSCRIPTION, $afterCreateHandler);
     $settings->sendConfirmation = $originalSendConfirmation;
     $plugin->set('logs', $originalLogs);
     $plugin->set('service', $originalService);

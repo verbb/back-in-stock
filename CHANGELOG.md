@@ -9,12 +9,13 @@
 - Added optional email verification, signed one-click cancellation, and tracked states for pending, active, notified, cancelled and expired requests.
 - Added stock-aware notification selection, with the oldest waiting customers selected according to available inventory and a configurable subscribers-per-unit ratio.
 - Added notification history with per-recipient delivery attempts, configurable queue batches, retries for confirmed failures, and sent, failed, cancelled and unconfirmed outcomes.
+- Added developer events for subscription creation and state changes, recipient selection, outgoing subscription messages, and completed delivery attempts.
 
 ### Changed
 - Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
 - Changed stock updates to queue availability checks after Commerce commits inventory changes and to check stock again before each notification is sent.
 - Changed fresh installations to match notification recipients to available stock by default; upgraded installations retain their existing notify-everyone behaviour until the setting is changed.
-- Changed successful JSON registration responses to include the subscription lifecycle `state`, while preserving the existing response fields.
+- Changed successful JSON registration responses to include the subscription `state`, while preserving the existing response fields.
 
 ### Deprecated
 - Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.

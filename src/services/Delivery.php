@@ -2,6 +2,7 @@
 namespace verbb\backinstock\services;
 
 use verbb\backinstock\BackInStock;
+use verbb\backinstock\events\DeliveryAttemptEvent;
 use verbb\backinstock\models\DeliveryAttempt as DeliveryAttemptModel;
 use verbb\backinstock\models\RestockRun as RestockRunModel;
 use verbb\backinstock\models\Subscription as SubscriptionModel;
@@ -20,6 +21,12 @@ use yii\db\IntegrityException;
 
 class Delivery extends Component
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_AFTER_COMPLETE_DELIVERY_ATTEMPT = 'afterCompleteDeliveryAttempt';
+
+
     // Public Methods
     // =========================================================================
 
@@ -49,6 +56,7 @@ class Delivery extends Component
         if ($subscription->state !== SubscriptionModel::STATE_ACTIVE) {
             $this->_complete($attempt, DeliveryAttemptModel::STATUS_CANCELLED, 'subscription-inactive', 'The subscription is no longer active.');
             $this->_refreshRun($run);
+            $this->_triggerAfterComplete($attempt, $run, $subscription);
             return;
         }
 
@@ -67,6 +75,7 @@ class Delivery extends Component
             $run->closedAt = $now;
             $run->save(false);
             $this->_refreshRun($run);
+            $this->_triggerAfterComplete($attempt, $run, $subscription);
             return;
         }
 
@@ -83,20 +92,17 @@ class Delivery extends Component
             if ($settings->purgeRequests) {
                 $subscription->delete();
                 $this->_refreshRun($run);
+                $this->_triggerAfterComplete($attempt, $run, $subscription);
                 return;
             }
 
-            $subscription->state = SubscriptionModel::STATE_NOTIFIED;
-            $subscription->notifiedAt = $now;
-            $subscription->activeKey = null;
-            $subscription->isNotified = true;
-            $subscription->pendingKey = null;
-            $subscription->save(false);
+            BackInStock::$plugin->getSubscriptions()->markNotified($subscription);
         } elseif ($result['status'] === DeliveryAttemptModel::STATUS_FAILED && $attempt->attemptNumber < $settings->maximumAttempts) {
             $this->_scheduleRetry($attempt);
         }
 
         $this->_refreshRun($run);
+        $this->_triggerAfterComplete($attempt, $run, $subscription);
     }
 
 
@@ -154,5 +160,14 @@ class Delivery extends Component
             ->where(['runId' => $run->id, 'status' => DeliveryAttemptModel::STATUS_PENDING])
             ->min('dueAt');
         $run->save(false);
+    }
+
+    private function _triggerAfterComplete(DeliveryAttempt $attempt, RestockRun $run, Subscription $subscription): void
+    {
+        $this->trigger(self::EVENT_AFTER_COMPLETE_DELIVERY_ATTEMPT, new DeliveryAttemptEvent([
+            'attempt' => $attempt,
+            'run' => $run,
+            'subscription' => $subscription,
+        ]));
     }
 }

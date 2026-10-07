@@ -1,6 +1,7 @@
 <?php
 namespace verbb\backinstock\services;
 
+use verbb\backinstock\events\SubscriptionStateEvent;
 use verbb\backinstock\models\Subscription as SubscriptionModel;
 use verbb\backinstock\records\Subscription;
 
@@ -15,6 +16,14 @@ use DateTime;
 
 class Subscriptions extends Component
 {
+    // Constants
+    // =========================================================================
+
+    public const EVENT_BEFORE_CREATE_SUBSCRIPTION = 'beforeCreateSubscription';
+    public const EVENT_AFTER_CREATE_SUBSCRIPTION = 'afterCreateSubscription';
+    public const EVENT_AFTER_CHANGE_SUBSCRIPTION_STATE = 'afterChangeSubscriptionState';
+
+
     // Public Methods
     // =========================================================================
 
@@ -34,13 +43,20 @@ class Subscriptions extends Component
             return $subscription->state === SubscriptionModel::STATE_ACTIVE;
         }
 
+        $previousState = $subscription->state;
         $subscription->state = SubscriptionModel::STATE_ACTIVE;
         $subscription->verifiedAt = Db::prepareDateForDb(new DateTime());
         $subscription->verificationTokenHash = null;
         $subscription->verificationExpiresAt = null;
         $subscription->isNotified = false;
 
-        return $subscription->save(false);
+        $saved = $subscription->save(false);
+
+        if ($saved) {
+            $this->_triggerStateChange($subscription, $previousState, 'verification');
+        }
+
+        return $saved;
     }
 
     public function prepareVerification(Subscription $subscription): string
@@ -105,13 +121,41 @@ class Subscriptions extends Component
             return $subscription->state === SubscriptionModel::STATE_CANCELLED;
         }
 
+        $previousState = $subscription->state;
         $subscription->state = SubscriptionModel::STATE_CANCELLED;
         $subscription->activeKey = null;
         $subscription->pendingKey = null;
         $subscription->cancelledAt = Db::prepareDateForDb(new DateTime());
         $subscription->cancelSource = $source;
 
-        return $subscription->save(false);
+        $saved = $subscription->save(false);
+
+        if ($saved) {
+            $this->_triggerStateChange($subscription, $previousState, $source);
+        }
+
+        return $saved;
+    }
+
+    public function markNotified(Subscription $subscription): bool
+    {
+        if ($subscription->state !== SubscriptionModel::STATE_ACTIVE) {
+            return $subscription->state === SubscriptionModel::STATE_NOTIFIED;
+        }
+
+        $previousState = $subscription->state;
+        $subscription->state = SubscriptionModel::STATE_NOTIFIED;
+        $subscription->notifiedAt = Db::prepareDateForDb(new DateTime());
+        $subscription->activeKey = null;
+        $subscription->isNotified = true;
+        $subscription->pendingKey = null;
+        $saved = $subscription->save(false);
+
+        if ($saved) {
+            $this->_triggerStateChange($subscription, $previousState, 'delivery');
+        }
+
+        return $saved;
     }
 
     public function expireStale(): int
@@ -135,11 +179,17 @@ class Subscriptions extends Component
                 ->all();
 
             foreach ($subscriptions as $subscription) {
+                $previousState = $subscription->state;
                 $subscription->state = SubscriptionModel::STATE_EXPIRED;
                 $subscription->activeKey = null;
                 $subscription->pendingKey = null;
                 $subscription->expiredAt = Db::prepareDateForDb($now);
-                $expired += (int)$subscription->save(false);
+                $saved = $subscription->save(false);
+                $expired += (int)$saved;
+
+                if ($saved) {
+                    $this->_triggerStateChange($subscription, $previousState, 'reconciliation');
+                }
             }
         }
 
@@ -161,5 +211,19 @@ class Subscriptions extends Component
             ['state' => [SubscriptionModel::STATE_NOTIFIED, SubscriptionModel::STATE_CANCELLED, SubscriptionModel::STATE_EXPIRED]],
             ['<', 'dateUpdated', Db::prepareDateForDb($cutoff)],
         ]);
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _triggerStateChange(Subscription $subscription, string $previousState, ?string $source): void
+    {
+        $this->trigger(self::EVENT_AFTER_CHANGE_SUBSCRIPTION_STATE, new SubscriptionStateEvent([
+            'subscription' => $subscription,
+            'previousState' => $previousState,
+            'newState' => $subscription->state,
+            'source' => $source,
+        ]));
     }
 }
