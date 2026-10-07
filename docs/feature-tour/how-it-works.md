@@ -8,27 +8,27 @@ A customer starts by entering their email address for an unavailable product or 
 
 When Commerce reports an inventory change, Back in Stock queues an availability check. It also responds when a variant is saved, covering unlimited stock and some control-panel changes that do not produce an inventory event. The plugin reads the current Commerce variant rather than maintaining a second source of stock information. The variant must exceed the configured stock threshold and, when enabled, be available for purchase.
 
-Once a variant is available, Back in Stock selects subscribers according to the configured notification policy. The selected work is divided into queue batches, and availability is checked again before each message is handed to Craft’s mailer. This prevents an old stock event or a cancelled subscription from producing an inappropriate notification.
+Once a variant is available, Back in Stock chooses how many waiting customers to notify according to the **Notification Recipients** setting. Larger lists are processed in groups through Craft's queue, and stock is checked again before each message is sent. This prevents an old stock change or a cancelled request from producing an inappropriate notification.
 
-## One Restock Cycle at a Time
+## While a Variant Remains Available
 
-The period from a variant becoming available until it becomes unavailable again is treated as one restock cycle. Repeated inventory updates during that cycle reuse the same notification activity, so a subscription is not selected more than once for the same restock.
+The period from a variant becoming available until it becomes unavailable again is treated as one restock. Repeated inventory updates during that time are kept together, so the same request is not selected more than once while the variant remains available.
 
 If the variant sells out and later becomes available again, a new cycle begins. Customers whose earlier subscriptions were successfully notified can subscribe again for that later restock.
 
 ## What Back in Stock Records
 
-Back in Stock retains three related kinds of information:
+Back in Stock keeps three related kinds of information:
 
-- A **subscription** records one customer waiting for one exact variant and its current lifecycle state.
-- A **notification activity** records the selection made when that variant became available.
-- A **delivery attempt** records what happened when an individual message was processed, including retries and diagnostic information.
+- A **subscription** records one customer waiting for one exact variant and whether that request is waiting, notified, cancelled, or expired.
+- A **notification** records who was selected when that variant became available.
+- A **delivery attempt** records the result each time an individual email was processed, including any retry and error details.
 
-These records allow the control panel to distinguish between a customer joining a waiting list, a notification being selected for delivery, and the mailer actually accepting a message. The [Subscriptions](docs:feature-tour/subscriptions) and [Notification Activity](docs:feature-tour/notification-activity) pages explain those stages in more detail.
+This lets the control panel distinguish between a customer joining a waiting list, being selected for a restock email, and Craft's mailer accepting that message. The [Subscriptions](docs:feature-tour/subscriptions) and [Notification Activity](docs:feature-tour/notification-activity) pages explain those stages in more detail.
 
-## Schedule Reconciliation
+## Add a Scheduled Safety Check
 
-Normal Commerce inventory changes trigger availability checks automatically, so reconciliation is not required for the usual notification flow. It is still recommended for production stores because it recovers inventory changes from imports or integrations that do not produce the expected Commerce event. It also expires old requests and removes completed history according to the plugin’s [subscription settings](docs:get-started/configuration#subscription).
+Normal Commerce inventory changes trigger availability checks automatically, so the scheduled command is not required for the usual notification flow. It is still recommended for production stores because it catches changes made by imports or integrations that do not report the expected Commerce inventory event. It also expires old requests and removes completed history according to the plugin's [subscription settings](docs:get-started/configuration#subscription).
 
 Run the following command on a regular schedule:
 

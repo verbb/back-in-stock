@@ -45,7 +45,7 @@ A subscription belongs to a Commerce variant. If customers can choose a size, co
 
 ## Optional Template Context
 
-Pass a JSON object in `options` when an email template needs bounded context that is not convenient to derive from the variant. Options are limited to an 8 KB object and do not form part of subscription uniqueness.
+Pass a JSON object in `options` when an email template needs extra storefront information that is not convenient to derive from the variant. Options are limited to 8 KB, and changing them does not create another subscription for the same email address and variant.
 
 ```twig
 {% set options = {

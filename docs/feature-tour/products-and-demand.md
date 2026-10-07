@@ -4,7 +4,7 @@ Back in Stock organises customer interest around exact Commerce variants. This l
 
 ## Reading the Overview
 
-The **Overview** gives you a compact picture of current demand and recent lifecycle activity. Products are ordered by the number of customers currently waiting, while the activity list shows the latest subscription and notification changes across the store.
+The **Overview** shows how many customers are currently waiting for each product variant, alongside the latest subscription and notification changes across the store. Products with the most waiting customers appear first.
 
 ![The Back in Stock Overview showing current product demand and recent customer activity.](../../screenshots/overview.png)
 
@@ -14,7 +14,7 @@ Use the Overview to spot demand or delivery problems, then move into **Products*
 
 ## Finding a Product or Customer
 
-The **Products** screen contains variants that have retained Back in Stock data. It is not a second copy of the full Commerce catalogue: a variant appears because it has current or retained subscriptions or notification activity.
+The **Products** screen contains variants with current or past Back in Stock information. It is not a second copy of the full Commerce catalogue: a variant appears because it has subscriptions or notification history.
 
 You can filter the list by Commerce product type, sort any column, or search by product title, variant title, SKU, or subscriber email. Searching by email is useful when a customer asks whether they are still waiting for an item. Searching a product title shows each relevant variant separately, making differences such as **Natural / Small** and **Natural / Medium** visible.
 

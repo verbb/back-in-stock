@@ -1,44 +1,44 @@
 # Notification Activity
 
-Notification activity explains what Back in Stock did when a variant became available. It connects the stock check and subscriber selection to the individual messages processed by Craft’s queue, providing more evidence than a single “email sent” entry.
+Notification activity shows what Back in Stock did when a variant became available. It records who was selected and the result each time an email was processed, rather than reducing the whole restock to a single “email sent” entry.
 
 ## Selecting Recipients
 
 The **Notification Recipients** setting controls how many waiting customers are selected for a restock.
 
-**Match available stock** selects the oldest eligible subscriptions according to the stock on hand. **Subscribers per Available Unit** can widen that selection when not every notified customer is expected to purchase. For example, five available units with two subscribers per unit selects up to ten people. Variants with unlimited stock select everyone who is waiting.
+**Match available stock** starts with the oldest waiting subscriptions and limits the number selected according to the stock on hand. **Subscribers per Available Unit** can widen that selection when not every notified customer is expected to purchase. For example, five available units with two subscribers per unit selects up to ten people. Variants with unlimited stock select everyone who is waiting.
 
-**Notify all waiting subscribers** selects every eligible subscription regardless of the available quantity.
+**Notify all waiting subscribers** selects everyone currently waiting, regardless of the available quantity.
 
 Both policies select the oldest subscriptions first. Selecting a recipient does not reserve stock or guarantee that the item will still be available when they visit the store.
 
-## Batches and Availability Checks
+## Processing Larger Lists
 
-Selected recipients are divided into internal queue batches. **Batch Size** controls how many deliveries belong to each batch, and **Batch Delay** spaces later batches apart.
+Selected recipients are processed in groups through Craft’s queue. **Batch Size** controls how many emails are scheduled in each group, and **Batch Delay** spaces later groups apart.
 
-Before processing a delivery, Back in Stock confirms that the subscription is still waiting and the variant is still available. If stock disappears, the affected pending work is cancelled rather than sent. This is why notification activity can contain selected recipients who did not ultimately receive a message.
+Before processing an email, Back in Stock confirms that the subscription is still waiting and the variant is still available. If stock disappears, the affected messages are cancelled rather than sent. This is why a notification can contain selected recipients who did not ultimately receive an email.
 
-## Delivery Outcomes
+## Sending Results
 
 Each delivery attempt records one of these outcomes:
 
-- **Sent** means Craft’s mailer accepted the message for delivery. It does not confirm inbox delivery, an email open, or a purchase.
-- **Failed** means the message was not handed to the mailer. A definite failure can be retried up to the configured maximum.
+- **Sent** means Craft’s mailer accepted the message. It does not confirm that the email reached the inbox, was opened, or led to a purchase.
+- **Failed** means Craft’s mailer did not accept the message. Back in Stock can retry a definite failure up to the configured maximum.
 - **Cancelled** means the subscription or product availability changed before delivery.
-- **Sending unconfirmed** means processing ended without reliable proof of whether the mailer accepted the message. It is not retried automatically because doing so could send a duplicate.
+- **Sending unconfirmed** means Back in Stock could not determine whether the mailer accepted the message. It is not retried automatically because doing so could send a duplicate.
 
-A single notification activity can cover many recipients, and one recipient can have several attempts when a definite failure is retried. The summary counts each selected subscription by its latest durable outcome, while the delivery table retains the individual attempts and their diagnostic messages.
+A single notification can cover many recipients, and one recipient can have several attempts when a definite failure is retried. The summary uses the latest recorded result for each selected subscription, while the table keeps the individual attempts and any error messages.
 
 ## Reviewing Activity
 
-Open a variant’s **Activity** tab to follow subscription changes and restock notifications in chronological order. Subscription events explain when a customer joined, verified, or left the waiting list. Notification entries open a detail page containing recipient selection, current outcomes, timestamps, and delivery diagnostics.
+Open a variant’s **Activity** tab to follow subscription changes and restock notifications in chronological order. Subscription events explain when a customer joined, verified, or left the waiting list. Notification entries open a detail page showing who was selected, the latest result for each email, timestamps, and any recorded error details.
 
 ![The Activity tab for an exact variant, showing subscription changes and notification outcomes in chronological order.](../../screenshots/product-activity.png)
 
 Failed and unconfirmed outcomes are marked for review on the detail page and in the Overview alert. The recorded error code and message can help distinguish a mail configuration problem from an eligibility or stock change.
 
-![The Overview alert for failed and unconfirmed notification activity.](../../screenshots/overview-notifications.png)
+![The Overview alert for failed and unconfirmed notifications.](../../screenshots/overview-notifications.png)
 
-Open an affected notification to see how many subscribers were waiting, how many were selected, and the latest outcome for each recipient. Diagnostic details appear beneath the relevant attempt so longer mail transport messages remain readable.
+Open an affected notification to see how many subscribers were waiting, how many were selected, and the latest result for each recipient. Error details appear beneath the relevant attempt so longer mail messages remain readable.
 
-![A notification detail page with recipient outcomes and diagnostic information for failed delivery attempts.](../../screenshots/notification-detail.png)
+![A notification detail page with recipient results and error information for failed attempts.](../../screenshots/notification-detail.png)

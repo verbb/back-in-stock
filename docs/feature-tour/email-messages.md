@@ -1,6 +1,6 @@
 # Email Messages
 
-Back in Stock can send three kinds of customer email. Each message has a different place in the subscription lifecycle, so stores can enable the parts that suit their sign-up process.
+Back in Stock can send three kinds of customer email. Each one serves a different part of the sign-up and notification process, so stores can enable the messages that suit them.
 
 ## Confirmation Messages
 
@@ -18,7 +18,7 @@ The verification link remains valid for the configured verification window. Its 
 
 An availability message is sent after a variant becomes available and the subscription is selected for notification. It identifies the exact Commerce variant and directs the customer back to the product.
 
-Mailer acceptance is recorded as sent, but Back in Stock does not claim that the message reached the inbox, was opened, or led to a purchase. [Notification Activity](docs:feature-tour/notification-activity) explains the delivery outcomes retained by the plugin.
+Back in Stock records a message as sent when Craft’s mailer accepts it. This does not confirm that the email reached the inbox, was opened, or led to a purchase. [Notification Activity](docs:feature-tour/notification-activity) explains the sending results kept by the plugin.
 
 ## Editing Message Content
 

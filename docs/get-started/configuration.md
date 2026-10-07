@@ -41,7 +41,7 @@ Whether Back in Stock appears in the main control-panel navigation.
 
 **Type:** `string` · **Default:** `'stockMatched'`
 
-Controls how many waiting customers are selected when a variant becomes available. Use `'stockMatched'` to select the oldest eligible subscribers according to the stock on hand, or `'all'` to notify every eligible subscriber even when demand exceeds stock.
+Controls how many waiting customers are selected when a variant becomes available. Use `'stockMatched'` to start with the oldest requests and limit the number according to the stock on hand, or `'all'` to notify everyone waiting even when demand exceeds stock.
 :::
 
 ::: reference
@@ -49,7 +49,7 @@ Controls how many waiting customers are selected when a variant becomes availabl
 
 **Type:** `int` · **Default:** `1`
 
-The number of oldest eligible subscribers selected for each available unit when `notificationPolicy` is `'stockMatched'`. For example, stock of `3` with a value of `2` selects up to six subscribers. A value greater than `1` can account for notified customers who do not complete a purchase.
+The number of oldest waiting subscribers selected for each available unit when `notificationPolicy` is `'stockMatched'`. For example, stock of `3` with a value of `2` selects up to six subscribers. A value greater than `1` can account for notified customers who do not complete a purchase.
 
 This field is shown in the control panel only when **Notification Recipients** is set to **Match available stock**.
 :::
@@ -75,7 +75,7 @@ Whether Commerce must also consider a variant available for purchase before Back
 
 **Type:** `int` · **Default:** `100`
 
-The maximum number of selected deliveries scheduled in each internal queue batch.
+The maximum number of selected emails scheduled together through Craft’s queue.
 :::
 
 ::: reference
@@ -119,7 +119,7 @@ This field is shown in the control panel only when **Require Email Verification*
 
 **Type:** `int` · **Default:** `7`
 
-The number of days an unverified request can remain pending before reconciliation marks it expired. Expired requests are not eligible for notifications and no longer prevent the customer from subscribing again. Use a period at least as long as `verificationWindow`.
+The number of days an unverified request can remain pending before the scheduled check marks it expired. Expired requests cannot receive notifications and no longer prevent the customer from subscribing again. Use a period at least as long as `verificationWindow`.
 
 This field is shown in the control panel only when **Require Email Verification** is enabled.
 :::
@@ -129,7 +129,7 @@ This field is shown in the control panel only when **Require Email Verification*
 
 **Type:** `int` · **Default:** `365`
 
-The number of days a waiting request can remain without a successful availability notification before reconciliation marks it expired. Expired requests are no longer eligible for notifications and the customer can subscribe again.
+The number of days a waiting request can remain without a successful availability notification before the scheduled check marks it expired. Expired requests cannot receive notifications and the customer can subscribe again.
 :::
 
 ::: reference
@@ -137,7 +137,7 @@ The number of days a waiting request can remain without a successful availabilit
 
 **Type:** `int` · **Default:** `90`
 
-The number of days notified, cancelled, and expired requests remain visible under **Products** before reconciliation removes them. Pending and waiting requests are unaffected. Use `0` to retain completed history indefinitely.
+The number of days notified, cancelled, and expired requests remain visible under **Products** before the scheduled check removes them. Pending and waiting requests are unaffected. Use `0` to retain completed history indefinitely.
 :::
 
 ### Email
@@ -206,9 +206,9 @@ You can manage the same settings through **Settings → Plugins → Back in Stoc
 
 When a custom Twig template is not configured, edit the confirmation, verification, and availability emails under **Utilities → System Messages**. The message keys are `back_in_stock_confirmation`, `back_in_stock_verification`, and `back_in_stock_available`.
 
-## Scheduled Reconciliation
+## Scheduled Checks
 
-Normal Commerce inventory changes trigger availability checks automatically and do not depend on this command. Schedule reconciliation when the store needs to recover inventory changes from imports or integrations that do not produce the expected Commerce event, or when the subscription expiry and history-retention settings should be enforced.
+Normal Commerce inventory changes trigger availability checks automatically and do not depend on this command. Schedule it when the store needs to catch changes made by imports or integrations that do not report the expected Commerce inventory event. The command also applies the subscription expiry and completed-history settings.
 
 ```shell
 php craft craft-commerce-back-in-stock/reconcile
