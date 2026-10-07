@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+## Description: Rebuild an isolated Craft and Commerce installation and run Pest.
+## Usage: test [Pest arguments]
+## HostExecution: true
+set -euo pipefail
+cd "$DDEV_APPROOT"
+ddev start
+exec ddev exec --raw -- php tests/runtime/run.php "$@"

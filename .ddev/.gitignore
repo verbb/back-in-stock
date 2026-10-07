@@ -1,0 +1,6 @@
+*
+!.gitignore
+!config.yaml
+!commands/
+!commands/host/
+!commands/host/test
