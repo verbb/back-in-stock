@@ -5,7 +5,6 @@ use verbb\backinstock\BackInStock;
 
 use Craft;
 use craft\db\Migration;
-use craft\helpers\MigrationHelper;
 
 class Install extends Migration
 {
@@ -83,11 +82,12 @@ class Install extends Migration
     public function dropForeignKeys(): void
     {
         if ($this->db->tableExists('{{%backinstock_records}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%backinstock_records}}', $this);
+            $this->dropForeignKeyIfExists('{{%backinstock_records}}', 'variantId');
+            $this->dropForeignKeyIfExists('{{%backinstock_records}}', 'siteId');
         }
 
         if ($this->db->tableExists('{{%backinstock_inventory}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%backinstock_inventory}}', $this);
+            $this->dropForeignKeyIfExists('{{%backinstock_inventory}}', 'variantId');
         }
     }
 }
