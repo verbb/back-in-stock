@@ -1,10 +1,15 @@
 {% extends 'craft-commerce-back-in-stock/_layouts' %}
 
-{% do view.registerAssetBundle('craft\\web\\assets\\admintable\\AdminTableAsset') -%}
-
 {% set title = 'Products' | t('craft-commerce-back-in-stock') %}
 {% set selectedSubnavItem = 'products' %}
 {% set crumbs = [{ label: title, url: url('back-in-stock/products') }] %}
+
+{# Keep Craft's source sidebar while letting the table own the main panel and footer. #}
+{% block main %}
+    <div class="content-grid__main">
+        <div id="content">{{ block('blockContent') }}</div>
+    </div>
+{% endblock %}
 
 {% block sidebar %}
     {% set params = {search: search, productType: productType ?: null, demand: demand, sort: sort, attention: attention ? 1 : null} %}
@@ -25,54 +30,5 @@
 {% endblock %}
 
 {% block blockContent %}
-    {% if attention %}<div class="bis-context"><div><span class="light">{{ 'Showing' | t('craft-commerce-back-in-stock') }}:</span> <strong>{{ 'Products with notifications needing review in the last 30 days' | t('craft-commerce-back-in-stock') }}</strong></div><pk-button href="{{ url('back-in-stock/products') }}" variant="default" size="sm">{{ 'View all products' | t('craft-commerce-back-in-stock') }}</pk-button></div>{% endif %}
-    <div id="restock-activity-vue-admin-table"></div>
+    <div class="bis-table--index" data-bis-table="{{ {kind: 'products', userId: currentUser.uid, search: search, demand: demand, sort: sort, attention: attention, productType: productType} | json_encode | e('html_attr') }}"></div>
 {% endblock %}
-
-{% js %}
-    var columns = [
-        { name: '__slot:title', title: Craft.t('craft-commerce-back-in-stock', 'Product / Variant'), sortField: 'title' },
-        { name: 'productType', title: Craft.t('craft-commerce-back-in-stock', 'Product Type'), sortField: 'productType' },
-        { name: 'sku', title: Craft.t('craft-commerce-back-in-stock', 'SKU'), sortField: 'sku' },
-        { name: 'waiting', title: Craft.t('craft-commerce-back-in-stock', 'Waiting'), sortField: 'waiting' },
-        { name: 'latestRequest', title: Craft.t('craft-commerce-back-in-stock', 'Latest Request'), sortField: 'latestRequest' },
-    ];
-
-    new Craft.VueAdminTable({
-        columns: columns,
-        container: '#restock-activity-vue-admin-table',
-        emptyMessage: Craft.t('craft-commerce-back-in-stock', 'No products have Back in Stock activity yet.'),
-        itemLabels: {
-            singular: Craft.t('craft-commerce-back-in-stock', 'product variant'),
-            plural: Craft.t('craft-commerce-back-in-stock', 'product variants'),
-        },
-        noSearchResults: Craft.t('craft-commerce-back-in-stock', 'No product variants match that search.'),
-        onQueryParams: function(params) {
-            params.productType = {{ productType | json_encode | raw }};
-            params.demand = {{ demand | json_encode | raw }};
-            params.sortMode = {{ sort | json_encode | raw }};
-            params.attention = {{ attention ? 'true' : 'false' }};
-            return params;
-        },
-        perPage: 100,
-        search: true,
-        searchPlaceholder: Craft.t('craft-commerce-back-in-stock', 'Search products, variants, SKUs or subscriber emails'),
-        tableDataEndpoint: Craft.getActionUrl('craft-commerce-back-in-stock/dashboard/product-table'),
-    });
-
-    document.querySelectorAll('[data-bis-product-source]').forEach(function(sourceLink) {
-        sourceLink.addEventListener('click', function(event) {
-            var targetUrl = new URL(sourceLink.href);
-            var currentSearch = new URL(window.location.href).searchParams.get('search');
-
-            if (currentSearch) {
-                targetUrl.searchParams.set('search', currentSearch);
-            } else {
-                targetUrl.searchParams.delete('search');
-            }
-
-            event.preventDefault();
-            window.location.assign(targetUrl.toString());
-        });
-    });
-{% endjs %}

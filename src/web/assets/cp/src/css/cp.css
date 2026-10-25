@@ -629,3 +629,16 @@
         border-block-start: 1px solid var(--bis-border);
     }
 }
+
+/* Shared tables own their controls and scrolling; leave room for the outer frame. */
+[data-bis-table] {
+    min-width: 0;
+    padding: 2px;
+}
+[data-bis-table] pk-data-table {
+    --pk-data-table-toolbar-background: var(--pane-bg, #fff);
+}
+
+[data-bis-table].bis-table--index pk-data-table {
+    --pk-data-table-toolbar-background: var(--body-bg);
+}

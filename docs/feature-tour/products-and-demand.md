@@ -18,6 +18,8 @@ The **Products** screen contains variants with current or past Back in Stock inf
 
 You can filter the list by Commerce product type, sort any column, or search by product title, variant title, SKU, or subscriber email. Searching by email is useful when a customer asks whether they are still waiting for an item. Searching a product title shows each relevant variant separately, making differences such as **Natural / Small** and **Natural / Medium** visible.
 
+Use **Filters** to narrow the list to current or past demand, or notifications needing review. **View** lets you change the sort direction and choose which columns to show and in what order. Search and filters apply to the full list, including records on other pages. **View** preferences are remembered for your account in this browser on Products and Subscriptions; subscription preferences apply across all products. Sorting specified in a link takes priority. Choose **Use defaults** to clear your saved view preferences.
+
 ![The Products table with product type, SKU, waiting customer, and latest request columns.](../../screenshots/products.png)
 
 ## Inspecting an Exact Variant
@@ -28,6 +30,8 @@ Open a product and variant row to see its Back in Stock history. The details sid
 - **Activity** shows subscription changes and restock-notification work in chronological order.
 
 ![The Subscriptions tab for an exact variant, with state filtering and email search.](../../screenshots/product-subscriptions.png)
+
+In **Subscriptions**, use the **Status** dropdown beside search to choose a request state, or choose **All statuses** to see all retained states. **Activity** shows subscription changes and notification sending in chronological order, with pagination below the table.
 
 The Commerce product link in the details sidebar opens the underlying product when you need to inspect or change its catalogue and inventory information.
 
