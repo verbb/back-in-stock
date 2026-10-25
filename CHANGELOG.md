@@ -3,27 +3,18 @@
 ## Unreleased
 
 ### Added
-- Added remembered column visibility, column order and sorting for Products and Subscriptions, scoped to each user in the current browser.
 - Added an Overview of current demand and recent activity, plus Products for filtering by product type, searching variants, SKUs or subscriber emails, and reviewing subscription and notification history.
-- Added the `craft craft-commerce-back-in-stock/reconcile` command to recover missed inventory changes, expire old requests and remove completed history.
-- Added editable Craft System Messages for confirmation, verification and availability emails, while retaining custom Twig template overrides.
 - Added optional email verification, signed one-click cancellation, and tracked states for pending, active, notified, cancelled and expired requests.
 - Added stock-aware notification selection, with the oldest waiting customers selected according to available inventory and a configurable subscribers-per-unit ratio.
 - Added notification history with per-recipient delivery attempts, configurable queue batches, retries for confirmed failures, and sent, failed, cancelled and unconfirmed outcomes.
+- Added editable Craft System Messages for confirmation, verification and availability emails, while retaining custom Twig template overrides.
+- Added the `craft craft-commerce-back-in-stock/reconcile` command to recover missed inventory changes, expire old requests and remove completed history.
 - Added developer events for subscription creation and state changes, recipient selection, outgoing subscription messages, and completed delivery attempts.
 
 ### Changed
-- Simplified the Activity table by removing its Filters and View toolbar.
-- Replaced the Subscriptions filter builder with a Status dropdown beside search.
-- Updated Products, Subscriptions and Activity tables with consistent filtering, column preferences, sorting and loading feedback.
-- Expanded the Products table to fill the main content area while retaining the product-type sidebar.
-- Require Verbb Base 3.0.20 or later so shared control-panel layouts use the current asset bundle namespace. ([verbb-base#3](https://github.com/verbb/verbb-base/issues/3))
 - Changed stock updates to queue availability checks after Commerce commits inventory changes and to check stock again before each notification is sent.
 - Changed fresh installations to match notification recipients to available stock by default; upgraded installations retain their existing notify-everyone behaviour until the setting is changed.
 - Changed successful JSON registration responses to include the subscription `state`, while preserving the existing response fields.
-
-### Fixed
-- Fixed the Overview and plugin navigation links using different URLs and appearing as separate pages in the control panel.
 
 ### Deprecated
 - Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.
