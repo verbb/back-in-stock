@@ -22,6 +22,9 @@
 - Changed fresh installations to match notification recipients to available stock by default; upgraded installations retain their existing notify-everyone behaviour until the setting is changed.
 - Changed successful JSON registration responses to include the subscription `state`, while preserving the existing response fields.
 
+### Fixed
+- Fixed the Overview and plugin navigation links using different URLs and appearing as separate pages in the control panel.
+
 ### Deprecated
 - Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.
 - Deprecated immediate post-delivery purging through `purgeRequests`; use `historyRetention` to keep completed history for a configurable period. The existing setting remains functional throughout 4.x.

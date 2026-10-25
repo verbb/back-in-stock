@@ -50,6 +50,13 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function actionOverviewRedirect(): Response
+    {
+        $this->_requireDashboardAccess();
+
+        return $this->redirect(UrlHelper::cpUrl('back-in-stock', $this->request->getQueryParams()));
+    }
+
     public function actionProducts(): Response
     {
         $this->_requireDashboardAccess();

@@ -77,7 +77,7 @@ class BackInStock extends Plugin
         if (Craft::$app->getUser()->checkPermission('accessPlugin-craft-commerce-back-in-stock')) {
             $nav['subnav']['overview'] = [
                 'label' => Craft::t('craft-commerce-back-in-stock', 'Overview'),
-                'url' => 'back-in-stock/overview',
+                'url' => 'back-in-stock',
             ];
             $nav['subnav']['products'] = [
                 'label' => Craft::t('craft-commerce-back-in-stock', 'Products'),
@@ -117,7 +117,7 @@ class BackInStock extends Plugin
     {
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules['back-in-stock'] = 'craft-commerce-back-in-stock/dashboard/overview';
-            $event->rules['back-in-stock/overview'] = 'craft-commerce-back-in-stock/dashboard/overview';
+            $event->rules['back-in-stock/overview'] = 'craft-commerce-back-in-stock/dashboard/overview-redirect';
             $event->rules['back-in-stock/products'] = 'craft-commerce-back-in-stock/dashboard/products';
             $event->rules['back-in-stock/products/<variantId:\d+>/activity/<runId:\d+>'] = 'craft-commerce-back-in-stock/dashboard/activity-detail';
             $event->rules['back-in-stock/products/<variantId:\d+>/activity'] = 'craft-commerce-back-in-stock/dashboard/product-activity';
