@@ -5,7 +5,6 @@ use verbb\backinstock\BackInStock;
 
 use Craft;
 use craft\db\Migration;
-use craft\helpers\MigrationHelper;
 
 class Install extends Migration
 {
@@ -162,19 +161,24 @@ class Install extends Migration
     public function dropForeignKeys(): void
     {
         if ($this->db->tableExists('{{%backinstock_records}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%backinstock_records}}', $this);
+            $this->dropForeignKeyIfExists('{{%backinstock_records}}', 'variantId');
+            $this->dropForeignKeyIfExists('{{%backinstock_records}}', 'siteId');
+            $this->dropForeignKeyIfExists('{{%backinstock_records}}', 'userId');
+            $this->dropForeignKeyIfExists('{{%backinstock_records}}', 'storeId');
         }
 
         if ($this->db->tableExists('{{%backinstock_inventory}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%backinstock_inventory}}', $this);
+            $this->dropForeignKeyIfExists('{{%backinstock_inventory}}', 'variantId');
         }
 
         if ($this->db->tableExists('{{%backinstock_delivery_attempts}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%backinstock_delivery_attempts}}', $this);
+            $this->dropForeignKeyIfExists('{{%backinstock_delivery_attempts}}', 'runId');
+            $this->dropForeignKeyIfExists('{{%backinstock_delivery_attempts}}', 'subscriptionId');
         }
 
         if ($this->db->tableExists('{{%backinstock_runs}}')) {
-            MigrationHelper::dropAllForeignKeysOnTable('{{%backinstock_runs}}', $this);
+            $this->dropForeignKeyIfExists('{{%backinstock_runs}}', 'storeId');
+            $this->dropForeignKeyIfExists('{{%backinstock_runs}}', 'variantId');
         }
     }
 }

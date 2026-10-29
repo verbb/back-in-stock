@@ -20,6 +20,11 @@
 - Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.
 - Deprecated immediate post-delivery purging through `purgeRequests`; use `historyRetention` to keep completed history for a configurable period. The existing setting remains functional throughout 4.x.
 
+## 4.1.12 - 2026-10-15
+
+### Changed
+- Updated Craft API usage to avoid deprecated calls.
+
 ## 4.1.11 - 2026-10-07
 
 ### Changed
