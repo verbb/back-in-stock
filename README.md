@@ -10,7 +10,7 @@ Add an unstyled notification form to any product page for guests or signed-in cu
 - Match the number of notifications to available stock, or notify everyone waiting.
 - Keep one request for each email address and variant, with optional email verification.
 - Process larger lists in configurable groups and retry email attempts that fail before Craft’s mailer accepts them, up to a chosen limit.
-- Edit confirmation, verification, and availability emails through Craft System Messages, with full Twig template overrides when needed.
+- Edit confirmation, verification, and availability emails through Craft System Messages, with full Twig template overrides for confirmation and availability emails.
 - See how many customers are waiting in Overview, then use Products to find a variant or subscriber email and review what happened over time.
 - Run a scheduled check to catch missed stock changes, expire old requests, and remove completed history when required.
 

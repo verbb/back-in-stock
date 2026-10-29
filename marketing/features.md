@@ -29,7 +29,7 @@ Start with the oldest requests based on the quantity available, increase the num
 <!-- feature-grid -->
 - :icon[mail-check] **Verified interest** Optional double opt-in keeps only confirmed recipients active.
 - :icon[layers-subtract] **Controlled groups** Process larger lists in configurable groups and retry email attempts that fail before Craft’s mailer accepts them, up to a chosen limit.
-- :icon[message-cog] **Editable email** Use Craft System Messages or take over the full markup with Twig.
+- :icon[message-cog] **Editable email** Edit message content through Craft System Messages, or use custom Twig layouts for confirmation and availability emails.
 - :icon[link-off] **One-click cancellation** Signed links let recipients leave without an account.
 - :icon[history] **Notification history** Review who was selected and whether Craft accepted each message, or whether it failed, was cancelled, or remained unconfirmed.
 - :icon[refresh] **Scheduled checks** Catch stock changes missed by an import, expire old requests, and remove completed history when required.
