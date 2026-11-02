@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Add `stockFieldHandle` plugin setting to use a custom variant field for stock levels, including variants with unlimited stock in Commerce. ([#43](https://github.com/verbb/back-in-stock/issues/43))
+- Add `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rule as sign-ups. ([#43](https://github.com/verbb/back-in-stock/issues/43))
+
+### Fixed
+- Fix customers receiving a second notification email when the same request was queued more than once.
+
 ## 3.0.10 - 2026-09-23
 
 ### Fixed

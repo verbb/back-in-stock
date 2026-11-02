@@ -9,6 +9,7 @@ use verbb\backinstock\records\Log as LogRecord;
 
 use Craft;
 use craft\base\Component;
+use craft\errors\InvalidFieldException;
 use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
@@ -23,23 +24,38 @@ class Service extends Component
     // Public Methods
     // =========================================================================
 
+    public function isVariantInStock(Variant $variant): bool
+    {
+        // Registration has always used Commerce's answer without the threshold, so only a stock field changes it.
+        if ($this->_getStockFieldHandle() === null) {
+            return $variant->hasStock();
+        }
+
+        return $this->_isAboveStockThreshold($variant);
+    }
+
     public function isBackInStock(Variant $variant): bool
     {
-        $settings = BackInStock::$plugin->getSettings();
-
         if (!$variant->id) {
             return false;
         }
 
-        // Get the saved (original) variant
-        $original = Variant::findOne($variant->id);
+        $hasStockField = $this->_getStockFieldHandle() !== null;
+
+        // Propagated saves repeat the change for other sites, and would otherwise notify customers again.
+        if ($hasStockField && $variant->propagating) {
+            return false;
+        }
+
+        // Get the saved (original) variant. Field values can differ per site, so compare against the site being saved.
+        $original = $hasStockField ? Variant::findOne(['id' => $variant->id, 'siteId' => $variant->siteId]) : Variant::findOne($variant->id);
 
         if (!$original) {
             return false;
         }
 
-        $wasOutOfStock = (!$original->hasUnlimitedStock && $original->stock <= $settings->stockThreshold);
-        $isNowInStock = ($variant->hasUnlimitedStock || $variant->stock > $settings->stockThreshold);
+        $wasOutOfStock = !$this->_isAboveStockThreshold($original);
+        $isNowInStock = $this->_isAboveStockThreshold($variant);
 
         if ($wasOutOfStock && $isNowInStock) {
             $this->findInterestedEmails($variant->id);
@@ -88,11 +104,11 @@ class Service extends Component
 
         if (!$log->variantId) {
             $error = Craft::t('craft-commerce-back-in-stock', 'Could not find Variant for Back In Stock Notification email.');
-            
+
             BackInStock::error($error);
-            
+
             $view->setTemplateMode($oldTemplateMode);
-            
+
             return false;
         }
 
@@ -100,11 +116,11 @@ class Service extends Component
 
         if (!$variant) {
             $error = Craft::t('craft-commerce-back-in-stock', 'Could not find Variant for Back In Stock Notification email.');
-            
+
             BackInStock::error($error);
-            
+
             $view->setTemplateMode($oldTemplateMode);
-            
+
             return false;
         }
 
@@ -135,15 +151,15 @@ class Service extends Component
             $error = Craft::t('craft-commerce-back-in-stock', 'Email template does not exist at “{templatePath}”.', [
                 'templatePath' => $templatePath,
             ]);
-            
+
             BackInStock::error($error);
-            
+
             $view->setTemplateMode($oldTemplateMode);
-            
+
             return false;
         }
 
-        $settings = BackInStock::$plugin->getSettings();;
+        $settings = BackInStock::$plugin->getSettings();
 
         // build the email
         $newEmail = new Message();
@@ -155,11 +171,11 @@ class Service extends Component
         try {
             if (!Craft::$app->getMailer()->send($newEmail)) {
                 $error = Craft::t('craft-commerce-back-in-stock', 'Back In Stock email “{email}” could not be sent');
-                
+
                 BackInStock::error($error);
-                
+
                 $view->setTemplateMode($oldTemplateMode);
-                
+
                 return false;
             }
         } catch (Throwable $e) {
@@ -178,5 +194,48 @@ class Service extends Component
         }
 
         return true;
+    }
+
+
+    // Private Methods
+    // =========================================================================
+
+    private function _getStockFieldHandle(): ?string
+    {
+        $handle = trim(BackInStock::$plugin->getSettings()->stockFieldHandle ?? '');
+
+        return $handle !== '' ? $handle : null;
+    }
+
+    private function _isAboveStockThreshold(Variant $variant): bool
+    {
+        $threshold = BackInStock::$plugin->getSettings()->stockThreshold;
+        $handle = $this->_getStockFieldHandle();
+
+        if ($handle === null) {
+            return $variant->hasUnlimitedStock || $variant->stock > $threshold;
+        }
+
+        // The field replaces Commerce stock entirely, so a bad value must count as unavailable rather than fall back to it.
+        try {
+            $value = $variant->getFieldValue($handle);
+        } catch (InvalidFieldException) {
+            BackInStock::error("Stock field “{$handle}” is not available on variant {$variant->id}.");
+
+            return false;
+        }
+
+        // Empty fields represent no stock.
+        if ($value === null || $value === '') {
+            $value = 0;
+        }
+
+        if (!is_numeric($value) || !is_finite((float)$value)) {
+            BackInStock::error("Stock field “{$handle}” must contain a numeric quantity on variant {$variant->id}.");
+
+            return false;
+        }
+
+        return floor((float)$value) > $threshold;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace verbb\backinstock\models;
 
+use verbb\backinstock\BackInStock;
 use verbb\backinstock\records\Log as LogRecord;
 
 use Craft;
@@ -83,7 +84,7 @@ class Log extends Model
             $validator->addError($this, $attribute, Craft::t('craft-commerce-back-in-stock', 'Unable to find variant.'), $params);
         }
 
-        if ($variant && $variant->hasStock()) {
+        if ($variant && BackInStock::$plugin->getService()->isVariantInStock($variant)) {
             $validator->addError($this, $attribute, Craft::t('craft-commerce-back-in-stock', 'Variant is in stock.'), $params);
         }
     }

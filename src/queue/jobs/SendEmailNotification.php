@@ -24,8 +24,13 @@ class SendEmailNotification extends BaseJob
     public function execute($queue): void
     {
         $log = LogRecord::findOne($this->logId);
-        
+
         if ($log) {
+            // Saves to several sites can queue the same customer twice before the first email goes out.
+            if (!$this->confirmation && $log->isNotified) {
+                return;
+            }
+
             if (BackInStock::$plugin->getService()->sendMail($log, $this->subject, $this->template)) {
                 if (!$this->confirmation) {
                     if (BackInStock::$plugin->getSettings()->purgeRequests) {

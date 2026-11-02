@@ -22,7 +22,7 @@ The below HTML template gives you a head-start (using [Tailwind](https://tailwin
             <div class="mb-4 flex flex-wrap items-center justify-center">
                 <h2 class="flex-1 font-bold text-xl text-slate-700">{{ product.title }}</h2>
 
-                {% if product.defaultVariant.hasStock() %}
+                {% if craft.backInStock.isVariantInStock(product.defaultVariant) %}
                     <span class="flex-none bg-green-200 rounded-full px-3 py-1 text-xs font-semibold text-green-700">IN STOCK</span>
                 {% else %}
                     <span class="flex-none bg-red-200 rounded-full px-3 py-1 text-xs font-semibold text-red-700">OUT OF STOCK</span>
