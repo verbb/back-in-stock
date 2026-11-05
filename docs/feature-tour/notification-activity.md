@@ -6,7 +6,7 @@ Notification activity shows what Back in Stock did when a variant became availab
 
 The **Notification Recipients** setting controls how many waiting customers are selected for a restock.
 
-**Match available stock** starts with the oldest waiting subscriptions and limits the number selected according to the stock on hand. **Subscribers per Available Unit** can widen that selection when not every notified customer is expected to purchase. For example, five available units with two subscribers per unit selects up to ten people. Variants with unlimited stock select everyone who is waiting.
+**Match available stock** starts with the oldest waiting subscriptions and limits the number selected according to the stock on hand. **Subscribers per Available Unit** can widen that selection when not every notified customer is expected to purchase. For example, five available units with two subscribers per unit selects up to ten people. Variants with unlimited native stock select everyone who is waiting. When [`stockFieldHandle`](docs:get-started/configuration#stockfieldhandle) is configured, its quantity sets the limit even if Commerce inventory tracking is disabled.
 
 **Notify all waiting subscribers** selects everyone currently waiting, regardless of the available quantity.
 

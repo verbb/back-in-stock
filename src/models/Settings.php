@@ -20,6 +20,7 @@ class Settings extends Model
     public string $pluginName = 'Back in Stock';
     public bool $hasCpSection = true;
     public int $stockThreshold = 0;
+    public ?string $stockFieldHandle = null;
     public bool $includeAvailableForPurchase = false;
     public bool $sendConfirmation = false;
     public ?string $confirmationEmailTemplate = null;
@@ -50,6 +51,8 @@ class Settings extends Model
         $rules[] = [['pluginName'], 'trim'];
         $rules[] = [['pluginName'], 'required'];
         $rules[] = [['pluginName'], 'string', 'max' => 52];
+        $rules[] = [['stockFieldHandle'], 'trim'];
+        $rules[] = [['stockFieldHandle'], 'match', 'pattern' => '/^[a-zA-Z_][a-zA-Z0-9_]*$/'];
         $rules[] = [['stockThreshold'], 'number', 'integerOnly' => true];
         $rules[] = [['notificationPolicy'], 'in', 'range' => [self::NOTIFICATION_POLICY_ALL, self::NOTIFICATION_POLICY_STOCK_MATCHED]];
         $rules[] = [['subscribersPerUnit', 'batchSize', 'batchDelay', 'maximumAttempts', 'verificationWindow', 'pendingExpiry', 'activeExpiry', 'historyRetention'], 'number', 'integerOnly' => true, 'min' => 0];

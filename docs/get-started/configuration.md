@@ -55,11 +55,34 @@ This field is shown in the control panel only when **Notification Recipients** i
 :::
 
 ::: reference
+#### `stockFieldHandle`
+
+**Type:** `string|null` · **Default:** `null`
+
+The handle of a numeric custom field on the variant to use instead of Commerce inventory. Set this in `config/craft-commerce-back-in-stock.php` when an ERP or warehouse integration stores stock in a custom field:
+
+```php
+<?php
+
+return [
+    'stockFieldHandle' => 'warehouseStock',
+    'stockThreshold' => 0,
+];
+```
+
+The field controls availability, stock-matched recipient limits and the stock recorded in notification history, even when Commerce inventory tracking is disabled. Commerce checkout and inventory settings are unaffected. The value must exceed `stockThreshold`; fractional quantities are rounded down to whole units. Empty values count as zero. A missing field or invalid numeric value is treated as unavailable and logs an error instead of falling back to Commerce stock.
+
+Use a field available on every subscribed variant's field layout. Its value is read in the variant's site context; it does not sum Commerce inventory locations. For sites sharing a Commerce store, keep the field's stock quantity consistent across those sites. `includeAvailableForPurchase` still applies when enabled.
+
+Saving a variant queues an availability check when customers are waiting for it. Integrations that bypass element saves should run the [scheduled check](#scheduled-checks) after syncing. Use `craft.backInStock.isVariantInStock(variant)` in storefront form conditions so they follow the same field and threshold; see [Example Form](docs:template-guides/example-form). Leave this setting `null` or empty to use Commerce inventory.
+:::
+
+::: reference
 #### `stockThreshold`
 
 **Type:** `int` · **Default:** `0`
 
-The stock level a tracked variant must exceed before it is considered available. With the default of `0`, the variant needs at least one unit in stock.
+The native or custom stock level a variant must exceed before it is considered available. With the default of `0`, the variant needs at least one unit in stock.
 :::
 
 ::: reference
@@ -200,7 +223,7 @@ The Twig-enabled subject used with `emailTemplate`. Craft’s editable System Me
 
 ## Control Panel
 
-You can manage the same settings through **Settings → Plugins → Back in Stock**. The settings are separated into General Settings, Delivery, Subscription, and Email. Options that depend on stock matching or email verification appear only when the related feature is enabled.
+You can manage the main settings through **Settings → Plugins → Back in Stock**. The settings are separated into General Settings, Delivery, Subscription, and Email. `stockFieldHandle` is configured only in the PHP config file. Options that depend on stock matching or email verification appear only when the related feature is enabled.
 
 ## System Messages
 

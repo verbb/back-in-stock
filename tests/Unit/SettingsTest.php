@@ -17,7 +17,21 @@ class SettingsTest extends TestCase
         self::assertSame(Settings::NOTIFICATION_POLICY_STOCK_MATCHED, $settings->notificationPolicy);
         self::assertSame(1, $settings->subscribersPerUnit);
         self::assertFalse($settings->requireVerification);
+        self::assertNull($settings->stockFieldHandle);
         self::assertSame(3, $settings->maximumAttempts);
+    }
+
+    public function testStockFieldHandleAcceptsAnOptionalFieldHandle(): void
+    {
+        $settings = new Settings(['stockFieldHandle' => ' warehouseStock ']);
+        self::assertTrue($settings->validate(['stockFieldHandle']));
+        self::assertSame('warehouseStock', $settings->stockFieldHandle);
+
+        $settings->stockFieldHandle = '';
+        self::assertTrue($settings->validate(['stockFieldHandle']));
+
+        $settings->stockFieldHandle = 'variant.stock';
+        self::assertFalse($settings->validate(['stockFieldHandle']));
     }
 
     public function testOperationalWindowsMustRemainPositive(): void

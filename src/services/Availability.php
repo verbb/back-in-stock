@@ -57,16 +57,27 @@ class Availability extends Component
             return null;
         }
 
+        $stock = BackInStock::$plugin->getService()->getVariantStock($variant);
+        $observedStock = RestockRunModel::observedStockSnapshot($stock);
         $run = RestockRun::findOne(['availabilityKey' => $availabilityKey]);
 
         if (!$run) {
+            // Only record availability someone is waiting for, or every in-stock variant would fill Activity with empty runs.
+            $hasWaitingSubscribers = Subscription::find()
+                ->where(['variantId' => $variantId, 'storeId' => $storeId, 'state' => SubscriptionModel::STATE_ACTIVE])
+                ->exists();
+
+            if (!$hasWaitingSubscribers) {
+                return null;
+            }
+
             $settings = BackInStock::$plugin->getSettings();
             $run = new RestockRun([
                 'variantId' => $variantId,
                 'storeId' => $storeId,
                 'status' => RestockRunModel::STATUS_OPEN,
                 'availabilityKey' => $availabilityKey,
-                'observedStock' => $variant->inventoryTracked ? $variant->stock : null,
+                'observedStock' => $observedStock,
                 'notificationPolicy' => $settings->notificationPolicy,
                 'subscribersPerUnit' => $settings->subscribersPerUnit,
                 'openedAt' => $now,
@@ -84,11 +95,11 @@ class Availability extends Component
             return null;
         }
 
-        $run->observedStock = $variant->inventoryTracked ? $variant->stock : null;
+        $run->observedStock = $observedStock;
         $run->lastEvaluatedAt = $now;
         $run->save(false);
 
-        $this->_selectRecipients($run, $variant);
+        $this->_selectRecipients($run, $variant, $stock);
 
         return $run;
     }
@@ -117,7 +128,7 @@ class Availability extends Component
     // Private Methods
     // =========================================================================
 
-    private function _selectRecipients(RestockRun $run, Variant $variant): void
+    private function _selectRecipients(RestockRun $run, Variant $variant, ?int $stock): void
     {
         $settings = BackInStock::$plugin->getSettings();
         $eligibleQuery = Subscription::find()
@@ -132,8 +143,8 @@ class Availability extends Component
             ->count();
         $selectionLimit = RecipientSelection::selectionLimit(
             $run->notificationPolicy,
-            $variant->inventoryTracked,
-            (int)$variant->stock,
+            $stock !== null,
+            $stock ?? 0,
             (int)$run->subscribersPerUnit,
             $eligibleCount,
             $alreadySelected,

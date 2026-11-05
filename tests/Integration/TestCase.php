@@ -60,7 +60,7 @@ abstract class TestCase extends BaseTestCase
     // Protected Methods
     // =========================================================================
 
-    protected function createVariant(int $stock = 0): Variant
+    protected function createVariant(int $stock = 0, ?FieldLayout $variantFieldLayout = null): Variant
     {
         $commerce = Commerce::getInstance();
         $site = Craft::$app->getSites()->getPrimarySite();
@@ -82,7 +82,7 @@ abstract class TestCase extends BaseTestCase
             ]),
         ]);
         $type->getBehavior('productFieldLayout')->setFieldLayout(new FieldLayout(['type' => Product::class]));
-        $type->getBehavior('variantFieldLayout')->setFieldLayout(new FieldLayout(['type' => Variant::class]));
+        $type->getBehavior('variantFieldLayout')->setFieldLayout($variantFieldLayout ?? new FieldLayout(['type' => Variant::class]));
 
         if (!$commerce->getProductTypes()->saveProductType($type)) {
             self::fail('Unable to save the test product type: ' . Json::encode($type->getErrors()));

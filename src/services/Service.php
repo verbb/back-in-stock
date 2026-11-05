@@ -6,18 +6,22 @@ use verbb\backinstock\events\SubscriptionMessageEvent;
 use verbb\backinstock\models\Log;
 use verbb\backinstock\models\Inventory;
 use verbb\backinstock\models\Settings;
+use verbb\backinstock\models\Subscription as SubscriptionModel;
 use verbb\backinstock\queue\jobs\SendEmailNotification;
 use verbb\backinstock\records\Log as LogRecord;
+use verbb\backinstock\records\RestockRun;
 use verbb\backinstock\records\Subscription;
 use verbb\backinstock\queue\jobs\EvaluateAvailability;
 
 use Craft;
 use craft\base\Component;
+use craft\errors\InvalidFieldException;
 use craft\helpers\App;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\mail\Message;
 
+use yii\base\InvalidConfigException;
 use yii\web\TooManyRequestsHttpException;
 
 use Throwable;
@@ -55,6 +59,11 @@ class Service extends Component
 
     public function syncVariantStockState(Variant $variant): bool
     {
+        // ERP and catalogue syncs save every variant per site, so skip those nobody depends on.
+        if (!$variant->id || !$this->_hasAvailabilityDemand($variant->id)) {
+            return false;
+        }
+
         return $this->queueVariantEvaluation($variant);
     }
 
@@ -75,9 +84,48 @@ class Service extends Component
     public function isVariantInStock(Variant $variant): bool
     {
         $settings = BackInStock::$plugin->getSettings();
-        $hasStock = ($variant->hasUnlimitedStock || $variant->stock > $settings->stockThreshold);
+
+        try {
+            $stock = $this->getVariantStock($variant);
+        } catch (InvalidConfigException $exception) {
+            Craft::error($exception->getMessage(), __METHOD__);
+
+            return false;
+        }
+
+        $hasStock = ($stock === null || $stock > $settings->stockThreshold);
 
         return ($hasStock && (!$settings->includeAvailableForPurchase || $variant->availableForPurchase));
+    }
+
+    /**
+     * Returns whole available units, or null for unlimited native inventory.
+     * A configured custom field remains authoritative even when Commerce allows backorders.
+     */
+    public function getVariantStock(Variant $variant): ?int
+    {
+        $handle = trim(BackInStock::$plugin->getSettings()->stockFieldHandle ?? '');
+
+        if ($handle === '') {
+            return $variant->getHasUnlimitedStock() ? null : $variant->getStock();
+        }
+
+        try {
+            $value = $variant->getFieldValue($handle);
+        } catch (InvalidFieldException $exception) {
+            throw new InvalidConfigException("Stock field “{$handle}” is not available on variant {$variant->id}.", 0, $exception);
+        }
+
+        // Empty fields represent no stock; malformed values must never fall back to unlimited inventory.
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        if (!is_numeric($value) || !is_finite((float)$value) || $value >= PHP_INT_MAX || $value < PHP_INT_MIN) {
+            throw new InvalidConfigException("Stock field “{$handle}” must contain a finite numeric quantity on variant {$variant->id}.");
+        }
+
+        return (int)floor((float)$value);
     }
 
     public function getLiveVariant(int $variantId, int $siteId): ?Variant
@@ -381,6 +429,12 @@ class Service extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _hasAvailabilityDemand(int $variantId): bool
+    {
+        return Subscription::find()->where(['variantId' => $variantId, 'state' => SubscriptionModel::STATE_ACTIVE])->exists()
+            || RestockRun::find()->where(['variantId' => $variantId])->andWhere(['not', ['availabilityKey' => null]])->exists();
+    }
 
     private function _rejectRegistrationAttempt(int $retryAfter): never
     {

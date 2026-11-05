@@ -5,7 +5,7 @@ Back in Stock deliberately provides an action rather than storefront markup or a
 ```twig
 {% set variant = product.defaultVariant %}
 
-{% if variant and not variant.hasStock() %}
+{% if variant and not craft.backInStock.isVariantInStock(variant) %}
     <form method="post">
         {{ csrfInput() }}
         {{ actionInput('craft-commerce-back-in-stock/base/register-interest') }}
@@ -27,6 +27,8 @@ Back in Stock deliberately provides an action rather than storefront markup or a
 {% endif %}
 ```
 
+`craft.backInStock.isVariantInStock()` applies the same rules as the registration action, including `stockThreshold`, `includeAvailableForPurchase` and [`stockFieldHandle`](docs:get-started/configuration#stockfieldhandle). Use it instead of `variant.hasStock()`, which only reads Commerce inventory: a variant with inventory tracking disabled always has stock, so the form would never appear.
+
 Craft places the success message in the `notice` flash and validation or rate-limit failures in the `error` flash. Render those through the project’s usual flash-message component.
 
 ## Variant Selectors
@@ -36,7 +38,7 @@ A subscription belongs to a Commerce variant. If customers can choose a size, co
 ```twig
 <select name="variantId" required>
     {% for variant in product.variants %}
-        {% if not variant.hasStock() %}
+        {% if not craft.backInStock.isVariantInStock(variant) %}
             <option value="{{ variant.id }}">{{ variant.title }}</option>
         {% endif %}
     {% endfor %}
