@@ -33,7 +33,8 @@ class BaseController extends Controller
         $session = Craft::$app->getSession();
 
         $log = new Log();
-        $log->variantId = $this->request->getParam('variantId');
+        $variantId = $this->request->getParam('variantId');
+        $log->variantId = is_numeric($variantId) ? (int)$variantId : null;
         $email = $this->request->getParam('email');
         $log->email = is_string($email) ? $email : null;
         $log->setOptionsFromRequest($this->request->getParam('options'));
