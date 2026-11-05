@@ -54,7 +54,7 @@
 
     {{ forms.textField({
         label: 'Confirmation Email Subject' | t('craft-commerce-back-in-stock'),
-        instructions: 'The email subject for the confirmation email.' | t('craft-commerce-back-in-stock'),
+        instructions: 'The email subject used with a custom confirmation template. Without one, the subject comes from the System Message.' | t('craft-commerce-back-in-stock'),
         name: 'confirmationEmailSubject',
         value: settings.confirmationEmailSubject,
         placeholder: 'Back in stock notification confirmation for {{ variant.title }}' | t('craft-commerce-back-in-stock'),
@@ -77,7 +77,7 @@
 
 {{ forms.textField({
     label: 'Notification Email Subject' | t('craft-commerce-back-in-stock'),
-    instructions: 'The email subject for the notification email.' | t('craft-commerce-back-in-stock'),
+    instructions: 'The email subject used with a custom notification template. Without one, the subject comes from the System Message.' | t('craft-commerce-back-in-stock'),
     name: 'emailSubject',
     value: settings.emailSubject,
     placeholder: 'Order today, {{ variant.title }} is now in stock' | t('craft-commerce-back-in-stock'),

@@ -26,6 +26,8 @@ The default confirmation, verification, and availability content is managed thro
 
 Projects that need complete control over the HTML can configure a site Twig template for confirmation or availability messages. A custom template replaces the corresponding System Message body and receives the subscribed `variant`, `subscription`, decoded `options`, signed `cancelUrl`, and rendered `subject`. Verification remains a System Message and also receives its signed `verifyUrl`.
 
+Sites upgraded from Back in Stock 4.1 keep sending the plugin’s bundled templates with their saved subjects. Clear the template fields on the **Email** page to switch to System Messages.
+
 Sender name and address can be set on the plugin’s **Email** page. When left empty, the plugin uses Craft’s system email settings.
 
 See [Custom Email Templates](docs:template-guides/custom-email-templates) for complete Twig examples, the available template variables, and steps for configuring confirmation and availability templates.

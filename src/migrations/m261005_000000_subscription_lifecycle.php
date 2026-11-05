@@ -21,6 +21,7 @@ class m261005_000000_subscription_lifecycle extends Migration
         $this->_createAttemptTable();
         $this->_migrateSubscriptions();
         $this->_preserveUpgradeNotificationPolicy();
+        $this->_preserveUpgradeEmailTemplates();
 
         return true;
     }
@@ -187,6 +188,23 @@ class m261005_000000_subscription_lifecycle extends Migration
 
         if (Craft::$app->getProjectConfig()->get($path) === null) {
             Craft::$app->getProjectConfig()->set($path, Settings::NOTIFICATION_POLICY_ALL, 'Preserve Back in Stock upgrade notification behaviour');
+        }
+    }
+
+    private function _preserveUpgradeEmailTemplates(): void
+    {
+        // 4.1 fell back to the bundled templates, which is also what makes the saved subjects apply.
+        $templates = [
+            'confirmationEmailTemplate' => 'craft-commerce-back-in-stock/emails/confirmation',
+            'emailTemplate' => 'craft-commerce-back-in-stock/emails/notification',
+        ];
+
+        foreach ($templates as $setting => $template) {
+            $path = "plugins.craft-commerce-back-in-stock.settings.$setting";
+
+            if (!Craft::$app->getProjectConfig()->get($path)) {
+                Craft::$app->getProjectConfig()->set($path, $template, 'Preserve Back in Stock upgrade email templates');
+            }
         }
     }
 }

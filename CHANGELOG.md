@@ -7,6 +7,7 @@
 - Added `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rules as Back in Stock, including `stockFieldHandle`. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 
 ### Changed
+- Upgraded installations now keep sending the bundled email templates with their saved subjects, as they did in 4.1. Clear the template settings to switch to the editable System Messages.
 - Changed expiry and history retention to count from a request’s last update. Requests that existed before upgrading count from the upgrade, so none are removed on the first run.
 - Changed expiry, history retention and recovery of stalled notifications to also run during Craft’s garbage collection.
 
