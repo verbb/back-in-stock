@@ -237,7 +237,7 @@ Normal Commerce inventory changes trigger availability checks automatically and 
 php craft craft-commerce-back-in-stock/reconcile
 ```
 
-The command is safe to run repeatedly. A five-minute interval is a reasonable starting point for most stores.
+The command is safe to run repeatedly. A five-minute interval is a reasonable starting point for most stores. Expiry, retention, and recovery of stalled notifications also run during Craft’s garbage collection, but much less often.
 
 ::: tip
 Ensure Craft’s queue is being processed, either by its automatic queue runner or a dedicated worker. Availability checks and notification deliveries use queued jobs and will wait until the queue runs.

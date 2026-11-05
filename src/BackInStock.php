@@ -14,6 +14,7 @@ use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
+use craft\services\Gc;
 use craft\services\SystemMessages;
 
 use yii\base\Event;
@@ -164,6 +165,13 @@ class BackInStock extends Plugin
             }
 
             $this->getService()->syncVariantStockState($event->sender);
+        });
+
+        // Keeps retention and stalled-delivery recovery working on sites that never schedule the reconcile command.
+        Event::on(Gc::class, Gc::EVENT_RUN, function() {
+            $this->getDelivery()->recoverStalled();
+            $this->getSubscriptions()->expireStale();
+            $this->getSubscriptions()->purgeHistory();
         });
     }
 
