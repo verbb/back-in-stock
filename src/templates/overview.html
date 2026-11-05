@@ -52,7 +52,7 @@
                         {# Tones follow the status dots used for the same events in each variant's Activity tab. #}
                         {% set isNewSubscription = item.title == 'Customer subscribed' %}
                         {% set tone = item.state == 'attention' ? 'error' : (item.state in ['pendingVerification', 'unconfirmed'] ? 'warning' : (item.state == 'active' ? 'success' : (item.state in ['notified', 'open', 'completed'] ? 'info' : 'neutral'))) %}
-                        {% set icon = isNewSubscription ? 'bis-subscription-created' : (item.state in ['attention', 'unconfirmed'] ? 'bis-notification-review' : (item.state == 'pendingVerification' ? 'bis-verification-pending' : (item.state == 'active' ? 'bis-subscription-verified' : (item.state in ['notified', 'open', 'completed'] ? 'bis-notification-sent' : (item.state == 'cancelled' ? 'bis-subscription-cancelled' : 'bis-activity'))))) %}
+                        {% set icon = isNewSubscription ? 'bis-subscription-created' : (item.state in ['attention', 'unconfirmed', 'reviewed'] ? 'bis-notification-review' : (item.state == 'pendingVerification' ? 'bis-verification-pending' : (item.state == 'active' ? 'bis-subscription-verified' : (item.state in ['notified', 'open', 'completed'] ? 'bis-notification-sent' : (item.state == 'cancelled' ? 'bis-subscription-cancelled' : 'bis-activity'))))) %}
                         {% set itemUrl = item.url ?: url('back-in-stock/products/' ~ item.variantId ~ '/activity') %}
                         {% set activityProduct = item.variant ? item.variant.owner : null %}
                         <li><a class="bis-overview-row bis-overview-event" href="{{ itemUrl }}">

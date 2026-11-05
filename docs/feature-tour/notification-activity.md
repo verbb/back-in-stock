@@ -42,3 +42,10 @@ Failed and unconfirmed outcomes are marked for review on the detail page and in 
 Open an affected notification to see how many subscribers were waiting, how many were selected, and the latest result for each recipient. The details sidebar shows the **Notification Recipients** setting and the stock found at the last check, and the summary explains how many subscribers that stock allowed. Error details appear beneath the relevant attempt so longer mail messages remain readable.
 
 ![A notification detail page with recipient results and error information for failed attempts.](../../screenshots/notification-detail.png)
+
+## Acting on Review Items
+
+Admins, and users with the **Retry failed notifications and mark notifications as reviewed** permission, can act on a notification from its detail page:
+
+- **Retry failed sends** queues another attempt straight away for each subscriber whose latest attempt failed and who is still waiting, even when the automatic **Maximum Delivery Attempts** have been used. Stock and the subscription are checked again before sending, so a variant that has sold out cancels the attempt instead. Unconfirmed sends are never retried, because the message may already have been delivered.
+- **Mark as reviewed** records that the problem has been dealt with, for example after checking the mail provider’s logs for an unconfirmed send. The notification keeps its results but no longer counts towards the Overview alert or the **Needs review** filter. If a later attempt fails or can’t be confirmed, it needs review again.

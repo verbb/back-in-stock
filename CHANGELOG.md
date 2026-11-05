@@ -4,6 +4,7 @@
 
 ### Added
 - Added actions to a variant’s Subscriptions tab to cancel a subscription and erase a subscriber’s data, with a new “Cancel subscriptions and erase subscriber data” permission.
+- Added **Retry failed sends** and **Mark as reviewed** to notification details, with a new “Retry failed notifications and mark notifications as reviewed” permission. A reviewed notification no longer counts towards the Overview alert unless a later attempt fails or can’t be confirmed.
 
 ### Changed
 - Upgraded installations now keep sending the bundled email templates with their saved subjects, as they did in 4.1. Clear the template settings to switch to the editable System Messages.

@@ -86,6 +86,7 @@ class Install extends Migration
             'lastEvaluatedAt' => $this->dateTime()->notNull(),
             'closedAt' => $this->dateTime(),
             'nextBatchAt' => $this->dateTime(),
+            'reviewedAt' => $this->dateTime(),
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),

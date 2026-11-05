@@ -32,6 +32,7 @@ class BackInStock extends Plugin
     // =========================================================================
 
     public const PERMISSION_MANAGE_SUBSCRIPTIONS = 'backInStock-manageSubscriptions';
+    public const PERMISSION_MANAGE_NOTIFICATIONS = 'backInStock-manageNotifications';
 
 
     // Properties
@@ -39,7 +40,7 @@ class BackInStock extends Plugin
 
     public bool $hasCpSection = true;
     public bool $hasCpSettings = true;
-    public string $schemaVersion = '1.5.1';
+    public string $schemaVersion = '1.5.2';
 
 
     // Traits
@@ -191,6 +192,7 @@ class BackInStock extends Plugin
                 'heading' => $this->getPluginName(),
                 'permissions' => [
                     self::PERMISSION_MANAGE_SUBSCRIPTIONS => ['label' => Craft::t('craft-commerce-back-in-stock', 'Cancel subscriptions and erase subscriber data')],
+                    self::PERMISSION_MANAGE_NOTIFICATIONS => ['label' => Craft::t('craft-commerce-back-in-stock', 'Retry failed notifications and mark notifications as reviewed')],
                 ],
             ];
         });

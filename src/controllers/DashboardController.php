@@ -244,6 +244,32 @@ class DashboardController extends Controller
         return $this->asSuccess(Craft::t('craft-commerce-back-in-stock', 'Subscriber data erased from {count, plural, =1{# subscription} other{# subscriptions}}.', ['count' => $erased]));
     }
 
+    public function actionRetryNotification(): Response
+    {
+        $run = $this->_requireManagedRun();
+        $queued = BackInStock::$plugin->getDelivery()->retryFailed($run);
+
+        // The page may be out of date, for example when a retry has already been queued from another tab.
+        if (!$queued) {
+            $this->setFailFlash(Craft::t('craft-commerce-back-in-stock', 'There are no failed notifications to retry.'));
+
+            return $this->redirectToPostedUrl();
+        }
+
+        $this->setSuccessFlash(Craft::t('craft-commerce-back-in-stock', '{count, plural, =1{# notification} other{# notifications}} queued to send again.', ['count' => $queued]));
+
+        return $this->redirectToPostedUrl();
+    }
+
+    public function actionMarkNotificationReviewed(): Response
+    {
+        $run = $this->_requireManagedRun();
+        BackInStock::$plugin->getDelivery()->markReviewed($run);
+        $this->setSuccessFlash(Craft::t('craft-commerce-back-in-stock', 'Notification marked as reviewed.'));
+
+        return $this->redirectToPostedUrl();
+    }
+
     public function actionActivityTable(int $variantId): Response
     {
         $this->_requireDashboardAccess();
@@ -356,6 +382,9 @@ class DashboardController extends Controller
             'observedStock' => $stock,
             'selectionLimit' => $stock !== null ? max(0, $stock) * max(1, (int)$run->subscribersPerUnit) : null,
             'subscriptions' => $subscriptions,
+            'canManageNotifications' => Craft::$app->getUser()->checkPermission(BackInStock::PERMISSION_MANAGE_NOTIFICATIONS),
+            'retryableCount' => count(BackInStock::$plugin->getDelivery()->getRetryableAttempts($run)),
+            'needsReview' => BackInStock::$plugin->getDelivery()->needsReview($run),
         ]);
     }
 
@@ -444,6 +473,21 @@ class DashboardController extends Controller
         }
 
         return $subscription;
+    }
+
+    private function _requireManagedRun(): RestockRun
+    {
+        $this->_requireDashboardAccess();
+        $this->requirePostRequest();
+        $this->requirePermission(BackInStock::PERMISSION_MANAGE_NOTIFICATIONS);
+
+        $run = RestockRun::findOne($this->_getPositiveIntegerParam('runId', 0));
+
+        if (!$run) {
+            throw new NotFoundHttpException(Craft::t('craft-commerce-back-in-stock', 'Run not found.'));
+        }
+
+        return $run;
     }
 
     private function _getPositiveIntegerParam(string $name, int $default): int
@@ -626,6 +670,7 @@ class DashboardController extends Controller
                 ->select('variantId')
                 ->from(RestockRun::tableName())
                 ->where(['or', ['>', 'failedCount', 0], ['>', 'unknownCount', 0]])
+                ->andWhere(['reviewedAt' => null])
                 ->andWhere(['>=', 'openedAt', $thirtyDaysAgo]);
             $totalQuery->andWhere(['in', 'variantId', $matchingReviewVariants]);
             $demandQuery->andWhere(['in', 'variantId', $matchingReviewVariants]);
@@ -735,6 +780,7 @@ class DashboardController extends Controller
             ])
             ->from(RestockRun::tableName())
             ->where(['or', ['>', 'failedCount', 0], ['>', 'unknownCount', 0]])
+            ->andWhere(['reviewedAt' => null])
             ->andWhere(['>=', 'openedAt', Db::prepareDateForDb((new DateTime())->modify('-30 days'))])
             ->groupBy(['variantId']);
 
@@ -821,6 +867,7 @@ class DashboardController extends Controller
             $thirtyDaysAgo = Db::prepareDateForDb((new DateTime())->modify('-30 days'));
             $runQuery
                 ->andWhere(['or', ['>', 'failedCount', 0], ['>', 'unknownCount', 0]])
+                ->andWhere(['reviewedAt' => null])
                 ->andWhere(['>=', 'openedAt', $thirtyDaysAgo]);
         }
 
@@ -923,15 +970,18 @@ class DashboardController extends Controller
     {
         // Selection completion is not delivery completion. Only confirmed hand-offs
         // earn a sent label; ambiguous results remain warnings rather than failures.
+        // A reviewed notification keeps its factual title but no longer asks for attention.
+        $reviewed = (bool)$run->reviewedAt;
+
         if ($run->failedCount) {
             return [
                 'title' => $run->unknownCount ? 'Notifications need review' : ($run->sentCount ? 'Some notifications failed to send' : 'Notifications failed to send'),
-                'state' => 'attention',
+                'state' => $reviewed ? 'reviewed' : 'attention',
             ];
         }
 
         if ($run->unknownCount) {
-            return ['title' => 'Notification sending unconfirmed', 'state' => 'unconfirmed'];
+            return ['title' => 'Notification sending unconfirmed', 'state' => $reviewed ? 'reviewed' : 'unconfirmed'];
         }
 
         $finishedCount = (int)$run->sentCount + (int)$run->cancelledCount;
@@ -982,6 +1032,7 @@ class DashboardController extends Controller
                 'state' => $presentation['state'],
                 'openedAt' => DateTimeHelper::toDateTime($run->openedAt),
                 'finishedAt' => DateTimeHelper::toDateTime($run->closedAt ?: $run->lastEvaluatedAt),
+                'reviewedAt' => DateTimeHelper::toDateTime($run->reviewedAt),
             ];
         }, $runs);
     }

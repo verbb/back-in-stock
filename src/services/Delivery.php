@@ -168,6 +168,59 @@ class Delivery extends Component
         return ['interrupted' => count($interrupted), 'requeued' => count($lost)];
     }
 
+    /**
+     * Returns the latest attempt for each subscriber whose message definitely wasn't sent and who is still waiting.
+     * Unconfirmed sends are left out because the message may already have reached the subscriber.
+     */
+    public function getRetryableAttempts(RestockRun $run): array
+    {
+        $failed = array_filter($this->_latestAttempts($run), fn(DeliveryAttempt $attempt) => $attempt->status === DeliveryAttemptModel::STATUS_FAILED);
+
+        if (!$failed) {
+            return [];
+        }
+
+        $activeIds = Subscription::find()
+            ->select('id')
+            ->where(['id' => array_keys($failed), 'state' => SubscriptionModel::STATE_ACTIVE])
+            ->column();
+
+        return array_values(array_filter($failed, fn(DeliveryAttempt $attempt) => in_array($attempt->subscriptionId, $activeIds)));
+    }
+
+    /**
+     * Queues another attempt straight away for each retryable subscriber, regardless of the automatic retry limit.
+     * Delivery still rechecks the subscription and stock, so a sold-out variant cancels the attempt instead.
+     */
+    public function retryFailed(RestockRun $run): int
+    {
+        $queued = 0;
+
+        foreach ($this->getRetryableAttempts($run) as $attempt) {
+            $queued += (int)$this->_scheduleRetry($attempt, 0);
+        }
+
+        if ($queued) {
+            $this->_refreshRun($run);
+        }
+
+        return $queued;
+    }
+
+    /**
+     * Takes the notification off the review list. It returns there if a later attempt fails or can't be confirmed.
+     */
+    public function markReviewed(RestockRun $run): void
+    {
+        $run->reviewedAt = Db::prepareDateForDb(new DateTime());
+        $run->save(false);
+    }
+
+    public function needsReview(RestockRun $run): bool
+    {
+        return ($run->failedCount || $run->unknownCount) && !$run->reviewedAt;
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -181,10 +234,10 @@ class Delivery extends Component
         $attempt->save(false);
     }
 
-    private function _scheduleRetry(DeliveryAttempt $attempt): void
+    private function _scheduleRetry(DeliveryAttempt $attempt, ?int $delay = null): bool
     {
         $attemptNumber = $attempt->attemptNumber + 1;
-        $delay = 60 * (2 ** ($attemptNumber - 2));
+        $delay ??= 60 * (2 ** ($attemptNumber - 2));
         $retry = new DeliveryAttempt([
             'runId' => $attempt->runId,
             'subscriptionId' => $attempt->subscriptionId,
@@ -193,26 +246,32 @@ class Delivery extends Component
             'dueAt' => Db::prepareDateForDb((new DateTime())->modify("+$delay seconds")),
         ]);
 
+        // The unique attempt number stops a double-clicked retry from queueing two sends.
         try {
             $retry->save(false);
         } catch (IntegrityException) {
-            return;
+            return false;
         }
 
         Craft::$app->getQueue()->delay($delay)->push(new DeliverAttemptJob(['attemptId' => $retry->id]));
+
+        return true;
+    }
+
+    private function _latestAttempts(RestockRun $run): array
+    {
+        $latest = [];
+
+        foreach (DeliveryAttempt::find()->where(['runId' => $run->id])->orderBy(['subscriptionId' => SORT_ASC, 'attemptNumber' => SORT_DESC])->all() as $attempt) {
+            $latest[$attempt->subscriptionId] ??= $attempt;
+        }
+
+        return $latest;
     }
 
     private function _refreshRun(RestockRun $run): void
     {
-        $attempts = DeliveryAttempt::find()
-            ->where(['runId' => $run->id])
-            ->orderBy(['subscriptionId' => SORT_ASC, 'attemptNumber' => SORT_DESC])
-            ->all();
-        $outcomes = [];
-
-        foreach ($attempts as $attempt) {
-            $outcomes[$attempt->subscriptionId] ??= $attempt->status;
-        }
+        $outcomes = array_map(fn(DeliveryAttempt $attempt) => $attempt->status, $this->_latestAttempts($run));
 
         $run->sentCount = count(array_filter($outcomes, fn(string $status) => $status === DeliveryAttemptModel::STATUS_SENT));
         $run->failedCount = count(array_filter($outcomes, fn(string $status) => $status === DeliveryAttemptModel::STATUS_FAILED));
@@ -222,6 +281,15 @@ class Delivery extends Component
             ->select('dueAt')
             ->where(['runId' => $run->id, 'status' => DeliveryAttemptModel::STATUS_PENDING])
             ->min('[[dueAt]]');
+
+        // A failure recorded after someone reviewed the notification needs their attention again.
+        if ($run->reviewedAt && DeliveryAttempt::find()
+            ->where(['runId' => $run->id, 'status' => [DeliveryAttemptModel::STATUS_FAILED, DeliveryAttemptModel::STATUS_UNKNOWN]])
+            ->andWhere(['>', 'completedAt', $run->reviewedAt])
+            ->exists()) {
+            $run->reviewedAt = null;
+        }
+
         $run->save(false);
     }
 
