@@ -100,13 +100,6 @@ class Delivery extends Component
         $this->_complete($attempt, $result['status'], $result['code'], $result['message']);
 
         if ($result['status'] === DeliveryAttemptModel::STATUS_SENT) {
-            if ($settings->purgeRequests) {
-                $subscription->delete();
-                $this->_refreshRun($run);
-                $this->_triggerAfterComplete($attempt, $run, $subscription);
-                return;
-            }
-
             BackInStock::$plugin->getSubscriptions()->markNotified($subscription);
         } elseif ($result['status'] === DeliveryAttemptModel::STATUS_FAILED && $attempt->attemptNumber < $settings->maximumAttempts) {
             $this->_scheduleRetry($attempt);
@@ -114,6 +107,11 @@ class Delivery extends Component
 
         $this->_refreshRun($run);
         $this->_triggerAfterComplete($attempt, $run, $subscription);
+
+        // Deleting the row would cascade its attempts, losing the counts and stock-matched places the run relies on.
+        if ($result['status'] === DeliveryAttemptModel::STATUS_SENT && $settings->purgeRequests) {
+            BackInStock::$plugin->getSubscriptions()->scrubRecipient($subscription);
+        }
     }
 
 

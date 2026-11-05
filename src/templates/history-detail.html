@@ -106,7 +106,7 @@
                             unknown: 'Unconfirmed' | t('craft-commerce-back-in-stock'),
                         }[attempt.status] ?? attempt.status | ucfirst %}
                         <tr class="bis-attempt-row">
-                            <td>{{ subscriptions[attempt.subscriptionId].email ?? ('Subscription #{id}' | t('craft-commerce-back-in-stock', {id: attempt.subscriptionId})) }}</td>
+                            <td>{{ (subscriptions[attempt.subscriptionId].email ?? null) ?: ('Subscription #{id}' | t('craft-commerce-back-in-stock', {id: attempt.subscriptionId})) }}</td>
                             <td>{{ attempt.attemptNumber }}</td>
                             <td><span class="bis-status"><pk-status status="{{ attemptStatus }}" aria-label="{{ attemptStatusLabel }}"></pk-status>{{ attemptStatusLabel }}</span></td>
                             <td>{{ attempt.dueAt | datetime('short') }}</td>

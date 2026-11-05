@@ -175,7 +175,7 @@ class DashboardController extends Controller
             $subscribedAt = DateTimeHelper::toDateTime($subscription->dateCreated);
             $row = [
                 'id' => $subscription->id,
-                'subscriber' => $subscription->email,
+                'subscriber' => $subscription->email ?: '—',
                 'state' => $state,
                 'subscribed' => $subscribedAt?->format($dateFormat) ?? '—',
             ];

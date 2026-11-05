@@ -2,7 +2,9 @@
 namespace verbb\backinstock\services;
 
 use verbb\backinstock\events\SubscriptionStateEvent;
+use verbb\backinstock\models\DeliveryAttempt as DeliveryAttemptModel;
 use verbb\backinstock\models\Subscription as SubscriptionModel;
+use verbb\backinstock\records\DeliveryAttempt;
 use verbb\backinstock\records\Subscription;
 
 use Craft;
@@ -156,6 +158,27 @@ class Subscriptions extends Component
         }
 
         return $saved;
+    }
+
+    /**
+     * Removes the recipient from a delivered subscription while keeping the row its delivery history depends on.
+     */
+    public function scrubRecipient(Subscription $subscription): bool
+    {
+        $subscription->email = '';
+        $subscription->recipientKey = SubscriptionModel::createRecipientKey('');
+        $subscription->userId = null;
+        $subscription->options = null;
+        $subscription->verificationTokenHash = null;
+        $subscription->verificationExpiresAt = null;
+
+        // Transports often quote the address they rejected.
+        DeliveryAttempt::updateAll(['errorMessage' => null], [
+            'subscriptionId' => $subscription->id,
+            'status' => [DeliveryAttemptModel::STATUS_FAILED, DeliveryAttemptModel::STATUS_UNKNOWN],
+        ]);
+
+        return $subscription->save(false);
     }
 
     public function expireStale(): int

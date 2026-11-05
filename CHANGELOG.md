@@ -12,6 +12,7 @@
 - Fixed a variant disabled on one site cancelling notifications for subscribers on other sites sharing its store.
 - Fixed drafts and revisions of variants triggering availability checks.
 - Fixed inventory changes only checking availability for the current site’s store.
+- Fixed `purgeRequests` losing delivery counts and notifying too many subscribers on stock-matched runs. Delivered subscriptions now keep their row with the recipient details removed.
 - Fixed the “subscribers waiting” count on repeat availability checks counting selected subscribers twice.
 
 ## 4.2.0 -
