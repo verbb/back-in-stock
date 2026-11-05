@@ -12,6 +12,8 @@ import {
 import type { PkSelect, PkOption } from '@verbb/plugin-kit-web/components/select.js';
 import type { PkStatusVariant } from '@verbb/plugin-kit-web/components/status/pk-status.js';
 
+import { confirmAction } from './confirmDialog.js';
+
 declare const Craft: {
     t: (category: string, message: string, params?: Record<string, unknown>) => string;
     getActionUrl: (action: string) => string;
@@ -45,30 +47,50 @@ const filter = (id: string, label: string, values: Record<string, string>): Data
     id, label: t(label), type: 'select', operators: ['equals'], options: choices(values),
 });
 
+// Cells render inside the table's shadow root, so their small layout rules travel with the markup.
+// Every state uses the same dot-and-label form, keeping one colour language across the plugin.
+function statusCell(presentation: Presentation) {
+    const content = html`<span style="display: inline-flex; align-items: center; gap: 8px;"><pk-status .status=${presentation.status} aria-hidden="true"></pk-status>${presentation.label}</span>`;
+    return presentation.url ? html`<a href=${presentation.url}>${content}</a>` : content;
+}
+
+// Narrow cells otherwise split addresses at any character; allow breaks only before the domain and at hyphens.
+function emailCell(value: unknown) {
+    const text = String(value ?? '');
+    const at = text.indexOf('@');
+    if (at < 1 || /\s/.test(text)) return text;
+    return html`<span style="overflow-wrap: normal; word-break: normal;">${text.slice(0, at)}<wbr>${text.slice(at)}</span>`;
+}
+
+function productCell(row: DataTableRow) {
+    const review = row.review as Presentation | null;
+    return html`<a href=${String(row.url)}>${row.title}</a>${review ? html`<span style="display: inline-flex; align-items: center; gap: 6px; margin-inline-start: 10px; white-space: nowrap;"><pk-status .status=${review.status} aria-hidden="true"></pk-status>${review.label}</span>` : null}`;
+}
+
 function columns(config: TableConfig): DataTableColumn[] {
     if (config.kind === 'products') return [
-        { id: 'title', label: t('Product / Variant'), type: 'link', href: row => String(row.url), sortable: true, hideable: false },
+        { id: 'title', label: t('Product / Variant'), type: 'custom', sortable: true, hideable: false, renderCell: ({ row }) => productCell(row) },
         { id: 'productType', label: t('Product Type'), sortable: true },
-        { id: 'sku', label: t('SKU'), sortable: true },
+        // Hyphenated SKUs otherwise break mid-code on narrow screens; the table scrolls instead.
+        { id: 'sku', label: t('SKU'), sortable: true, wrap: false },
+        // Stock is read live from Commerce or the configured stock field, so it can't be sorted in SQL.
+        { id: 'stock', label: t('In Stock'), align: 'end', wrap: false },
         { id: 'waiting', label: t('Waiting'), type: 'number', sortable: true },
         // Dates are already formatted by Craft in the CP locale and timezone.
         { id: 'latestRequest', label: t('Latest Request'), wrap: false, sortable: true },
     ];
     if (config.kind === 'subscriptions') return [
-        { id: 'subscriber', label: t('Subscriber'), sortable: true, hideable: false },
-        { id: 'state', label: t('State'), type: 'status', sortable: true,
+        { id: 'subscriber', label: t('Subscriber'), sortable: true, hideable: false, renderCell: ({ value }) => emailCell(value) },
+        { id: 'state', label: t('State'), type: 'custom', sortable: true, wrap: false,
             value: row => (row.state as Presentation).label,
-            status: row => (row.state as Presentation).status },
+            renderCell: ({ row }) => statusCell(row.state as Presentation) },
         ...(config.showSite ? [{ id: 'site', label: Craft.t('app', 'Site'), sortable: true }] : []),
         { id: 'subscribed', label: t('Subscribed'), wrap: false, sortable: true },
     ];
     // Lifecycle activity is intentionally chronological, not arbitrarily sortable.
     return [
-        { id: 'event', label: t('Event'), hideable: false, renderCell: ({ value }) => {
-            const event = value as Presentation;
-            const content = html`<pk-status .status=${event.status} aria-hidden="true"></pk-status> ${event.label}`;
-            return event.url ? html`<a href=${event.url}>${content}</a>` : html`<span>${content}</span>`;
-        } },
+        { id: 'event', label: t('Event'), hideable: false, renderCell: ({ value }) => statusCell(value as Presentation) },
+        { id: 'details', label: t('Details'), renderCell: ({ value }) => emailCell(value) },
         { id: 'when', label: t('When'), wrap: false },
     ];
 }
@@ -77,7 +99,7 @@ function filters(config: TableConfig): DataTableFilter[] {
     if (config.kind === 'subscriptions') return [filter('state', 'State', {
         pendingVerification: 'Pending verification', active: 'Active', notified: 'Notified', cancelled: 'Cancelled', expired: 'Expired',
     })];
-    const review = filter('attention', 'Review state', { '1': 'Needs review' });
+    const review = filter('attention', 'Review status', { '1': 'Needs review' });
     return config.kind === 'products'
         ? [filter('demand', 'Demand', { active: 'Waiting now', past: 'Past demand' }), review]
         : [filter('type', 'Activity type', { subscription: 'Subscription changes', notification: 'Notification sending' }), review];
@@ -133,8 +155,8 @@ function syncUrl(table: PkDataTable, config: TableConfig): void {
 function statusControl(table: PkDataTable, config: TableConfig): PkSelect {
     const select = document.createElement('pk-select') as PkSelect;
     select.slot = 'toolbar-start';
-    select.setAttribute('aria-label', t('Status'));
-    const options = [{ value: 'all', label: t('All statuses') }, ...filters(config)[0].options!];
+    select.setAttribute('aria-label', t('State'));
+    const options = [{ value: 'all', label: t('All states') }, ...filters(config)[0].options!];
     for (const choice of options) {
         const option = document.createElement('pk-option') as PkOption;
         option.value = choice.value;
@@ -161,10 +183,19 @@ function subscriptionActions(table: PkDataTable): void {
     ];
     table.addEventListener('pk-row-action', async (event: Event) => {
         const { action, row } = (event as CustomEvent<{ action: string; row: DataTableRow }>).detail;
-        const prompt = action === 'erase-subscriber'
-            ? t('Erase all Back in Stock data for {email}? This removes the address from every product and cancels anything they’re waiting for. This can’t be undone.', { email: row.subscriber })
-            : t('Cancel this subscription for {email}? They won’t be notified about this product.', { email: row.subscriber });
-        if (!confirm(prompt)) return;
+        const confirmed = await confirmAction(action === 'erase-subscriber' ? {
+            title: t('Erase subscriber data?'),
+            message: t('Erase all Back in Stock data for {email}? This removes the address from every product and cancels anything they’re waiting for. This can’t be undone.', { email: row.subscriber }),
+            confirmLabel: t('Erase data'),
+            cancelLabel: t('Cancel'),
+            destructive: true,
+        } : {
+            title: t('Cancel subscription?'),
+            message: t('Cancel this subscription for {email}? They won’t be notified about this product.', { email: row.subscriber }),
+            confirmLabel: t('Cancel subscription'),
+            cancelLabel: t('Keep subscription'),
+        });
+        if (!confirmed) return;
         try {
             const response = await Craft.sendActionRequest('POST', `craft-commerce-back-in-stock/dashboard/${action}`, { data: { subscriptionId: row.id } });
             Craft.cp.displaySuccess(response.data.message);
@@ -196,6 +227,7 @@ function mount(container: HTMLElement): void {
         }
     }
     table.label = t(config.kind === 'products' ? 'Products' : config.kind === 'subscriptions' ? 'Subscriptions' : 'Activity');
+    // Activity has no toolbar; the page explains and clears any filter applied by a link.
     table.searchable = config.kind !== 'activity';
     table.hideToolbar = config.kind === 'activity';
     table.columns = columns(config);

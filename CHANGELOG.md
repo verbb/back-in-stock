@@ -41,14 +41,14 @@
 - Added a stock-matched notification policy that selects the oldest waiting customers according to available inventory and a configurable subscribers-per-unit ratio.
 - Added the `stockFieldHandle` config setting to use a custom variant field for stock availability and stock-matched notifications, including variants with unlimited Commerce inventory. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 - Added `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rules as Back in Stock, including `stockFieldHandle`. ([#43](https://github.com/verbb/back-in-stock/issues/43))
-- Added notification history with per-recipient delivery attempts, error details and sent, failed, cancelled or unconfirmed outcomes. Confirmed failures can be retried automatically; unconfirmed sends are retained for review.
+- Added notification history with per-recipient delivery attempts, error details, the stock and recipient setting used to select subscribers, and sent, failed, cancelled or unconfirmed outcomes. Confirmed failures can be retried automatically; unconfirmed sends are retained for review.
 - Added configurable subscription expiry and completed-history retention.
 - Added editable Craft System Messages for confirmation, verification and availability emails, with support for localised subjects and message bodies.
 - Added the `craft craft-commerce-back-in-stock/reconcile` command to recover missed inventory changes, expire old requests and remove completed history.
 - Added developer events for subscription creation and state changes, recipient selection, outgoing subscription messages, and completed delivery attempts.
 
 ### Changed
-- Replaced Logs with Products, with product-type filtering, product/variant, SKU and subscriber-email search, and Subscriptions and Activity tabs for each variant.
+- Replaced Logs with Products, with product-type filtering, product/variant, SKU and subscriber-email search, current stock, links to notifications needing review, and Subscriptions and Activity tabs for each variant.
 - Changed notification delivery to use configurable batches, queue availability checks after Commerce commits inventory changes and recheck stock before sending each notification.
 - Changed fresh installations to match notification recipients to available stock by default; upgraded installations retain their existing notify-everyone behaviour until the setting is changed.
 - Changed successful JSON registration responses to include the subscription `state`, while preserving the existing response fields.

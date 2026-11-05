@@ -2,7 +2,8 @@
 
 {% set variantTitle = variant ? variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: variantId})) %}
 {% set commerceProduct = variant ? variant.owner : null %}
-{% set title = variantTitle %}
+{# Variant titles such as "Natural / Small" need their product to make sense on their own. #}
+{% set title = commerceProduct and variantTitle != commerceProduct.title ? commerceProduct.title ~ ' → ' ~ variantTitle : variantTitle %}
 {% set selectedSubnavItem = 'products' %}
 {% set selectedTab = selectedTab ?? 'subscriptions' %}
 {% set tabs = {
@@ -11,7 +12,7 @@
 } %}
 {% set crumbs = [
     { label: 'Products' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
-    { label: variantTitle, url: url('back-in-stock/products/' ~ variantId) },
+    { label: title, url: url('back-in-stock/products/' ~ variantId) },
 ] %}
 
 {% block details %}
@@ -34,6 +35,10 @@
             <h5 class="heading">{{ 'SKU' | t('craft-commerce-back-in-stock') }}</h5>
             <div class="value"><code>{{ variant and variant.sku ? variant.sku : '—' }}</code></div>
         </div>
+        <div class="data">
+            <h5 class="heading">{{ 'In Stock' | t('craft-commerce-back-in-stock') }}</h5>
+            <div class="value">{{ stock }}</div>
+        </div>
     </div>
 
 {% endblock %}
@@ -46,6 +51,14 @@
             <div data-bis-table="{{ {kind: 'subscriptions', userId: currentUser.uid, variantId: variantId, showSite: showSite, search: search, state: state} | json_encode | e('html_attr') }}"></div>
         {% else %}
             <div class="bis-page-intro"><div class="bis-page-intro__copy"><p class="bis-lead">{{ 'Follow subscription changes and notification runs for this exact variant.' | t('craft-commerce-back-in-stock') }}</p></div></div>
+
+            {# The table has no toolbar, so a filter from a review or report link is stated here with a way back. #}
+            {% if attention or type %}
+                <p class="bis-filter-notice">
+                    {{ attention ? 'Showing notifications that need review.' | t('craft-commerce-back-in-stock') : (type == 'subscription' ? 'Showing subscription changes only.' | t('craft-commerce-back-in-stock') : 'Showing notification sending only.' | t('craft-commerce-back-in-stock')) }}
+                    <a href="{{ url('back-in-stock/products/' ~ variantId ~ '/activity') }}">{{ 'Show all activity' | t('craft-commerce-back-in-stock') }}</a>
+                </p>
+            {% endif %}
 
             <div data-bis-table="{{ {kind: 'activity', variantId: variantId, type: type, attention: attention} | json_encode | e('html_attr') }}"></div>
         {% endif %}

@@ -63,41 +63,44 @@
     margin: 0;
 }
 
+/* One bordered list with row dividers keeps eight rows scannable without a card per row. */
 .bis-overview-list {
-    display: grid;
-    gap: 8px;
     margin: 12px 0 0;
     padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--bis-border);
+    border-radius: var(--large-border-radius);
     list-style: none;
+}
+
+.bis-overview-list > li + li {
+    border-block-start: 1px solid var(--bis-border);
 }
 
 .bis-overview-product,
 .bis-overview-event {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
-    padding: 12px;
+    padding: 10px 12px;
 }
 
 .bis-overview-row {
     min-width: 0;
     overflow-wrap: anywhere;
-    border: 1px solid var(--bis-border);
-    border-radius: var(--large-border-radius);
     color: var(--text-color);
     text-decoration: none;
 }
 
 .bis-overview-row:hover {
     background: var(--pk-color-gray-50);
-    border-color: var(--pk-color-gray-250);
     color: var(--text-color);
     text-decoration: none;
 }
 
 .bis-overview-row:focus-visible {
     outline: 2px solid var(--focus-outline-color);
-    outline-offset: 2px;
+    outline-offset: -2px;
 }
 
 .bis-overview-product > div:first-child,
@@ -111,7 +114,6 @@
 
 .bis-overview-product {
     justify-content: space-between;
-    align-items: center;
 }
 
 .bis-overview-product__title,
@@ -124,43 +126,49 @@
 .bis-overview-product__count {
     display: flex;
     flex: 0 0 auto;
-    flex-direction: column;
-    align-items: flex-end;
+    align-items: baseline;
+    gap: 4px;
 }
 
 .bis-overview-product__count strong {
-    font-size: 22px;
+    font-size: 16px;
     line-height: 1.2;
     font-weight: 600;
 }
 
 .bis-overview-event__icon {
     display: grid;
-    flex: 0 0 34px;
-    height: 34px;
+    flex: 0 0 30px;
+    height: 30px;
     place-items: center;
     border-radius: 50%;
     background: var(--pk-color-gray-100);
     color: var(--bis-text-subtle);
-    font-size: 16px;
+    font-size: 15px;
 }
 
-.bis-overview-product__meta {
+.bis-overview-product__meta,
+.bis-overview-event__meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 2px 0;
-    margin-block-start: 4px;
     font-size: 12px;
 }
 
-.bis-overview-product__meta > span + span::before {
+.bis-overview-product__meta {
+    margin-block-start: 2px;
+}
+
+.bis-overview-product__meta > span + span::before,
+.bis-overview-event__meta > * + *::before {
     content: '\00b7';
     padding-inline: 5px;
     color: var(--pk-color-gray-400);
 }
 
-.bis-overview-product__meta > span {
+.bis-overview-product__meta > span,
+.bis-overview-event__meta > * {
     min-width: 0;
 }
 
@@ -178,14 +186,15 @@
     color: var(--link-color);
 }
 
-.bis-overview-event__icon--new {
-    background: var(--pk-color-purple-50);
-    color: var(--pk-color-purple-600);
-}
-
+/* Tones match the status dots used for the same events in the variant tables. */
 .bis-overview-event__icon--success {
     background: var(--pk-color-green-050);
     color: var(--pk-color-green-600);
+}
+
+.bis-overview-event__icon--info {
+    background: var(--pk-color-blue-50);
+    color: var(--pk-color-blue-600);
 }
 
 .bis-overview-event__icon--warning {
@@ -201,11 +210,11 @@
 .bis-overview__more {
     display: flex;
     justify-content: flex-end;
-    padding-block-start: 20px;
+    padding-block-start: 16px;
 }
 
 .bis-overview__empty {
-    padding: 24px 0;
+    padding: 24px 12px;
 }
 
 .bis-overview-alert {
@@ -318,183 +327,12 @@
     margin-top: 14px;
 }
 
-.bis-metrics {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(150px, 1fr));
-    border-block: 1px solid var(--bis-border);
-}
-
-.bis-metric {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    padding: 14px 16px;
-}
-
-.bis-metric + .bis-metric {
-    border-inline-start: 1px solid var(--bis-border);
-}
-
-.bis-metric__heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.bis-metric__label {
-    color: var(--bis-text-subtle);
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.bis-metric__value {
-    margin: 7px 0 5px;
-    font-size: 26px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.bis-metric__meta {
-    color: var(--bis-text-subtle);
-    font-size: 12px;
-    line-height: 1.35;
-}
-
-.bis-metric__health {
-    display: inline-flex;
-    font-size: 18px;
-}
-
-.bis-metric__health--healthy {
-    color: var(--pk-color-green-600);
-}
-
-.bis-metric__health--warning {
-    color: var(--pk-color-orange-500);
-}
-
-.bis-metric__health--error {
-    color: var(--pk-color-red-600);
-}
-
-.bis-metric__action {
-    margin-block-start: auto;
-    padding-block-start: 9px;
-    font-size: 12px;
-}
-
-.bis-filterbar--compact {
-    grid-template-columns: minmax(220px, 280px) auto;
-    justify-content: start;
-}
-
-.bis-filterbar {
-    display: grid;
-    grid-template-columns: minmax(260px, 1fr) minmax(190px, 240px) auto;
-    gap: 10px;
-}
-
-.bis-filterbar pk-input,
-.bis-filterbar pk-select {
-    width: 100%;
-}
-
-.bis-filterbar__actions {
-    display: flex;
-    gap: 8px;
-}
-
-#bis-subscription-vue-admin-table .vue-admin-tablepane,
-#bis-activity-vue-admin-table .vue-admin-tablepane {
-    margin-block-start: 0;
-}
-
-.bis-product-report {
-    min-width: 0;
-}
-
-.bis-product-toolbar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-block-end: 20px;
-}
-
-.bis-product-toolbar pk-input {
-    flex: 1;
-    min-width: min(100%, 180px);
-}
-
-.bis-product-toolbar pk-select {
-    width: 160px;
-    max-width: 100%;
-}
-
-.bis-product-list {
-    margin-block-start: 0;
-}
-
-.bis-product-list .bis-overview-product {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 80px;
-    gap: 12px;
-    align-items: center;
-}
-
-.bis-product-list .bis-overview-product__count strong {
-    font-size: 18px;
-}
-
-.bis-report-footer {
-    margin-block-start: 16px;
-    padding-block-start: 16px;
-    border-block-start: 1px solid var(--bis-border);
-}
-
-.bis-report-footer .pagination {
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-@media (max-width: 500px) {
-    .bis-product-toolbar pk-input {
-        flex-basis: 100%;
-    }
-}
-
-.bis-context {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
-    padding-block-end: 16px;
-    border-block-end: 1px solid var(--bis-border);
-}
-
-.bis-context__filters {
-    display: grid;
-    gap: 4px;
-}
-
 .bis-table-shell {
     overflow-x: auto;
 }
 
 .bis-table-shell table {
     margin: 0;
-}
-
-.bis-primary-cell {
-    display: grid;
-    gap: 3px;
-}
-
-.bis-primary-cell__meta,
-.bis-cell-meta {
-    color: var(--bis-text-subtle);
-    font-size: 12px;
 }
 
 .bis-status {
@@ -524,6 +362,14 @@
     font-weight: 700;
 }
 
+.bis-delivery-stat__value--error {
+    color: var(--pk-color-red-600);
+}
+
+.bis-delivery-stat__value--warning {
+    color: var(--pk-color-orange-600);
+}
+
 .bis-delivery-stat__label {
     color: var(--bis-text-subtle);
     font-size: 12px;
@@ -538,13 +384,13 @@
 }
 
 .bis-attempt-details {
-    padding: 12px 14px;
+    padding: 10px 14px;
     border-radius: 4px;
     background: var(--pk-color-gray-50);
 }
 
 .bis-attempt-details__heading {
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     color: var(--bis-text-subtle);
     font-size: 12px;
     font-weight: 700;
@@ -555,7 +401,8 @@
     font-weight: 400;
 }
 
-.bis-attempt-details pre {
+/* Messages are written for people; only the error code is an identifier. */
+.bis-attempt-details__message {
     margin: 0;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
@@ -566,20 +413,8 @@
 }
 
 @media (max-width: 980px) {
-    .bis-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .bis-delivery-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .bis-metric:nth-child(odd) {
-        border-inline-start: 0;
-    }
-
-    .bis-metric:nth-child(n + 3) {
-        border-block-start: 1px solid var(--bis-border);
     }
 
     .bis-delivery-stat:nth-child(odd) {
@@ -593,40 +428,8 @@
 
 @media (max-width: 680px) {
     .bis-page-intro,
-    .bis-section-heading,
-    .bis-context {
+    .bis-section-heading {
         flex-direction: column;
-    }
-
-    .bis-filterbar,
-    .bis-metrics {
-        grid-template-columns: 1fr;
-    }
-
-    .bis-delivery-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .bis-filterbar__actions pk-button {
-        flex: 1;
-    }
-
-    .bis-metric + .bis-metric {
-        border-block-start: 1px solid var(--bis-border);
-        border-inline-start: 0;
-    }
-
-    .bis-delivery-stat + .bis-delivery-stat {
-        border-block-start: 0;
-        border-inline-start: 1px solid var(--bis-border);
-    }
-
-    .bis-delivery-stat:nth-child(odd) {
-        border-inline-start: 0;
-    }
-
-    .bis-delivery-stat:nth-child(n + 3) {
-        border-block-start: 1px solid var(--bis-border);
     }
 }
 
@@ -635,10 +438,34 @@
     min-width: 0;
     padding: 2px;
 }
+
 [data-bis-table] pk-data-table {
     --pk-data-table-toolbar-background: var(--pane-bg, #fff);
 }
 
 [data-bis-table].bis-table--index pk-data-table {
     --pk-data-table-toolbar-background: var(--body-bg);
+}
+
+.bis-filter-notice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: var(--large-border-radius);
+    background: var(--pk-color-gray-50);
+    color: var(--bis-text-subtle);
+}
+
+.bis-dialog-message {
+    margin: 0;
+    line-height: 1.55;
+}
+
+.bis-button-destructive {
+    --pk-btn-fill: var(--pk-color-red-600);
+    --pk-btn-fill-hover: var(--pk-color-red-700);
+    --pk-btn-fill-active: var(--pk-color-red-800);
+    --pk-btn-on: var(--pk-color-white);
 }

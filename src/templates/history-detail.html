@@ -3,17 +3,19 @@
 {% set record = run.record %}
 {% set variantTitle = run.variant ? run.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: record.variantId})) %}
 {% set commerceProduct = run.variant ? run.variant.owner : null %}
+{% set productVariantTitle = commerceProduct and variantTitle != commerceProduct.title ? commerceProduct.title ~ ' → ' ~ variantTitle : variantTitle %}
 {% set title = run.title | t('craft-commerce-back-in-stock') %}
 {% set selectedSubnavItem = 'products' %}
 {% set crumbs = [
     { label: 'Products' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products') },
-    { label: variantTitle, url: url('back-in-stock/products/' ~ record.variantId) },
+    { label: productVariantTitle, url: url('back-in-stock/products/' ~ record.variantId) },
     { label: 'Activity' | t('craft-commerce-back-in-stock'), url: url('back-in-stock/products/' ~ record.variantId ~ '/activity') },
     { label: title, url: url('back-in-stock/products/' ~ record.variantId ~ '/activity/' ~ record.id) },
 ] %}
 
 {% block details %}
-    {% set presentationStatus = run.state == 'attention' ? 'red' : (run.state == 'unconfirmed' ? 'orange' : (run.state == 'open' ? 'active' : 'enabled')) %}
+    {# Colours match this notification's dot in the Activity tab. #}
+    {% set presentationStatus = run.state == 'attention' ? 'red' : (run.state == 'unconfirmed' ? 'orange' : (run.state in ['open', 'completed'] ? 'blue' : 'gray')) %}
     {% set presentationLabel = run.state in ['attention', 'unconfirmed'] ? 'Needs review' | t('craft-commerce-back-in-stock') : (run.state == 'open' ? 'In progress' | t('craft-commerce-back-in-stock') : 'Complete' | t('craft-commerce-back-in-stock')) %}
     <div class="meta read-only">
         <div class="data">
@@ -41,6 +43,14 @@
             <div class="value"><span class="bis-status"><pk-status status="{{ presentationStatus }}" aria-label="{{ presentationLabel }}"></pk-status>{{ presentationLabel }}</span></div>
         </div>
         <div class="data">
+            <h5 class="heading">{{ 'Recipients' | t('craft-commerce-back-in-stock') }}</h5>
+            <div class="value">{{ isStockMatched ? 'Match available stock' | t('craft-commerce-back-in-stock') : 'Notify all waiting subscribers' | t('craft-commerce-back-in-stock') }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Stock at Last Check' | t('craft-commerce-back-in-stock') }}</h5>
+            <div class="value">{{ observedStock is not null ? observedStock | number : 'Unlimited' | t('craft-commerce-back-in-stock') }}</div>
+        </div>
+        <div class="data">
             <h5 class="heading">{{ 'Opened' | t('craft-commerce-back-in-stock') }}</h5>
             <div class="value">{{ run.openedAt | datetime('short') }}</div>
         </div>
@@ -56,6 +66,14 @@
     {% set eligibleDescription = record.eligibleCount == 1
         ? '1 subscriber was waiting when stock became available.' | t('craft-commerce-back-in-stock')
         : '{count} subscribers were waiting when stock became available.' | t('craft-commerce-back-in-stock', {count: record.eligibleCount | number}) %}
+    {# Explain why fewer people may have been selected than were waiting. #}
+    {% if not isStockMatched %}
+        {% set selectionDescription = 'Everyone waiting was selected.' | t('craft-commerce-back-in-stock') %}
+    {% elseif observedStock is null %}
+        {% set selectionDescription = 'Stock was unlimited, so everyone waiting was selected.' | t('craft-commerce-back-in-stock') %}
+    {% else %}
+        {% set selectionDescription = '{stock, plural, =1{# unit was} other{# units were}} in stock at the last check, so up to {limit, plural, =1{# subscriber} other{# subscribers}} could be selected.' | t('craft-commerce-back-in-stock', {stock: observedStock, limit: selectionLimit}) %}
+    {% endif %}
     {% set attemptCountDescription = attempts | length == 1
         ? '1 delivery attempt' | t('craft-commerce-back-in-stock')
         : '{count} delivery attempts' | t('craft-commerce-back-in-stock', {count: attempts | length}) %}
@@ -63,10 +81,11 @@
         ? '1 selected subscriber' | t('craft-commerce-back-in-stock')
         : '{count} selected subscribers' | t('craft-commerce-back-in-stock', {count: record.selectedCount | number}) %}
     {% set attemptsDescription = '{attempts} for {subscribers}.' | t('craft-commerce-back-in-stock', {attempts: attemptCountDescription, subscribers: selectedCountDescription}) %}
+    {% set columnCount = hasRetries ? 4 : 3 %}
     <div class="bis-page">
         <div class="bis-page-intro">
             <div class="bis-page-intro__copy">
-                <p class="bis-lead">{{ 'Review who was selected for {product} and the delivery outcome recorded for each notification.' | t('craft-commerce-back-in-stock', {product: '<strong>' ~ (variantTitle | e) ~ '</strong>'}) | raw }}</p>
+                <p class="bis-lead">{{ 'Review who was selected for {product} and the delivery outcome recorded for each notification.' | t('craft-commerce-back-in-stock', {product: '<strong>' ~ (productVariantTitle | e) ~ '</strong>'}) | raw }}</p>
             </div>
         </div>
 
@@ -74,13 +93,13 @@
             <div class="bis-section-heading bis-section-heading--spaced">
                 <div class="bis-section-heading__copy">
                     <h2>{{ 'Notification Summary' | t('craft-commerce-back-in-stock') }}</h2>
-                    <p>{{ eligibleDescription }}</p>
+                    <p>{{ eligibleDescription }} {{ selectionDescription }}</p>
                 </div>
             </div>
             <div class="bis-delivery-grid">
                 <div class="bis-delivery-stat"><div class="bis-delivery-stat__value">{{ record.selectedCount | number }}</div><div class="bis-delivery-stat__label">{{ 'Selected to Notify' | t('craft-commerce-back-in-stock') }}</div></div>
                 <div class="bis-delivery-stat"><div class="bis-delivery-stat__value">{{ record.sentCount | number }}</div><div class="bis-delivery-stat__label">{{ 'Sent' | t('craft-commerce-back-in-stock') }}</div></div>
-                <div class="bis-delivery-stat"><div class="bis-delivery-stat__value">{{ reviewCount | number }}</div><div class="bis-delivery-stat__label">{{ 'Needs Review' | t('craft-commerce-back-in-stock') }}</div></div>
+                <div class="bis-delivery-stat"><div class="bis-delivery-stat__value{{ reviewCount ? (record.failedCount ? ' bis-delivery-stat__value--error' : ' bis-delivery-stat__value--warning') }}">{{ reviewCount | number }}</div><div class="bis-delivery-stat__label">{{ 'Needs Review' | t('craft-commerce-back-in-stock') }}</div></div>
                 <div class="bis-delivery-stat"><div class="bis-delivery-stat__value">{{ record.cancelledCount | number }}</div><div class="bis-delivery-stat__label">{{ 'Cancelled' | t('craft-commerce-back-in-stock') }}</div></div>
             </div>
         </section>
@@ -94,9 +113,10 @@
             </div>
             <div class="bis-section-body">
                 {% if attempts %}<div class="bis-table-shell"><table class="data fullwidth">
-                    <thead><tr><th>{{ 'Recipient' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Attempt' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Status' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'Due' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
+                    <thead><tr><th>{{ 'Recipient' | t('craft-commerce-back-in-stock') }}</th>{% if hasRetries %}<th>{{ 'Attempt' | t('craft-commerce-back-in-stock') }}</th>{% endif %}<th>{{ 'Status' | t('craft-commerce-back-in-stock') }}</th><th>{{ 'When' | t('craft-commerce-back-in-stock') }}</th></tr></thead>
                     <tbody>{% for attempt in attempts %}
-                        {% set attemptStatus = attempt.status == 'sent' ? 'enabled' : (attempt.status in ['pending', 'processing'] ? 'pending' : (attempt.status == 'failed' ? 'red' : (attempt.status == 'unknown' ? 'orange' : 'disabled'))) %}
+                        {% set isWaiting = attempt.status in ['pending', 'processing'] %}
+                        {% set attemptStatus = attempt.status == 'sent' ? 'blue' : (isWaiting ? 'pending' : (attempt.status == 'failed' ? 'red' : (attempt.status == 'unknown' ? 'orange' : 'disabled'))) %}
                         {% set attemptStatusLabel = {
                             pending: 'Waiting' | t('craft-commerce-back-in-stock'),
                             processing: 'Sending' | t('craft-commerce-back-in-stock'),
@@ -107,16 +127,16 @@
                         }[attempt.status] ?? attempt.status | ucfirst %}
                         <tr class="bis-attempt-row">
                             <td>{{ (subscriptions[attempt.subscriptionId].email ?? null) ?: ('Subscription #{id}' | t('craft-commerce-back-in-stock', {id: attempt.subscriptionId})) }}</td>
-                            <td>{{ attempt.attemptNumber }}</td>
+                            {% if hasRetries %}<td>{{ attempt.attemptNumber }}</td>{% endif %}
                             <td><span class="bis-status"><pk-status status="{{ attemptStatus }}" aria-label="{{ attemptStatusLabel }}"></pk-status>{{ attemptStatusLabel }}</span></td>
-                            <td>{{ dueDates[attempt.id] | datetime('short') }}</td>
+                            <td>{{ isWaiting ? 'Due {date}' | t('craft-commerce-back-in-stock', {date: attemptDates[attempt.id] | datetime('short')}) : attemptDates[attempt.id] | datetime('short') }}</td>
                         </tr>
                         {% if attempt.errorCode or attempt.errorMessage %}
                             <tr class="bis-attempt-details-row">
-                                <td colspan="4">
+                                <td colspan="{{ columnCount }}">
                                     <div class="bis-attempt-details">
                                         <div class="bis-attempt-details__heading">{{ 'Details' | t('craft-commerce-back-in-stock') }}{% if attempt.errorCode %} <code>{{ attempt.errorCode }}</code>{% endif %}</div>
-                                        {% if attempt.errorMessage %}<pre>{{ attempt.errorMessage }}</pre>{% endif %}
+                                        {% if attempt.errorMessage %}<p class="bis-attempt-details__message">{{ attempt.errorMessage }}</p>{% endif %}
                                     </div>
                                 </td>
                             </tr>

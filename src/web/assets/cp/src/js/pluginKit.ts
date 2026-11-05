@@ -2,6 +2,7 @@ import '@verbb/plugin-kit-web/plugin-kit.css';
 import { activityIcons } from './activityIcons';
 
 import { PkButton } from '@verbb/plugin-kit-web/components/button/pk-button.js';
+import { PkDialog } from '@verbb/plugin-kit-web/components/dialog/pk-dialog.js';
 import { PkIcon } from '@verbb/plugin-kit-web/components/icon/pk-icon.js';
 import { PkInput } from '@verbb/plugin-kit-web/components/input/pk-input.js';
 import { PkOption } from '@verbb/plugin-kit-web/components/select/pk-option.js';
@@ -33,7 +34,7 @@ registerIcons({
     triangleExclamation,
 });
 
-const constructors = [PkButton, PkIcon, PkInput, PkOption, PkSelect, PkStatus] as const;
+const constructors = [PkButton, PkDialog, PkIcon, PkInput, PkOption, PkSelect, PkStatus] as const;
 
 export function registerPluginKit(): void {
     for (const constructor of constructors) {

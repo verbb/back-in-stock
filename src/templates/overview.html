@@ -12,7 +12,7 @@
                     <h2 id="bis-review-heading">{{ '{count, plural, =1{# notification needs review} other{# notifications need review}}' | t('craft-commerce-back-in-stock', {count: counts.attention}) }}</h2>
                     <p>{% if counts.failed %}{{ '{count} failed to send.' | t('craft-commerce-back-in-stock', {count: counts.failed | number}) }} {% endif %}{% if counts.unknown %}{{ 'We couldn’t confirm sending for {count, plural, =1{# notification} other{# notifications}}.' | t('craft-commerce-back-in-stock', {count: counts.unknown}) }} {% endif %}{{ 'Recorded in the last 30 days.' | t('craft-commerce-back-in-stock') }}</p>
                 </div>
-                <pk-button variant="default" href="{{ url('back-in-stock/products', {attention: 1, sort: 'recent'}) }}">{{ 'Review notifications' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
+                <pk-button variant="default" href="{{ reviewUrl }}">{{ 'Review notifications' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
             </section>
         {% endif %}
 
@@ -49,23 +49,27 @@
                 </div>
                 <ul class="bis-overview-list bis-overview-activity">
                     {% for item in activity | slice(0, 8) %}
-                        {% set tone = item.title == 'Customer subscribed' ? 'new' : (item.state == 'attention' ? 'error' : (item.state in ['pendingVerification', 'unconfirmed'] ? 'warning' : (item.state in ['active', 'notified', 'completed'] ? 'success' : 'neutral'))) %}
-                        {% set icon = item.title == 'Customer subscribed' ? 'bis-subscription-created' : (item.state in ['attention', 'unconfirmed'] ? 'bis-notification-review' : (item.state == 'pendingVerification' ? 'bis-verification-pending' : (item.state == 'active' ? 'bis-subscription-verified' : (item.state in ['notified', 'completed'] ? 'bis-notification-sent' : 'bis-activity')))) %}
+                        {# Tones follow the status dots used for the same events in each variant's Activity tab. #}
+                        {% set isNewSubscription = item.title == 'Customer subscribed' %}
+                        {% set tone = item.state == 'attention' ? 'error' : (item.state in ['pendingVerification', 'unconfirmed'] ? 'warning' : (item.state == 'active' ? 'success' : (item.state in ['notified', 'open', 'completed'] ? 'info' : 'neutral'))) %}
+                        {% set icon = isNewSubscription ? 'bis-subscription-created' : (item.state in ['attention', 'unconfirmed'] ? 'bis-notification-review' : (item.state == 'pendingVerification' ? 'bis-verification-pending' : (item.state == 'active' ? 'bis-subscription-verified' : (item.state in ['notified', 'open', 'completed'] ? 'bis-notification-sent' : (item.state == 'cancelled' ? 'bis-subscription-cancelled' : 'bis-activity'))))) %}
                         {% set itemUrl = item.url ?: url('back-in-stock/products/' ~ item.variantId ~ '/activity') %}
+                        {% set activityProduct = item.variant ? item.variant.owner : null %}
                         <li><a class="bis-overview-row bis-overview-event" href="{{ itemUrl }}">
                             <span class="bis-overview-event__icon bis-overview-event__icon--{{ tone }}" aria-hidden="true"><pk-icon icon="{{ icon }}"></pk-icon></span>
                             <div>
                                 <span class="bis-overview-event__title">{{ item.title | t('craft-commerce-back-in-stock') }}</span>
-                                {% set activityProduct = item.variant ? item.variant.owner : null %}
-                                <div class="bis-overview__meta">{{ activityProduct ? activityProduct.title : (item.variant ? item.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: item.variantId}))) }}{% if activityProduct and item.variant.title != activityProduct.title %} — {{ item.variant.title }}{% endif %}</div>
-                                <time class="bis-overview__meta" datetime="{{ item.occurredAt | date('c') }}" title="{{ item.occurredAt | datetime('short') }}">{{ craft.app.formatter.asRelativeTime(item.occurredAt) }}</time>
+                                <div class="bis-overview-event__meta bis-overview__meta">
+                                    <span>{{ activityProduct ? activityProduct.title : (item.variant ? item.variant.title : ('Variant #{id}' | t('craft-commerce-back-in-stock', {id: item.variantId}))) }}{% if activityProduct and item.variant.title != activityProduct.title %} → {{ item.variant.title }}{% endif %}</span>
+                                    <time datetime="{{ item.occurredAt | date('c') }}" title="{{ item.occurredAt | datetime('short') }}">{{ craft.app.formatter.asRelativeTime(item.occurredAt) }}</time>
+                                </div>
                             </div>
                         </a></li>
                     {% else %}
                         <li class="bis-overview__empty">{{ 'No activity yet.' | t('craft-commerce-back-in-stock') }}</li>
                     {% endfor %}
                 </ul>
-                <div class="bis-overview__more"><pk-button variant="link" href="{{ url('back-in-stock/products', {sort: 'recent'}) }}">{{ 'View all products' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
+                <div class="bis-overview__more"><pk-button variant="link" href="{{ url('back-in-stock/products', {sort: 'recent'}) }}">{{ 'View recently requested products' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
             </section>
         </div>
     </div>

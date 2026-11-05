@@ -35,10 +35,10 @@ Open a variant’s **Activity** tab to follow subscription changes and restock n
 
 ![The Activity tab for an exact variant, showing subscription changes and notification outcomes in chronological order.](../../screenshots/product-activity.png)
 
-Failed and unconfirmed outcomes are marked for review on the detail page and in the Overview alert. The recorded error code and message can help distinguish a mail configuration problem from an eligibility or stock change.
+Failed and unconfirmed outcomes are marked for review on the detail page and in the Overview alert. **Review notifications** opens the affected notifications directly when they belong to one variant, or the Products list filtered to notifications needing review. The recorded error code and message can help distinguish a mail configuration problem from an eligibility or stock change.
 
 ![The Overview alert for failed and unconfirmed notifications.](../../screenshots/overview-notifications.png)
 
-Open an affected notification to see how many subscribers were waiting, how many were selected, and the latest result for each recipient. Error details appear beneath the relevant attempt so longer mail messages remain readable.
+Open an affected notification to see how many subscribers were waiting, how many were selected, and the latest result for each recipient. The details sidebar shows the **Notification Recipients** setting and the stock found at the last check, and the summary explains how many subscribers that stock allowed. Error details appear beneath the relevant attempt so longer mail messages remain readable.
 
 ![A notification detail page with recipient results and error information for failed attempts.](../../screenshots/notification-detail.png)

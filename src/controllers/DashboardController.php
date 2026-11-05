@@ -2,7 +2,7 @@
 namespace verbb\backinstock\controllers;
 
 use verbb\backinstock\BackInStock;
-use verbb\backinstock\models\DeliveryAttempt as DeliveryAttemptModel;
+use verbb\backinstock\models\Settings;
 use verbb\backinstock\models\Subscription as SubscriptionModel;
 use verbb\backinstock\records\DeliveryAttempt;
 use verbb\backinstock\records\RestockRun;
@@ -19,6 +19,7 @@ use craft\i18n\Locale;
 use craft\web\Controller;
 
 use DateTime;
+use yii\base\InvalidConfigException;
 use yii\db\Expression;
 use yii\web\BadRequestHttpException;
 use yii\web\NotFoundHttpException;
@@ -43,10 +44,18 @@ class DashboardController extends Controller
     public function actionOverview(): Response
     {
         $this->_requireDashboardAccess();
-        $counts = $this->_dashboardCounts();
+        $reviewCounts = $this->_reviewCounts();
+        $counts = $this->_dashboardCounts($reviewCounts);
+        $reviewVariantIds = array_keys($reviewCounts);
+
+        // A single affected variant opens its filtered Activity directly instead of a one-row product list.
+        $reviewUrl = count($reviewVariantIds) === 1
+            ? UrlHelper::cpUrl("back-in-stock/products/{$reviewVariantIds[0]}/activity", ['attention' => 1])
+            : UrlHelper::cpUrl('back-in-stock/products', ['attention' => 1, 'sort' => 'recent']);
 
         return $this->renderTemplate('craft-commerce-back-in-stock/overview', [
             'counts' => $counts,
+            'reviewUrl' => $reviewUrl,
             'products' => $this->_productRows(true, 0, 8),
             'activity' => $this->_activityData(1, 8)['entries'],
         ]);
@@ -95,6 +104,7 @@ class DashboardController extends Controller
         [$sort, $sortDirection] = $this->_productTableSort($this->request->getParam('sort'), $defaultSort);
         $data = $this->_productActivityData($demand, $search, $typeId, $sort, $page, $pageSize, $attention, $sortDirection);
         $dateFormat = Craft::$app->getFormattingLocale()->getDateTimeFormat('short', Locale::FORMAT_PHP);
+        $reviewCounts = $this->_reviewCounts(array_column($data['products'], 'variantId'));
         $tableData = [];
 
         foreach ($data['products'] as $product) {
@@ -105,13 +115,24 @@ class DashboardController extends Controller
             $title = $commerceProduct && $variant->title !== $commerceProduct->title ? "$productTitle → {$variant->title}" : $productTitle;
             $detailParams = $product['matchingSubscriberCount'] ? ['search' => $search] : ($product['activeCount'] ? [] : ['state' => 'all']);
             $latestRequest = $product['lastSubscriptionAt'] ? DateTimeHelper::toDateTime($product['lastSubscriptionAt']) : null;
+            $review = $reviewCounts[$product['variantId']] ?? null;
+
+            // Rows that need review open the filtered Activity, where the affected notification is listed.
+            $url = $review && !$product['matchingSubscriberCount']
+                ? UrlHelper::cpUrl("back-in-stock/products/{$product['variantId']}/activity", ['attention' => 1])
+                : UrlHelper::cpUrl("back-in-stock/products/{$product['variantId']}", $detailParams);
 
             $tableData[] = [
                 'id' => $product['variantId'],
                 'title' => $title,
-                'url' => UrlHelper::cpUrl("back-in-stock/products/{$product['variantId']}", $detailParams),
+                'url' => $url,
+                'review' => $review ? [
+                    'label' => Craft::t('craft-commerce-back-in-stock', '{count, plural, =1{# needs review} other{# need review}}', ['count' => $review['failed'] + $review['unknown']]),
+                    'status' => $review['failed'] ? 'red' : 'orange',
+                ] : null,
                 'productType' => $commerceProduct?->getType()->name ?? '—',
                 'sku' => $variant?->sku ?: '—',
+                'stock' => $this->_stockLabel($variant),
                 'waiting' => $product['activeCount'],
                 'latestRequest' => $latestRequest?->format($dateFormat) ?? '—',
             ];
@@ -248,6 +269,8 @@ class DashboardController extends Controller
                     'status' => $this->_activityStatus($entry['state']),
                     'url' => $entry['url'],
                 ],
+                // The subscriber for lifecycle events, or the sending summary for a notification.
+                'details' => $entry['detail'] ?: '—',
                 'when' => $occurredAt?->format($dateFormat) ?? '—',
             ];
         }
@@ -321,11 +344,17 @@ class DashboardController extends Controller
             ->all();
         $subscriptionIds = array_values(array_unique(array_map(fn(DeliveryAttempt $attempt) => $attempt->subscriptionId, $attempts)));
         $subscriptions = Subscription::find()->where(['id' => $subscriptionIds])->indexBy('id')->all();
+        $stock = $run->observedStock !== null ? (int)$run->observedStock : null;
 
         return $this->renderTemplate('craft-commerce-back-in-stock/activity-detail', [
             'run' => $this->_decorateRuns([$run])[0],
             'attempts' => $attempts,
-            'dueDates' => array_map(fn(DeliveryAttempt $attempt) => DateTimeHelper::toDateTime($attempt->dueAt), array_column($attempts, null, 'id')),
+            // Finished attempts show when they finished; waiting ones show when they are due.
+            'attemptDates' => array_map(fn(DeliveryAttempt $attempt) => DateTimeHelper::toDateTime($attempt->completedAt ?: $attempt->dueAt), array_column($attempts, null, 'id')),
+            'hasRetries' => array_filter($attempts, fn(DeliveryAttempt $attempt) => (int)$attempt->attemptNumber > 1) !== [],
+            'isStockMatched' => $run->notificationPolicy === Settings::NOTIFICATION_POLICY_STOCK_MATCHED,
+            'observedStock' => $stock,
+            'selectionLimit' => $stock !== null ? max(0, $stock) * max(1, (int)$run->subscribersPerUnit) : null,
             'subscriptions' => $subscriptions,
         ]);
     }
@@ -372,6 +401,7 @@ class DashboardController extends Controller
         return $this->renderTemplate('craft-commerce-back-in-stock/product-detail', [
             'variantId' => $variantId,
             'variant' => $variant,
+            'stock' => $this->_stockLabel($variant),
             'selectedTab' => $selectedTab,
             'state' => $state,
             'search' => $search,
@@ -521,8 +551,8 @@ class DashboardController extends Controller
         return match ($state) {
             'attention' => 'red',
             SubscriptionModel::STATE_PENDING_VERIFICATION, 'unconfirmed' => 'orange',
-            SubscriptionModel::STATE_ACTIVE, 'open' => 'green',
-            SubscriptionModel::STATE_NOTIFIED, 'completed' => 'blue',
+            SubscriptionModel::STATE_ACTIVE => 'green',
+            SubscriptionModel::STATE_NOTIFIED, 'open', 'completed' => 'blue',
             default => 'gray',
         };
     }
@@ -666,20 +696,12 @@ class DashboardController extends Controller
         ];
     }
 
-    private function _dashboardCounts(): array
+    private function _dashboardCounts(?array $reviewCounts = null): array
     {
-        $thirtyDaysAgo = Db::prepareDateForDb((new DateTime())->modify('-30 days'));
         // Run counters hold each subscriber's latest outcome, and match what the attention filter on Products shows.
-        $issues = (new Query())
-            ->select([
-                'failed' => new Expression('SUM([[failedCount]])'),
-                'unknown' => new Expression('SUM([[unknownCount]])'),
-            ])
-            ->from(RestockRun::tableName())
-            ->where(['>=', 'openedAt', $thirtyDaysAgo])
-            ->one();
-        $failed = (int)($issues['failed'] ?? 0);
-        $unknown = (int)($issues['unknown'] ?? 0);
+        $reviewCounts ??= $this->_reviewCounts();
+        $failed = array_sum(array_column($reviewCounts, 'failed'));
+        $unknown = array_sum(array_column($reviewCounts, 'unknown'));
 
         return [
             'products' => (int)(new Query())
@@ -693,6 +715,56 @@ class DashboardController extends Controller
             'failed' => $failed,
             'unknown' => $unknown,
         ];
+    }
+
+    /**
+     * Returns failed and unconfirmed counts per variant for notifications opened in the last 30 days, matching the
+     * Overview alert and the Products review filter. Limit to `$variantIds` for one table page.
+     */
+    private function _reviewCounts(?array $variantIds = null): array
+    {
+        if ($variantIds === []) {
+            return [];
+        }
+
+        $query = (new Query())
+            ->select([
+                'variantId',
+                'failed' => new Expression('SUM([[failedCount]])'),
+                'unknown' => new Expression('SUM([[unknownCount]])'),
+            ])
+            ->from(RestockRun::tableName())
+            ->where(['or', ['>', 'failedCount', 0], ['>', 'unknownCount', 0]])
+            ->andWhere(['>=', 'openedAt', Db::prepareDateForDb((new DateTime())->modify('-30 days'))])
+            ->groupBy(['variantId']);
+
+        if ($variantIds !== null) {
+            $query->andWhere(['variantId' => $variantIds]);
+        }
+
+        $counts = [];
+
+        foreach ($query->all() as $row) {
+            $counts[(int)$row['variantId']] = ['failed' => (int)$row['failed'], 'unknown' => (int)$row['unknown']];
+        }
+
+        return $counts;
+    }
+
+    private function _stockLabel(?Variant $variant): string
+    {
+        if (!$variant) {
+            return '—';
+        }
+
+        // A misconfigured stock field is already logged by the stock check, so the table only shows it as unknown.
+        try {
+            $stock = BackInStock::$plugin->getService()->getVariantStock($variant);
+        } catch (InvalidConfigException) {
+            return '—';
+        }
+
+        return $stock === null ? Craft::t('craft-commerce-back-in-stock', 'Unlimited') : Craft::$app->getFormatter()->asInteger($stock);
     }
 
     private function _productRows(bool $activeOnly, int $offset, int $limit): array
