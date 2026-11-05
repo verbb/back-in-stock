@@ -1,11 +1,13 @@
 <?php
 namespace verbb\backinstock\controllers;
 
+use verbb\backinstock\BackInStock;
 use verbb\backinstock\models\DeliveryAttempt as DeliveryAttemptModel;
 use verbb\backinstock\models\Subscription as SubscriptionModel;
 use verbb\backinstock\records\DeliveryAttempt;
 use verbb\backinstock\records\RestockRun;
 use verbb\backinstock\records\Subscription;
+use verbb\backinstock\services\Subscriptions;
 
 use Craft;
 use craft\db\Query;
@@ -135,6 +137,7 @@ class DashboardController extends Controller
     {
         $this->_requireDashboardAccess();
         $this->requireAcceptsJson();
+
         $this->_requireProductDetailVariant($variantId);
 
         $page = $this->_getPositiveIntegerParam('page', 1);
@@ -170,7 +173,8 @@ class DashboardController extends Controller
         }
 
         $dateFormat = Craft::$app->getFormattingLocale()->getDateTimeFormat('short', Locale::FORMAT_PHP);
-        $tableData = array_map(function(Subscription $subscription) use ($dateFormat, $showSite, $sitesById) {
+        $canManage = Craft::$app->getUser()->checkPermission(BackInStock::PERMISSION_MANAGE_SUBSCRIPTIONS);
+        $tableData = array_map(function(Subscription $subscription) use ($dateFormat, $showSite, $sitesById, $canManage) {
             $state = $this->_subscriptionStatePresentation($subscription->state);
             $subscribedAt = DateTimeHelper::toDateTime($subscription->dateCreated);
             $row = [
@@ -178,6 +182,8 @@ class DashboardController extends Controller
                 'subscriber' => $subscription->email ?: '—',
                 'state' => $state,
                 'subscribed' => $subscribedAt?->format($dateFormat) ?? '—',
+                'canCancel' => $canManage && in_array($subscription->state, SubscriptionModel::ACTIVE_STATES, true),
+                'canErase' => $canManage && $subscription->email,
             ];
 
             if ($showSite) {
@@ -193,10 +199,35 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function actionCancelSubscription(): Response
+    {
+        $subscription = $this->_requireManagedSubscription();
+
+        // The table may be out of date, and cancelling a finished subscription would otherwise report success.
+        if (!in_array($subscription->state, SubscriptionModel::ACTIVE_STATES, true)) {
+            return $this->asFailure(Craft::t('craft-commerce-back-in-stock', 'This subscription is no longer waiting.'));
+        }
+
+        if (!BackInStock::$plugin->getSubscriptions()->cancel($subscription, Subscriptions::CANCEL_SOURCE_OPERATOR)) {
+            return $this->asFailure(Craft::t('craft-commerce-back-in-stock', 'Couldn’t cancel the subscription.'));
+        }
+
+        return $this->asSuccess(Craft::t('craft-commerce-back-in-stock', 'Subscription cancelled.'));
+    }
+
+    public function actionEraseSubscriber(): Response
+    {
+        $subscription = $this->_requireManagedSubscription();
+        $erased = BackInStock::$plugin->getSubscriptions()->eraseRecipient($subscription);
+
+        return $this->asSuccess(Craft::t('craft-commerce-back-in-stock', 'Subscriber data erased from {count, plural, =1{# subscription} other{# subscriptions}}.', ['count' => $erased]));
+    }
+
     public function actionActivityTable(int $variantId): Response
     {
         $this->_requireDashboardAccess();
         $this->requireAcceptsJson();
+
         $this->_requireProductDetailVariant($variantId);
 
         $page = $this->_getPositiveIntegerParam('page', 1);
@@ -367,6 +398,22 @@ class DashboardController extends Controller
     {
         $this->requireCpRequest();
         $this->requirePermission('accessPlugin-craft-commerce-back-in-stock');
+    }
+
+    private function _requireManagedSubscription(): Subscription
+    {
+        $this->_requireDashboardAccess();
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+        $this->requirePermission(BackInStock::PERMISSION_MANAGE_SUBSCRIPTIONS);
+
+        $subscription = BackInStock::$plugin->getSubscriptions()->getById($this->_getPositiveIntegerParam('subscriptionId', 0));
+
+        if (!$subscription) {
+            throw new NotFoundHttpException(Craft::t('craft-commerce-back-in-stock', 'Subscription not found.'));
+        }
+
+        return $subscription;
     }
 
     private function _getPositiveIntegerParam(string $name, int $default): int

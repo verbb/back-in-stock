@@ -26,6 +26,8 @@ class Subscriptions extends Component
     public const EVENT_AFTER_CREATE_SUBSCRIPTION = 'afterCreateSubscription';
     public const EVENT_AFTER_CHANGE_SUBSCRIPTION_STATE = 'afterChangeSubscriptionState';
 
+    public const CANCEL_SOURCE_OPERATOR = 'operator';
+
 
     // Public Methods
     // =========================================================================
@@ -226,6 +228,27 @@ class Subscriptions extends Component
         ]);
 
         return $subscription->save(false);
+    }
+
+    /**
+     * Honours an erasure request by ending everything this person is waiting for and removing them from every
+     * subscription, on every variant and site. Rows stay for the same reason [[scrubRecipient()]] exists.
+     */
+    public function eraseRecipient(Subscription $subscription): int
+    {
+        // Already scrubbed rows share the blank key, so it can't identify a person.
+        $isIdentifiable = $subscription->recipientKey !== SubscriptionModel::createRecipientKey('');
+        $subscriptions = Subscription::find()
+            ->where($isIdentifiable ? ['recipientKey' => $subscription->recipientKey] : ['id' => $subscription->id])
+            ->all();
+        $erased = 0;
+
+        foreach ($subscriptions as $recipientSubscription) {
+            $this->cancel($recipientSubscription, self::CANCEL_SOURCE_OPERATOR);
+            $erased += (int)$this->scrubRecipient($recipientSubscription);
+        }
+
+        return $erased;
     }
 
     public function expireStale(): int

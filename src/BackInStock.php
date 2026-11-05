@@ -11,11 +11,13 @@ use craft\base\Plugin;
 use craft\events\ModelEvent;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\events\RegisterUserPermissionsEvent;
 use craft\helpers\UrlHelper;
 use craft\web\twig\variables\CraftVariable;
 use craft\web\UrlManager;
 use craft\services\Gc;
 use craft\services\SystemMessages;
+use craft\services\UserPermissions;
 
 use yii\base\Event;
 
@@ -26,6 +28,12 @@ use craft\commerce\services\Inventory;
 
 class BackInStock extends Plugin
 {
+    // Constants
+    // =========================================================================
+
+    public const PERMISSION_MANAGE_SUBSCRIPTIONS = 'backInStock-manageSubscriptions';
+
+
     // Properties
     // =========================================================================
 
@@ -56,6 +64,7 @@ class BackInStock extends Plugin
         $this->_registerVariables();
         $this->_registerCraftEventListeners();
         $this->_registerSystemMessages();
+        $this->_registerPermissions();
 
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpRoutes();
@@ -172,6 +181,18 @@ class BackInStock extends Plugin
             $this->getDelivery()->recoverStalled();
             $this->getSubscriptions()->expireStale();
             $this->getSubscriptions()->purgeHistory();
+        });
+    }
+
+    private function _registerPermissions(): void
+    {
+        Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS, function(RegisterUserPermissionsEvent $event) {
+            $event->permissions[] = [
+                'heading' => $this->getPluginName(),
+                'permissions' => [
+                    self::PERMISSION_MANAGE_SUBSCRIPTIONS => ['label' => Craft::t('craft-commerce-back-in-stock', 'Cancel subscriptions and erase subscriber data')],
+                ],
+            ];
         });
     }
 

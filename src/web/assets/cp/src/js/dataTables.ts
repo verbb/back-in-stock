@@ -13,8 +13,10 @@ import type { PkSelect, PkOption } from '@verbb/plugin-kit-web/components/select
 import type { PkStatusVariant } from '@verbb/plugin-kit-web/components/status/pk-status.js';
 
 declare const Craft: {
-    t: (category: string, message: string) => string;
+    t: (category: string, message: string, params?: Record<string, unknown>) => string;
     getActionUrl: (action: string) => string;
+    sendActionRequest: (method: string, action: string, options: { data: Record<string, unknown> }) => Promise<{ data: { message?: string } }>;
+    cp: { displaySuccess: (message?: string) => void; displayError: (message?: string) => void };
 };
 
 type TableKind = 'products' | 'subscriptions' | 'activity';
@@ -37,7 +39,7 @@ type TableResponse = {
     pagination: { total: number; current_page: number };
 };
 
-const t = (message: string) => Craft.t('craft-commerce-back-in-stock', message);
+const t = (message: string, params?: Record<string, unknown>) => Craft.t('craft-commerce-back-in-stock', message, params);
 const choices = (values: Record<string, string>) => Object.entries(values).map(([value, label]) => ({ value, label: t(label) }));
 const filter = (id: string, label: string, values: Record<string, string>): DataTableFilter => ({
     id, label: t(label), type: 'select', operators: ['equals'], options: choices(values),
@@ -151,6 +153,29 @@ function statusControl(table: PkDataTable, config: TableConfig): PkSelect {
     return select;
 }
 
+function subscriptionActions(table: PkDataTable): void {
+    table.rowLabel = 'subscriber';
+    table.rowActions = row => [
+        ...(row.canCancel ? [{ id: 'cancel-subscription', label: t('Cancel subscription') }] : []),
+        ...(row.canErase ? [{ id: 'erase-subscriber', label: t('Erase subscriber data') }] : []),
+    ];
+    table.addEventListener('pk-row-action', async (event: Event) => {
+        const { action, row } = (event as CustomEvent<{ action: string; row: DataTableRow }>).detail;
+        const prompt = action === 'erase-subscriber'
+            ? t('Erase all Back in Stock data for {email}? This removes the address from every product and cancels anything they’re waiting for. This can’t be undone.', { email: row.subscriber })
+            : t('Cancel this subscription for {email}? They won’t be notified about this product.', { email: row.subscriber });
+        if (!confirm(prompt)) return;
+        try {
+            const response = await Craft.sendActionRequest('POST', `craft-commerce-back-in-stock/dashboard/${action}`, { data: { subscriptionId: row.id } });
+            Craft.cp.displaySuccess(response.data.message);
+        } catch (error) {
+            Craft.cp.displayError((error as { response?: { data?: { message?: string } } }).response?.data?.message);
+        }
+        // The server decides what happened, including when this row was already out of date.
+        await table.refresh();
+    });
+}
+
 function mount(container: HTMLElement): void {
     const config = JSON.parse(container.dataset.bisTable ?? '{}') as TableConfig;
     const table = document.createElement('pk-data-table') as PkDataTable;
@@ -196,7 +221,10 @@ function mount(container: HTMLElement): void {
             restoreSort: !explicitSort,
         });
     }
-    if (config.kind === 'subscriptions') table.append(statusControl(table, config));
+    if (config.kind === 'subscriptions') {
+        table.append(statusControl(table, config));
+        subscriptionActions(table);
+    }
     const action = config.kind === 'products' ? 'product-table' : config.kind === 'subscriptions' ? 'subscription-table' : 'activity-table';
     table.dataSource = async (query, { signal }) => {
         const url = new URL(Craft.getActionUrl(`craft-commerce-back-in-stock/dashboard/${action}`), location.href);

@@ -5,6 +5,7 @@
 ### Added
 - Added the `stockFieldHandle` config setting to use a custom variant field for stock availability and stock-matched notifications, including variants with unlimited Commerce inventory. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 - Added `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rules as Back in Stock, including `stockFieldHandle`. ([#43](https://github.com/verbb/back-in-stock/issues/43))
+- Added actions to a variant’s Subscriptions tab to cancel a subscription and erase a subscriber’s data, with a new “Cancel subscriptions and erase subscriber data” permission.
 
 ### Changed
 - Upgraded installations now keep sending the bundled email templates with their saved subjects, as they did in 4.1. Clear the template settings to switch to the editable System Messages.
