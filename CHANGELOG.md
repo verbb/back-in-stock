@@ -8,6 +8,7 @@
 
 ### Changed
 - Upgraded installations now keep sending the bundled email templates with their saved subjects, as they did in 4.1. Clear the template settings to switch to the editable System Messages.
+- Changed cancellation links to open a confirmation page before cancelling, so email security scanners can’t cancel a request by following the link. Verification and cancellation now show their own result page instead of redirecting to the homepage with a flash message.
 - Changed expiry and history retention to count from a request’s last update. Requests that existed before upgrading count from the upgrade, so none are removed on the first run.
 - Changed expiry, history retention and recovery of stalled notifications to also run during Craft’s garbage collection.
 
@@ -22,6 +23,7 @@
 - Fixed inventory changes only checking availability for the current site’s store.
 - Fixed `purgeRequests` losing delivery counts and notifying too many subscribers on stock-matched runs. Delivered subscriptions now keep their row with the recipient details removed.
 - Fixed notification attempts staying stuck when a queue worker stopped or a queue job was lost. The `reconcile` command now requeues lost attempts and flags interrupted ones for review.
+- Fixed cancellation links showing an error once a subscriber had already been notified.
 - Fixed the “subscribers waiting” count on repeat availability checks counting selected subscribers twice.
 
 ## 4.2.0 -

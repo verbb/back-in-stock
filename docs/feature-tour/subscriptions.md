@@ -28,7 +28,7 @@ Verification is useful when a store wants stronger evidence that the recipient c
 
 ## Cancellation and Expiry
 
-Confirmation emails include a signed cancellation URL, so recipients can leave a waiting list without signing in. Custom confirmation templates receive the same `cancelUrl` value. Cancelling one variant does not affect subscriptions for other variants.
+Confirmation emails include a signed cancellation URL, so recipients can leave a waiting list without signing in. The link opens a short confirmation page, so an email security scanner that follows it cannot cancel the request. Custom confirmation templates receive the same `cancelUrl` value. Cancelling one variant does not affect subscriptions for other variants.
 
 Waiting subscriptions can also expire after a configured period without a successful notification. Expiry stops an old request from remaining on the waiting list indefinitely and allows that customer to subscribe again. **Completed History Retention** separately controls how long notified, cancelled, and expired records remain available when answering customer questions or investigating a problem.
 

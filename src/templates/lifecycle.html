@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="{{ language }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{{ message }}</title>
+    <style>
+        :root { color-scheme: light dark; }
+        body { margin: 0; padding: 16px; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; background: Canvas; color: CanvasText; }
+        main { max-width: 480px; margin: 15vh auto 0; }
+        h1 { margin: 0 0 24px; font-size: 1.25rem; font-weight: 600; }
+        button { padding: 10px 16px; font: inherit; cursor: pointer; }
+        form { margin-bottom: 24px; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>{{ message }}</h1>
+        {% if needsConfirmation %}
+            <form method="post">
+                <button type="submit">{{ 'Stop notifications' | t('craft-commerce-back-in-stock') }}</button>
+            </form>
+        {% endif %}
+        {% if homeUrl %}
+            <a href="{{ homeUrl }}">{{ 'Continue to {site}' | t('craft-commerce-back-in-stock', {site: siteName}) }}</a>
+        {% endif %}
+    </main>
+</body>
+</html>

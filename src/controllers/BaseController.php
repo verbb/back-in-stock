@@ -4,6 +4,7 @@ namespace verbb\backinstock\controllers;
 use verbb\backinstock\BackInStock;
 use verbb\backinstock\models\Log;
 use verbb\backinstock\models\Settings;
+use verbb\backinstock\models\Subscription as SubscriptionModel;
 use verbb\backinstock\queue\jobs\SendEmailNotification;
 use verbb\backinstock\queue\jobs\SendSubscriptionMessage;
 use verbb\backinstock\records\Subscription;
@@ -12,6 +13,7 @@ use Craft;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
+use craft\web\View;
 
 use yii\web\Response;
 
@@ -27,6 +29,16 @@ class BaseController extends Controller
 
     // Public Methods
     // =========================================================================
+
+    public function beforeAction($action): bool
+    {
+        // The signed token authorises a cancellation, and email links often open where no CSRF cookie exists yet.
+        if ($action->id === 'cancel') {
+            $this->enableCsrfValidation = false;
+        }
+
+        return parent::beforeAction($action);
+    }
 
     public function actionRegisterInterest(): ?Response
     {
@@ -119,12 +131,22 @@ class BaseController extends Controller
         $uid = $this->request->getRequiredParam('uid');
         $token = $this->request->getRequiredParam('cancellationToken');
         $subscription = is_string($uid) ? BackInStock::$plugin->getSubscriptions()->getByUid($uid) : null;
-        $cancelled = $subscription && is_string($token) && BackInStock::$plugin->getSubscriptions()->validateCancellationToken($subscription, $token)
-            ? BackInStock::$plugin->getSubscriptions()->cancel($subscription)
-            : false;
-        $message = $cancelled
-            ? Craft::t('craft-commerce-back-in-stock', 'Your back-in-stock notification has been cancelled.')
-            : Craft::t('craft-commerce-back-in-stock', 'This cancellation link is invalid or has expired.');
+
+        if (!$subscription || !is_string($token) || !BackInStock::$plugin->getSubscriptions()->validateCancellationToken($subscription, $token)) {
+            return $this->_lifecycleResponse(false, Craft::t('craft-commerce-back-in-stock', 'This cancellation link is invalid or has expired.'));
+        }
+
+        // Mail scanners follow links, so opening one must never change anything.
+        if (!$this->request->getIsPost() && in_array($subscription->state, SubscriptionModel::ACTIVE_STATES, true)) {
+            return $this->_lifecycleResponse(false, $this->_cancellationPrompt($subscription), true);
+        }
+
+        $cancelled = BackInStock::$plugin->getSubscriptions()->cancel($subscription);
+        $message = match (true) {
+            !$cancelled => Craft::t('craft-commerce-back-in-stock', 'This cancellation link is invalid or has expired.'),
+            $subscription->state === SubscriptionModel::STATE_CANCELLED => Craft::t('craft-commerce-back-in-stock', 'Your back-in-stock notification has been cancelled.'),
+            default => Craft::t('craft-commerce-back-in-stock', 'You won’t receive any more notifications for this product.'),
+        };
 
         return $this->_lifecycleResponse($cancelled, $message);
     }
@@ -133,14 +155,34 @@ class BaseController extends Controller
     // Private Methods
     // =========================================================================
 
-    private function _lifecycleResponse(bool $success, string $message): Response
+    private function _cancellationPrompt(Subscription $subscription): string
+    {
+        $variant = BackInStock::$plugin->getService()->getLiveVariant($subscription->variantId, $subscription->siteId);
+
+        return $variant
+            ? Craft::t('craft-commerce-back-in-stock', 'Stop back-in-stock notifications for {title}?', ['title' => $variant->title])
+            : Craft::t('craft-commerce-back-in-stock', 'Stop this back-in-stock notification?');
+    }
+
+    private function _lifecycleResponse(bool $success, string $message, bool $needsConfirmation = false): Response
     {
         if ($this->request->getAcceptsJson()) {
-            return $this->asJson(['success' => $success, 'message' => $message]);
+            return $this->asJson(['success' => $success, 'message' => $message] + ($needsConfirmation ? ['requiresPost' => true] : []));
         }
 
-        Craft::$app->getSession()->setFlash($success ? 'notice' : 'error', $message);
+        if (!$success && !$needsConfirmation) {
+            $this->response->setStatusCode(400);
+        }
 
-        return $this->redirect(Craft::$app->getSites()->getCurrentSite()->getBaseUrl());
+        // A redirect relies on the theme showing flash messages and on the homepage not being cached.
+        $site = Craft::$app->getSites()->getCurrentSite();
+
+        return $this->renderTemplate('craft-commerce-back-in-stock/lifecycle', [
+            'language' => Craft::$app->language,
+            'message' => $message,
+            'needsConfirmation' => $needsConfirmation,
+            'homeUrl' => $site->getBaseUrl(),
+            'siteName' => $site->getName(),
+        ], View::TEMPLATE_MODE_CP);
     }
 }

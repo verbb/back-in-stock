@@ -120,8 +120,9 @@ class Subscriptions extends Component
 
     public function cancel(Subscription $subscription, string $source = 'recipient'): bool
     {
+        // A finished subscription has nothing left to send, which is all a cancellation asks for.
         if (!in_array($subscription->state, SubscriptionModel::ACTIVE_STATES, true)) {
-            return $subscription->state === SubscriptionModel::STATE_CANCELLED;
+            return true;
         }
 
         $previousState = $subscription->state;
