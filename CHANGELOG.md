@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.0.11 - 2026-11-05
 
 ### Added
 - Add `stockFieldHandle` plugin setting to use a custom variant field for stock levels, including variants with unlimited stock in Commerce. ([#43](https://github.com/verbb/back-in-stock/issues/43))
