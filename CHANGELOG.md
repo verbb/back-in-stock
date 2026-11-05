@@ -6,6 +6,9 @@
 - Added the `stockFieldHandle` config setting to use a custom variant field for stock availability and stock-matched notifications, including variants with unlimited Commerce inventory. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 - Added `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rules as Back in Stock, including `stockFieldHandle`. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 
+### Fixed
+- Fixed availability checks and notification deliveries failing on PostgreSQL.
+
 ## 4.2.0 -
 
 ### Added

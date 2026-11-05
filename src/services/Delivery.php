@@ -158,7 +158,7 @@ class Delivery extends Component
         $run->nextBatchAt = DeliveryAttempt::find()
             ->select('dueAt')
             ->where(['runId' => $run->id, 'status' => DeliveryAttemptModel::STATUS_PENDING])
-            ->min('dueAt');
+            ->min('[[dueAt]]');
         $run->save(false);
     }
 
