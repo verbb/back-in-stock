@@ -30,6 +30,7 @@
 - Fixed queued confirmation emails still being sent after a subscription was cancelled.
 - Fixed the “subscribers waiting” count on repeat availability checks counting selected subscribers twice.
 - Fixed run details and Overview tooltips showing the wrong time when the system timezone isn’t UTC.
+- Fixed an error when registering interest with a blank or invalid `variantId`.
 
 ## 4.2.0 -
 

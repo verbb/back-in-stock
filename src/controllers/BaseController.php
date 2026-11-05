@@ -47,7 +47,8 @@ class BaseController extends Controller
         $session = Craft::$app->getSession();
 
         $log = new Log();
-        $log->variantId = $this->request->getParam('variantId');
+        // The property is typed, so anything but a positive integer has to reach validation as missing.
+        $log->variantId = filter_var($this->request->getParam('variantId'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null;
         $email = $this->request->getParam('email');
         $log->email = is_string($email) ? $email : null;
         $log->setOptionsFromRequest($this->request->getParam('options'));

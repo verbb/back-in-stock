@@ -132,7 +132,7 @@ class Log extends Model
 
     public function setEmail(?string $email): void
     {
-        $this->_email = trim(strtolower($email));
+        $this->_email = trim(strtolower($email ?? ''));
     }
 
     public function setOptionsFromRequest(mixed $options): void
@@ -146,6 +146,7 @@ class Log extends Model
 
         if (!is_string($options) || strlen($options) > self::MAX_OPTIONS_BYTES || !str_starts_with(ltrim($options), '{')) {
             $this->_optionsError = Craft::t('craft-commerce-back-in-stock', 'Options must be a valid JSON object no larger than 8 KB.');
+
             return;
         }
 
@@ -153,11 +154,13 @@ class Log extends Model
             $decoded = json_decode($options, true, self::MAX_OPTIONS_DEPTH, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
             $this->_optionsError = Craft::t('craft-commerce-back-in-stock', 'Options must be a valid JSON object no larger than 8 KB.');
+
             return;
         }
 
         if (!is_array($decoded)) {
             $this->_optionsError = Craft::t('craft-commerce-back-in-stock', 'Options must be a valid JSON object no larger than 8 KB.');
+
             return;
         }
 
