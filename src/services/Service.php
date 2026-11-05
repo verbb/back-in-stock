@@ -157,8 +157,13 @@ class Service extends Component
             return;
         }
 
+        // Behind a proxy every shopper shares REMOTE_ADDR, but forwarded headers can only be believed once the site
+        // has named its proxies, and Craft's default of trusting any host would let a client choose its own bucket.
+        $trustedHosts = Craft::$app->getConfig()->getGeneral()->trustedHosts;
+        $trustsAnyHost = in_array('any', $trustedHosts, true) || isset($trustedHosts['any']);
+        $peer = $trustsAnyHost ? $request->getRemoteIP() : $request->getUserIP();
         $identities = [
-            hash('sha256', 'peer:' . ($request->getRemoteIP() ?: 'unknown')),
+            hash('sha256', 'peer:' . ($peer ?: 'unknown')),
             hash('sha256', 'recipient:' . Log::normalizeRecipient($email)),
         ];
         $cacheKeys = array_map(fn(string $identity) => self::REGISTRATION_RATE_LIMIT_CACHE_PREFIX . $identity, $identities);
