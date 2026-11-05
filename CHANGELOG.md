@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Fixed an error when registering interest with a non-numeric variant ID.
+- Fixed the Confirmation Email Template setting being hidden when Confirmation Email was on and no template was set.
+
 ## 4.1.12 - 2026-10-15
 
 ### Changed
