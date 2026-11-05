@@ -621,16 +621,17 @@ class DashboardController extends Controller
     private function _dashboardCounts(): array
     {
         $thirtyDaysAgo = Db::prepareDateForDb((new DateTime())->modify('-30 days'));
-        $issueRows = (new Query())
-            ->select(['status', 'count' => new Expression('COUNT([[id]])')])
-            ->from(DeliveryAttempt::tableName())
-            ->where(['status' => [DeliveryAttemptModel::STATUS_FAILED, DeliveryAttemptModel::STATUS_UNKNOWN]])
-            ->andWhere(['>=', 'dateCreated', $thirtyDaysAgo])
-            ->groupBy(['status'])
-            ->indexBy('status')
-            ->all();
-        $failed = (int)($issueRows[DeliveryAttemptModel::STATUS_FAILED]['count'] ?? 0);
-        $unknown = (int)($issueRows[DeliveryAttemptModel::STATUS_UNKNOWN]['count'] ?? 0);
+        // Run counters hold each subscriber's latest outcome, and match what the attention filter on Products shows.
+        $issues = (new Query())
+            ->select([
+                'failed' => new Expression('SUM([[failedCount]])'),
+                'unknown' => new Expression('SUM([[unknownCount]])'),
+            ])
+            ->from(RestockRun::tableName())
+            ->where(['>=', 'openedAt', $thirtyDaysAgo])
+            ->one();
+        $failed = (int)($issues['failed'] ?? 0);
+        $unknown = (int)($issues['unknown'] ?? 0);
 
         return [
             'products' => (int)(new Query())
