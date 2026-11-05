@@ -2,7 +2,7 @@
 
 return [
   'Back In Stock' => 'Back In Stock',
-  'Back In Stock email could not be sent' => 'Back In Stock email could not be sent',
+  'Back In Stock email could not be sent. Error: {error} {file}:{line}' => 'Back In Stock email could not be sent. Error: {error} {file}:{line}',
   'Back In Stock email “{email}” could not be sent' => 'Back In Stock email “{email}” could not be sent',
   'Back in stock notification confirmation for {{ variant.title }}' => 'Back in stock notification confirmation for {{ variant.title }}',
   'Confirmation Email' => 'Confirmation Email',

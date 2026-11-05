@@ -419,14 +419,16 @@ class Service extends Component
 
             try {
                 if (!Craft::$app->getMailer()->send($newEmail)) {
-                    $error = Craft::t('craft-commerce-back-in-stock', 'Back In Stock email “{email}” could not be sent');
+                    $error = Craft::t('craft-commerce-back-in-stock', 'Back In Stock email “{email}” could not be sent', [
+                        'email' => $log->email,
+                    ]);
 
                     BackInStock::error($error);
 
                     return false;
                 }
             } catch (Throwable $e) {
-                $error = Craft::t('craft-commerce-back-in-stock', 'Back In Stock email could not be sent', [
+                $error = Craft::t('craft-commerce-back-in-stock', 'Back In Stock email could not be sent. Error: {error} {file}:{line}', [
                     'error' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),

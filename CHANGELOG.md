@@ -31,6 +31,7 @@
 - Fixed the “subscribers waiting” count on repeat availability checks counting selected subscribers twice.
 - Fixed run details and Overview tooltips showing the wrong time when the system timezone isn’t UTC.
 - Fixed an error when registering interest with a blank or invalid `variantId`.
+- Fixed the log messages for Back In Stock emails that couldn’t be sent not including the recipient’s email or the error.
 
 ## 4.2.0 -
 
