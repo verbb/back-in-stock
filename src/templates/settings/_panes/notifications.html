@@ -52,6 +52,7 @@
         warning: macros.configWarning('confirmationEmailTemplate', 'craft-commerce-back-in-stock'),
     }) }}
 
+    <div data-bis-template-subject="confirmationEmailTemplate" class="{{ not settings.confirmationEmailTemplate ? 'hidden' }}">
     {{ forms.textField({
         label: 'Confirmation Email Subject' | t('craft-commerce-back-in-stock'),
         instructions: 'The email subject used with a custom confirmation template. Without one, the subject comes from the System Message.' | t('craft-commerce-back-in-stock'),
@@ -61,6 +62,7 @@
         errors: settings.getErrors('confirmationEmailSubject'),
         warning: macros.configWarning('confirmationEmailSubject', 'craft-commerce-back-in-stock'),
     }) }}
+    </div>
 </div>
 
 {{ forms.autosuggestField({
@@ -75,6 +77,7 @@
     warning: macros.configWarning('emailTemplate', 'craft-commerce-back-in-stock'),
 }) }}
 
+<div data-bis-template-subject="emailTemplate" class="{{ not settings.emailTemplate ? 'hidden' }}">
 {{ forms.textField({
     label: 'Notification Email Subject' | t('craft-commerce-back-in-stock'),
     instructions: 'The email subject used with a custom notification template. Without one, the subject comes from the System Message.' | t('craft-commerce-back-in-stock'),
@@ -84,3 +87,24 @@
     errors: settings.getErrors('emailSubject'),
     warning: macros.configWarning('emailSubject', 'craft-commerce-back-in-stock'),
 }) }}
+</div>
+
+{# Subjects only apply to custom templates; System Messages carry their own, so follow the template field as it changes. #}
+{% js %}
+document.querySelectorAll('[data-bis-template-subject]').forEach(function(subject) {
+    var name = subject.dataset.bisTemplateSubject;
+    var template = document.querySelector('[name="' + name + '"], [name$="[' + name + ']"]');
+
+    if (!template) {
+        return;
+    }
+
+    var sync = function() {
+        subject.classList.toggle('hidden', template.value.trim() === '');
+    };
+
+    ['input', 'change', 'blur'].forEach(function(type) {
+        template.addEventListener(type, sync);
+    });
+});
+{% endjs %}

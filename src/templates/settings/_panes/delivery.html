@@ -54,6 +54,11 @@
     warning: macros.configWarning('includeAvailableForPurchase', 'craft-commerce-back-in-stock'),
 }) }}
 
+{# Queue tuning rarely needs changing, so keep it apart from the notification policy above. #}
+<hr>
+
+<h2>{{ 'Advanced' | t('craft-commerce-back-in-stock') }}</h2>
+
 {{ forms.textField({
     label: 'Batch Size' | t('craft-commerce-back-in-stock'),
     instructions: 'The maximum number of selected notifications scheduled in each queue batch.' | t('craft-commerce-back-in-stock'),
