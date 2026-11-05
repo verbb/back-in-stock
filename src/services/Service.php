@@ -17,6 +17,7 @@ use Craft;
 use craft\base\Component;
 use craft\errors\InvalidFieldException;
 use craft\helpers\App;
+use craft\helpers\ElementHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\mail\Message;
@@ -64,6 +65,11 @@ class Service extends Component
 
     public function syncVariantStockState(Variant $variant): bool
     {
+        // Unpublished edits can't change what a customer is able to buy.
+        if (ElementHelper::isDraftOrRevision($variant)) {
+            return false;
+        }
+
         // ERP and catalogue syncs save every variant per site, so skip those nobody depends on.
         if (!$variant->id || !$this->_hasAvailabilityDemand($variant->id)) {
             return false;
