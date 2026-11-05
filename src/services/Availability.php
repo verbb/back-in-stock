@@ -19,6 +19,7 @@ use craft\helpers\Db;
 
 use DateTime;
 use Throwable;
+use yii\db\ActiveQuery;
 use yii\db\IntegrityException;
 
 use craft\commerce\elements\Variant;
@@ -128,6 +129,13 @@ class Availability extends Component
     // Private Methods
     // =========================================================================
 
+    private function _getLiveSiteIds(int $variantId, ActiveQuery $subscriptionQuery): array
+    {
+        $siteIds = (clone $subscriptionQuery)->select('siteId')->distinct()->column();
+
+        return array_values(array_filter($siteIds, fn($siteId) => BackInStock::$plugin->getService()->getLiveVariant($variantId, (int)$siteId) !== null));
+    }
+
     private function _selectRecipients(RestockRun $run, Variant $variant, ?int $stock): void
     {
         $settings = BackInStock::$plugin->getSettings();
@@ -137,6 +145,9 @@ class Availability extends Component
                 'storeId' => $run->storeId,
                 'state' => SubscriptionModel::STATE_ACTIVE,
             ]);
+
+        // Subscribers on a site without the product can't be sent anything yet, so they shouldn't use up stock-matched places.
+        $eligibleQuery->andWhere(['siteId' => $this->_getLiveSiteIds($run->variantId, $eligibleQuery)]);
         $eligibleCount = (int)$eligibleQuery->count();
         $alreadySelected = (int)DeliveryAttempt::find()
             ->where(['runId' => $run->id, 'attemptNumber' => 1])

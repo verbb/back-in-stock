@@ -9,6 +9,7 @@
 ### Fixed
 - Fixed stock sold through orders not closing a restock run, which prevented waiting subscribers from being notified on the next restock.
 - Fixed availability checks and notification deliveries failing on PostgreSQL.
+- Fixed a variant disabled on one site cancelling notifications for subscribers on other sites sharing its store.
 - Fixed drafts and revisions of variants triggering availability checks.
 - Fixed inventory changes only checking availability for the current site’s store.
 

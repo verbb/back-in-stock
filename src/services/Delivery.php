@@ -57,12 +57,22 @@ class Delivery extends Component
             $this->_complete($attempt, DeliveryAttemptModel::STATUS_CANCELLED, 'subscription-inactive', 'The subscription is no longer active.');
             $this->_refreshRun($run);
             $this->_triggerAfterComplete($attempt, $run, $subscription);
+
             return;
         }
 
         $variant = BackInStock::$plugin->getService()->getLiveVariant($subscription->variantId, $subscription->siteId);
 
-        if (!$variant || !BackInStock::$plugin->getService()->isVariantInStock($variant)) {
+        // The product can be disabled for one site while stock is still available to subscribers on the others.
+        if (!$variant) {
+            $this->_complete($attempt, DeliveryAttemptModel::STATUS_CANCELLED, 'variant-unavailable', 'The variant is not available on the subscriber’s site.');
+            $this->_refreshRun($run);
+            $this->_triggerAfterComplete($attempt, $run, $subscription);
+
+            return;
+        }
+
+        if (!BackInStock::$plugin->getService()->isVariantInStock($variant)) {
             $this->_complete($attempt, DeliveryAttemptModel::STATUS_CANCELLED, 'stock-unavailable', 'The variant was no longer available before delivery.');
             DeliveryAttempt::updateAll([
                 'status' => DeliveryAttemptModel::STATUS_CANCELLED,
@@ -76,6 +86,7 @@ class Delivery extends Component
             $run->save(false);
             $this->_refreshRun($run);
             $this->_triggerAfterComplete($attempt, $run, $subscription);
+
             return;
         }
 
