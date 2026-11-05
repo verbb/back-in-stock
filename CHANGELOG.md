@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.1.13 - 2026-11-05
 
 ### Fixed
 - Fixed an error when registering interest with a non-numeric variant ID.
