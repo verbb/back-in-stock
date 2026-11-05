@@ -36,4 +36,6 @@ Run the following command on a regular schedule:
 php craft craft-commerce-back-in-stock/reconcile
 ```
 
+The command also requeues notifications whose queue job was lost and flags any interrupted by a stopped worker for review.
+
 The command is safe to run repeatedly, and a five-minute interval is a reasonable starting point for most stores. Ensure Craft’s queue is also being processed, either by its automatic queue runner or a dedicated worker, so availability checks and notification deliveries do not remain queued.

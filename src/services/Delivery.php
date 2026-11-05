@@ -26,6 +26,10 @@ class Delivery extends Component
 
     public const EVENT_AFTER_COMPLETE_DELIVERY_ATTEMPT = 'afterCompleteDeliveryAttempt';
 
+    private const INTERRUPTED_AFTER = 3600;
+    private const REQUEUE_AFTER = 900;
+    private const RECOVERY_BATCH_SIZE = 500;
+
 
     // Public Methods
     // =========================================================================
@@ -112,6 +116,56 @@ class Delivery extends Component
         if ($result['status'] === DeliveryAttemptModel::STATUS_SENT && $settings->purgeRequests) {
             BackInStock::$plugin->getSubscriptions()->scrubRecipient($subscription);
         }
+    }
+
+    /**
+     * The database owns due work, so attempts stranded by a dead worker or a lost queue job are recovered from here.
+     */
+    public function recoverStalled(): array
+    {
+        $now = new DateTime();
+        $runIds = [];
+
+        // A worker that died mid-send may already have handed the message over, so this can only be flagged for review.
+        $interrupted = DeliveryAttempt::find()
+            ->where(['status' => DeliveryAttemptModel::STATUS_PROCESSING])
+            ->andWhere(['<', 'claimedAt', Db::prepareDateForDb((clone $now)->modify('-' . self::INTERRUPTED_AFTER . ' seconds'))])
+            ->limit(self::RECOVERY_BATCH_SIZE)
+            ->all();
+
+        foreach ($interrupted as $attempt) {
+            $this->_complete($attempt, DeliveryAttemptModel::STATUS_UNKNOWN, 'worker-interrupted', 'The worker stopped before the send could be confirmed.');
+            $runIds[$attempt->runId] = true;
+        }
+
+        // Claims are atomic, so a job that was only delayed can't send twice. Moving dueAt limits this to one job per window.
+        $lost = DeliveryAttempt::find()
+            ->where(['status' => DeliveryAttemptModel::STATUS_PENDING])
+            ->andWhere(['<', 'dueAt', Db::prepareDateForDb((clone $now)->modify('-' . self::REQUEUE_AFTER . ' seconds'))])
+            ->limit(self::RECOVERY_BATCH_SIZE)
+            ->all();
+
+        foreach ($lost as $attempt) {
+            $attempt->dueAt = Db::prepareDateForDb($now);
+            $attempt->save(false);
+            Craft::$app->getQueue()->push(new DeliverAttemptJob(['attemptId' => $attempt->id]));
+            $runIds[$attempt->runId] = true;
+        }
+
+        foreach (RestockRun::find()->where(['id' => array_keys($runIds)])->all() as $run) {
+            $this->_refreshRun($run);
+        }
+
+        foreach ($interrupted as $attempt) {
+            $run = RestockRun::findOne($attempt->runId);
+            $subscription = Subscription::findOne($attempt->subscriptionId);
+
+            if ($run && $subscription) {
+                $this->_triggerAfterComplete($attempt, $run, $subscription);
+            }
+        }
+
+        return ['interrupted' => count($interrupted), 'requeued' => count($lost)];
     }
 
 
