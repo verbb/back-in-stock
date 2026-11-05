@@ -28,7 +28,9 @@ use Throwable;
 
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
+use craft\commerce\events\InventoryMovementEvent;
 use craft\commerce\events\UpdateInventoryLevelEvent;
+use craft\commerce\Plugin as Commerce;
 
 class Service extends Component
 {
@@ -48,13 +50,16 @@ class Service extends Component
 
     public function checkInventoryLevel(UpdateInventoryLevelEvent $event): bool
     {
-        $variant = $event->updateInventoryLevel->getInventoryItem()?->getPurchasable();
+        $variantId = $event->updateInventoryLevel->getInventoryItem()?->purchasableId;
 
-        if (!$variant instanceof Variant || !$variant->id) {
-            return false;
-        }
+        return $variantId && $this->_queueDemandEvaluations((int)$variantId);
+    }
 
-        return $this->queueVariantEvaluation($variant);
+    public function checkInventoryMovement(InventoryMovementEvent $event): bool
+    {
+        $variantId = $event->inventoryMovement->getInventoryItem()?->purchasableId;
+
+        return $variantId && $this->_queueDemandEvaluations((int)$variantId);
     }
 
     public function syncVariantStockState(Variant $variant): bool
@@ -429,6 +434,45 @@ class Service extends Component
 
     // Private Methods
     // =========================================================================
+
+    /**
+     * Inventory events aren't tied to a site, and the current site says nothing about which stores the change affects.
+     * Every completed order moves stock, so this also queues nothing unless a subscriber or an open run depends on the result.
+     */
+    private function _queueDemandEvaluations(int $variantId): bool
+    {
+        $siteIds = Subscription::find()
+            ->select('siteId')
+            ->distinct()
+            ->where(['variantId' => $variantId, 'state' => SubscriptionModel::STATE_ACTIVE])
+            ->column();
+        $openStoreIds = RestockRun::find()
+            ->select('storeId')
+            ->where(['variantId' => $variantId])
+            ->andWhere(['not', ['availabilityKey' => null]])
+            ->column();
+        $stores = Commerce::getInstance()->getStores();
+
+        // A run with nobody left waiting still has to close when its store sells out.
+        foreach ($openStoreIds as $storeId) {
+            $store = $stores->getStoreById((int)$storeId);
+
+            if ($store) {
+                array_push($siteIds, ...$stores->getAllSitesForStore($store)->pluck('id')->all());
+            }
+        }
+
+        $siteIds = array_unique(array_map('intval', $siteIds));
+
+        foreach ($siteIds as $siteId) {
+            Craft::$app->getQueue()->push(new EvaluateAvailability([
+                'variantId' => $variantId,
+                'siteId' => $siteId,
+            ]));
+        }
+
+        return $siteIds !== [];
+    }
 
     private function _hasAvailabilityDemand(int $variantId): bool
     {

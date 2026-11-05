@@ -19,6 +19,7 @@ use craft\services\SystemMessages;
 use yii\base\Event;
 
 use craft\commerce\elements\Variant;
+use craft\commerce\events\InventoryMovementEvent;
 use craft\commerce\events\UpdateInventoryLevelEvent;
 use craft\commerce\services\Inventory;
 
@@ -146,6 +147,13 @@ class BackInStock extends Plugin
         if (defined(Inventory::class . '::EVENT_AFTER_EXECUTE_UPDATE_INVENTORY_LEVEL')) {
             Event::on(Inventory::class, Inventory::EVENT_AFTER_EXECUTE_UPDATE_INVENTORY_LEVEL, function(UpdateInventoryLevelEvent $event) {
                 $this->getService()->checkInventoryLevel($event);
+            });
+        }
+
+        // Completed orders and other stock moves reduce availability without an inventory-level event.
+        if (defined(Inventory::class . '::EVENT_AFTER_EXECUTE_INVENTORY_MOVEMENT')) {
+            Event::on(Inventory::class, Inventory::EVENT_AFTER_EXECUTE_INVENTORY_MOVEMENT, function(InventoryMovementEvent $event) {
+                $this->getService()->checkInventoryMovement($event);
             });
         }
 

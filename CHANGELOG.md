@@ -7,7 +7,9 @@
 - Added `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rules as Back in Stock, including `stockFieldHandle`. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 
 ### Fixed
+- Fixed stock sold through orders not closing a restock run, which prevented waiting subscribers from being notified on the next restock.
 - Fixed availability checks and notification deliveries failing on PostgreSQL.
+- Fixed inventory changes only checking availability for the current site’s store.
 
 ## 4.2.0 -
 
