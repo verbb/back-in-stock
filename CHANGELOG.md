@@ -13,8 +13,10 @@
 
 ### Fixed
 - Fixed the upgrade migration failing on installations with existing subscriptions, and made it safe to re-run after a failed attempt.
+- Fixed verification and cancellation links being rejected with a 400 error.
 - Fixed stock sold through orders not closing a restock run, which prevented waiting subscribers from being notified on the next restock.
 - Fixed availability checks and notification deliveries failing on PostgreSQL.
+- Fixed verification and cancellation links using control panel URLs when the queue ran from a control panel request, and the wrong site on multi-site installations.
 - Fixed a variant disabled on one site cancelling notifications for subscribers on other sites sharing its store.
 - Fixed drafts and revisions of variants triggering availability checks.
 - Fixed inventory changes only checking availability for the current site’s store.

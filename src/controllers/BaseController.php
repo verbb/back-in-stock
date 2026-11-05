@@ -105,7 +105,7 @@ class BaseController extends Controller
     public function actionVerify(): Response
     {
         $id = $this->request->getRequiredParam('id');
-        $token = $this->request->getRequiredParam('token');
+        $token = $this->request->getRequiredParam('verificationToken');
         $verified = is_numeric($id) && is_string($token) && BackInStock::$plugin->getSubscriptions()->verify((int)$id, $token);
         $message = $verified
             ? Craft::t('craft-commerce-back-in-stock', 'Your back-in-stock notification is confirmed.')
@@ -117,7 +117,7 @@ class BaseController extends Controller
     public function actionCancel(): Response
     {
         $uid = $this->request->getRequiredParam('uid');
-        $token = $this->request->getRequiredParam('token');
+        $token = $this->request->getRequiredParam('cancellationToken');
         $subscription = is_string($uid) ? BackInStock::$plugin->getSubscriptions()->getByUid($uid) : null;
         $cancelled = $subscription && is_string($token) && BackInStock::$plugin->getSubscriptions()->validateCancellationToken($subscription, $token)
             ? BackInStock::$plugin->getSubscriptions()->cancel($subscription)

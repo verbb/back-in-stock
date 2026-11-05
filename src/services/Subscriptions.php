@@ -91,17 +91,18 @@ class Subscriptions extends Component
 
     public function getVerificationUrl(Subscription $subscription, string $token): string
     {
-        return UrlHelper::actionUrl('craft-commerce-back-in-stock/base/verify', [
+        return $this->_createLifecycleUrl($subscription, 'verify', [
             'id' => $subscription->id,
-            'token' => $token,
+            // Craft rejects any request carrying an unrecognised `token` param before routing it.
+            'verificationToken' => $token,
         ]);
     }
 
     public function getCancellationUrl(Subscription $subscription): string
     {
-        return UrlHelper::actionUrl('craft-commerce-back-in-stock/base/cancel', [
+        return $this->_createLifecycleUrl($subscription, 'cancel', [
             'uid' => $subscription->uid,
-            'token' => $this->createCancellationToken($subscription),
+            'cancellationToken' => $this->createCancellationToken($subscription),
         ]);
     }
 
@@ -239,6 +240,20 @@ class Subscriptions extends Component
 
     // Private Methods
     // =========================================================================
+
+    private function _createLifecycleUrl(Subscription $subscription, string $action, array $params): string
+    {
+        $generalConfig = Craft::$app->getConfig()->getGeneral();
+        $path = "craft-commerce-back-in-stock/base/$action";
+
+        // A headless site's base URL points at its front end, so only Craft's own action URL reaches this controller.
+        if ($generalConfig->headlessMode) {
+            return UrlHelper::actionUrl($path, $params);
+        }
+
+        // Queue jobs can run inside a control panel request, but recipients need links for the site they joined from.
+        return UrlHelper::siteUrl($generalConfig->actionTrigger . '/' . $path, $params, null, $subscription->siteId);
+    }
 
     private function _triggerStateChange(Subscription $subscription, string $previousState, ?string $source): void
     {
