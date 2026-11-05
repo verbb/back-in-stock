@@ -148,6 +148,9 @@ class Availability extends Component
 
         // Subscribers on a site without the product can't be sent anything yet, so they shouldn't use up stock-matched places.
         $eligibleQuery->andWhere(['siteId' => $this->_getLiveSiteIds($run->variantId, $eligibleQuery)]);
+
+        // Selected subscribers stay active until delivery, so exclude them or repeat evaluations count them twice.
+        $eligibleQuery->andWhere(['not in', 'id', DeliveryAttempt::find()->select('subscriptionId')->where(['runId' => $run->id])]);
         $eligibleCount = (int)$eligibleQuery->count();
         $alreadySelected = (int)DeliveryAttempt::find()
             ->where(['runId' => $run->id, 'attemptNumber' => 1])
@@ -163,16 +166,13 @@ class Availability extends Component
         $run->eligibleCount = max((int)$run->eligibleCount, $eligibleCount + $alreadySelected);
 
         if ($selectionLimit === 0) {
-            $run->status = $alreadySelected >= $eligibleCount ? RestockRunModel::STATUS_COMPLETED : RestockRunModel::STATUS_EXHAUSTED;
+            $run->status = $eligibleCount === 0 ? RestockRunModel::STATUS_COMPLETED : RestockRunModel::STATUS_EXHAUSTED;
             $run->save(false);
+
             return;
         }
 
-        $alreadySelectedQuery = DeliveryAttempt::find()
-            ->select('subscriptionId')
-            ->where(['runId' => $run->id]);
         $subscriptions = $eligibleQuery
-            ->andWhere(['not in', 'id', $alreadySelectedQuery])
             ->orderBy(['dateCreated' => SORT_ASC, 'id' => SORT_ASC])
             ->limit($selectionLimit)
             ->all();
@@ -204,7 +204,7 @@ class Availability extends Component
         $run->selectedCount = (int)DeliveryAttempt::find()
             ->where(['runId' => $run->id, 'attemptNumber' => 1])
             ->count();
-        $run->status = $run->selectedCount >= $eligibleCount ? RestockRunModel::STATUS_COMPLETED : RestockRunModel::STATUS_EXHAUSTED;
+        $run->status = $run->selectedCount >= $eligibleCount + $alreadySelected ? RestockRunModel::STATUS_COMPLETED : RestockRunModel::STATUS_EXHAUSTED;
         $run->nextBatchAt = DeliveryAttempt::find()
             ->select('dueAt')
             ->where(['runId' => $run->id, 'status' => DeliveryAttemptModel::STATUS_PENDING])
