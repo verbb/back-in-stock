@@ -11,6 +11,7 @@
 - Changed expiry, history retention and recovery of stalled notifications to also run during Craft’s garbage collection.
 
 ### Fixed
+- Fixed the upgrade migration failing on installations with existing subscriptions, and made it safe to re-run after a failed attempt.
 - Fixed stock sold through orders not closing a restock run, which prevented waiting subscribers from being notified on the next restock.
 - Fixed availability checks and notification deliveries failing on PostgreSQL.
 - Fixed a variant disabled on one site cancelling notifications for subscribers on other sites sharing its store.
