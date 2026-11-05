@@ -100,7 +100,7 @@ class Service extends Component
         try {
             $stock = $this->getVariantStock($variant);
         } catch (InvalidConfigException $exception) {
-            Craft::error($exception->getMessage(), __METHOD__);
+            BackInStock::error($exception->getMessage());
 
             return false;
         }
@@ -119,7 +119,7 @@ class Service extends Component
         $handle = trim(BackInStock::$plugin->getSettings()->stockFieldHandle ?? '');
 
         if ($handle === '') {
-            return $variant->getHasUnlimitedStock() ? null : $variant->getStock();
+            return !$variant::hasInventory() || !$variant->inventoryTracked ? null : $variant->getStock();
         }
 
         try {

@@ -3,8 +3,6 @@
 ## Unreleased
 
 ### Added
-- Added the `stockFieldHandle` config setting to use a custom variant field for stock availability and stock-matched notifications, including variants with unlimited Commerce inventory. ([#43](https://github.com/verbb/back-in-stock/issues/43))
-- Added `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rules as Back in Stock, including `stockFieldHandle`. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 - Added actions to a variant’s Subscriptions tab to cancel a subscription and erase a subscriber’s data, with a new “Cancel subscriptions and erase subscriber data” permission.
 
 ### Changed
@@ -41,6 +39,8 @@
 - Added an Overview showing demand by product variant, recent subscription activity and notifications needing review.
 - Added optional email verification, signed cancellation links and subscription states for pending verification, active, notified, cancelled and expired requests.
 - Added a stock-matched notification policy that selects the oldest waiting customers according to available inventory and a configurable subscribers-per-unit ratio.
+- Added the `stockFieldHandle` config setting to use a custom variant field for stock availability and stock-matched notifications, including variants with unlimited Commerce inventory. ([#43](https://github.com/verbb/back-in-stock/issues/43))
+- Added `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rules as Back in Stock, including `stockFieldHandle`. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 - Added notification history with per-recipient delivery attempts, error details and sent, failed, cancelled or unconfirmed outcomes. Confirmed failures can be retried automatically; unconfirmed sends are retained for review.
 - Added configurable subscription expiry and completed-history retention.
 - Added editable Craft System Messages for confirmation, verification and availability emails, with support for localised subjects and message bodies.
