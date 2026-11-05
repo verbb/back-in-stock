@@ -152,7 +152,7 @@ This field is shown in the control panel only when **Require Email Verification*
 
 **Type:** `int` · **Default:** `365`
 
-The number of days a waiting request can remain without a successful availability notification before the scheduled check marks it expired. Expired requests cannot receive notifications and the customer can subscribe again.
+The number of days a waiting request can remain without a successful availability notification before it is marked expired. Expired requests cannot receive notifications and the customer can subscribe again. Requests that existed before upgrading to 4.2 count from the upgrade.
 :::
 
 ::: reference
@@ -160,7 +160,7 @@ The number of days a waiting request can remain without a successful availabilit
 
 **Type:** `int` · **Default:** `90`
 
-The number of days notified, cancelled, and expired requests remain visible under **Products** before the scheduled check removes them. Pending and waiting requests are unaffected. Use `0` to retain completed history indefinitely.
+The number of days notified, cancelled, and expired requests remain visible under **Products** before they are removed. Pending and waiting requests are unaffected. Requests completed before upgrading to 4.2 count from the upgrade. Use `0` to retain completed history indefinitely.
 :::
 
 ### Email

@@ -198,7 +198,7 @@ class Subscriptions extends Component
         foreach ($queries as [$state, $cutoff]) {
             $subscriptions = Subscription::find()
                 ->where(['state' => $state])
-                ->andWhere(['<', 'dateCreated', Db::prepareDateForDb($cutoff)])
+                ->andWhere(['<', 'dateUpdated', Db::prepareDateForDb($cutoff)])
                 ->all();
 
             foreach ($subscriptions as $subscription) {

@@ -194,8 +194,8 @@ it('expires stale requests and removes only old completed history', function() {
     $notified = $this->createSubscription($variant, 'old-notified@example.test');
     BackInStock::$plugin->getSubscriptions()->markNotified($notified);
 
-    Subscription::updateAll(['dateCreated' => Db::prepareDateForDb((new DateTime())->modify('-31 days'))], ['id' => $active->id]);
-    Subscription::updateAll(['dateCreated' => Db::prepareDateForDb((new DateTime())->modify('-8 days'))], ['id' => $pending->id]);
+    Subscription::updateAll(['dateUpdated' => Db::prepareDateForDb((new DateTime())->modify('-31 days'))], ['id' => $active->id]);
+    Subscription::updateAll(['dateUpdated' => Db::prepareDateForDb((new DateTime())->modify('-8 days'))], ['id' => $pending->id]);
     Subscription::updateAll(['dateUpdated' => Db::prepareDateForDb((new DateTime())->modify('-91 days'))], ['id' => $notified->id]);
 
     expect(BackInStock::$plugin->getSubscriptions()->expireStale())->toBe(2);
