@@ -26,6 +26,7 @@ use yii\base\InvalidConfigException;
 use yii\web\TooManyRequestsHttpException;
 
 use Throwable;
+use Twig\Error\Error as TwigError;
 
 use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
@@ -313,12 +314,19 @@ class Service extends Component
             if (!$event->isValid) {
                 return ['status' => 'cancelled', 'code' => 'send-cancelled', 'message' => 'Message delivery was cancelled by an event listener.'];
             }
+        } catch (Throwable $e) {
+            return $this->_messageNotAttempted($e);
+        }
 
+        try {
             if (!Craft::$app->getMailer()->send($message)) {
                 return ['status' => 'failed', 'code' => 'mailer-rejected', 'message' => $message->error?->getMessage() ?? 'The mailer did not accept the message.'];
             }
 
             return ['status' => 'sent', 'code' => null, 'message' => null];
+        } catch (TwigError $e) {
+            // Craft renders System Messages inside send(), before anything reaches the transport.
+            return $this->_messageNotAttempted($e);
         } catch (Throwable $e) {
             BackInStock::error($e->getMessage());
 
@@ -484,6 +492,14 @@ class Service extends Component
     {
         return Subscription::find()->where(['variantId' => $variantId, 'state' => SubscriptionModel::STATE_ACTIVE])->exists()
             || RestockRun::find()->where(['variantId' => $variantId])->andWhere(['not', ['availabilityKey' => null]])->exists();
+    }
+
+    private function _messageNotAttempted(Throwable $exception): array
+    {
+        BackInStock::error($exception->getMessage());
+
+        // No mail left the system, so this is a definite failure that can be retried once the template is fixed.
+        return ['status' => 'failed', 'code' => 'render-failed', 'message' => mb_substr($exception->getMessage(), 0, 1024)];
     }
 
     private function _rejectRegistrationAttempt(int $retryAfter): never
