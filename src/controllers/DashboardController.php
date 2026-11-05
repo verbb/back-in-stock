@@ -294,6 +294,7 @@ class DashboardController extends Controller
         return $this->renderTemplate('craft-commerce-back-in-stock/activity-detail', [
             'run' => $this->_decorateRuns([$run])[0],
             'attempts' => $attempts,
+            'dueDates' => array_map(fn(DeliveryAttempt $attempt) => DateTimeHelper::toDateTime($attempt->dueAt), array_column($attempts, null, 'id')),
             'subscriptions' => $subscriptions,
         ]);
     }
@@ -784,8 +785,15 @@ class DashboardController extends Controller
 
         usort($entries, fn(array $a, array $b) => strtotime((string)$b['occurredAt']) <=> strtotime((string)$a['occurredAt']));
 
+        // Stored dates are UTC strings, which Twig's date filters would read as system time.
+        $pageEntries = array_map(function(array $entry) {
+            $entry['occurredAt'] = DateTimeHelper::toDateTime($entry['occurredAt']);
+
+            return $entry;
+        }, array_slice($entries, ($page - 1) * $pageSize, $pageSize));
+
         return [
-            'entries' => array_slice($entries, ($page - 1) * $pageSize, $pageSize),
+            'entries' => $pageEntries,
             'page' => $page,
             'pageCount' => $pageCount,
             'total' => $total,
@@ -835,6 +843,7 @@ class DashboardController extends Controller
 
         return array_map(function(Subscription $subscription) use ($variants) {
             $subscription->populateRelation('variant', $variants[$subscription->variantId] ?? null);
+
             return $subscription;
         }, $subscriptions);
     }
@@ -852,6 +861,8 @@ class DashboardController extends Controller
                 'variant' => $variants[$run->variantId] ?? null,
                 'title' => $presentation['title'],
                 'state' => $presentation['state'],
+                'openedAt' => DateTimeHelper::toDateTime($run->openedAt),
+                'finishedAt' => DateTimeHelper::toDateTime($run->closedAt ?: $run->lastEvaluatedAt),
             ];
         }, $runs);
     }

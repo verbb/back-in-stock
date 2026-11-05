@@ -29,6 +29,7 @@
 - Fixed cancellation links showing an error once a subscriber had already been notified.
 - Fixed queued confirmation emails still being sent after a subscription was cancelled.
 - Fixed the “subscribers waiting” count on repeat availability checks counting selected subscribers twice.
+- Fixed run details and Overview tooltips showing the wrong time when the system timezone isn’t UTC.
 
 ## 4.2.0 -
 

@@ -42,11 +42,11 @@
         </div>
         <div class="data">
             <h5 class="heading">{{ 'Opened' | t('craft-commerce-back-in-stock') }}</h5>
-            <div class="value">{{ record.openedAt | datetime('short') }}</div>
+            <div class="value">{{ run.openedAt | datetime('short') }}</div>
         </div>
         <div class="data">
             <h5 class="heading">{{ record.closedAt ? 'Finished' | t('craft-commerce-back-in-stock') : 'Last Evaluated' | t('craft-commerce-back-in-stock') }}</h5>
-            <div class="value">{{ (record.closedAt ?: record.lastEvaluatedAt) | datetime('short') }}</div>
+            <div class="value">{{ run.finishedAt | datetime('short') }}</div>
         </div>
     </div>
 {% endblock %}
@@ -109,7 +109,7 @@
                             <td>{{ (subscriptions[attempt.subscriptionId].email ?? null) ?: ('Subscription #{id}' | t('craft-commerce-back-in-stock', {id: attempt.subscriptionId})) }}</td>
                             <td>{{ attempt.attemptNumber }}</td>
                             <td><span class="bis-status"><pk-status status="{{ attemptStatus }}" aria-label="{{ attemptStatusLabel }}"></pk-status>{{ attemptStatusLabel }}</span></td>
-                            <td>{{ attempt.dueAt | datetime('short') }}</td>
+                            <td>{{ dueDates[attempt.id] | datetime('short') }}</td>
                         </tr>
                         {% if attempt.errorCode or attempt.errorMessage %}
                             <tr class="bis-attempt-details-row">
