@@ -4,6 +4,7 @@ namespace verbb\backinstock\services;
 use verbb\backinstock\events\SubscriptionStateEvent;
 use verbb\backinstock\models\DeliveryAttempt as DeliveryAttemptModel;
 use verbb\backinstock\models\Subscription as SubscriptionModel;
+use verbb\backinstock\queue\jobs\SendSubscriptionMessage;
 use verbb\backinstock\records\DeliveryAttempt;
 use verbb\backinstock\records\Subscription;
 
@@ -59,6 +60,50 @@ class Subscriptions extends Component
         }
 
         return $saved;
+    }
+
+    /**
+     * Reserves the verification window now so a repeat submission can't queue a second email, while the token itself
+     * is only created when the job runs, so it never sits in the queue and a retried job always sends a working link.
+     */
+    public function queueVerification(Subscription $subscription): void
+    {
+        $settings = Craft::$app->getPlugins()->getPlugin('craft-commerce-back-in-stock')->getSettings();
+        $subscription->verificationTokenHash = null;
+        $subscription->verificationExpiresAt = Db::prepareDateForDb((new DateTime())->modify("+{$settings->verificationWindow} hours"));
+        $subscription->save(false);
+
+        Craft::$app->getQueue()->push(new SendSubscriptionMessage([
+            'subscriptionId' => $subscription->id,
+            'messageKey' => 'back_in_stock_verification',
+        ]));
+    }
+
+    /**
+     * Sends a new link only when the last one can no longer work, so repeat submissions can't flood a mailbox.
+     */
+    public function resendStaleVerification(Subscription $subscription): bool
+    {
+        if ($subscription->state !== SubscriptionModel::STATE_PENDING_VERIFICATION) {
+            return false;
+        }
+
+        $expiresAt = DateTimeHelper::toDateTime($subscription->verificationExpiresAt);
+
+        if ($expiresAt && $expiresAt >= new DateTime()) {
+            return false;
+        }
+
+        $this->queueVerification($subscription);
+
+        return true;
+    }
+
+    public function markVerificationUndelivered(Subscription $subscription): void
+    {
+        $subscription->verificationTokenHash = null;
+        $subscription->verificationExpiresAt = null;
+        $subscription->save(false);
     }
 
     public function prepareVerification(Subscription $subscription): string

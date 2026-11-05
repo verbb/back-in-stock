@@ -23,7 +23,9 @@
 - Fixed inventory changes only checking availability for the current site’s store.
 - Fixed `purgeRequests` losing delivery counts and notifying too many subscribers on stock-matched runs. Delivered subscriptions now keep their row with the recipient details removed.
 - Fixed notification attempts staying stuck when a queue worker stopped or a queue job was lost. The `reconcile` command now requeues lost attempts and flags interrupted ones for review.
+- Fixed customers with an expired or undelivered verification email being unable to request a new one. Failed confirmation and verification emails now fail their queue job.
 - Fixed cancellation links showing an error once a subscriber had already been notified.
+- Fixed queued confirmation emails still being sent after a subscription was cancelled.
 - Fixed the “subscribers waiting” count on repeat availability checks counting selected subscribers twice.
 
 ## 4.2.0 -

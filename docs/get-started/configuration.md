@@ -142,7 +142,7 @@ This field is shown in the control panel only when **Require Email Verification*
 
 **Type:** `int` · **Default:** `7`
 
-The number of days an unverified request can remain pending before the scheduled check marks it expired. Expired requests cannot receive notifications and no longer prevent the customer from subscribing again. Use a period at least as long as `verificationWindow`.
+The number of days an unverified request can remain pending, counted from the last time a verification email was requested, before it is marked expired. Expired requests cannot receive notifications and no longer prevent the customer from subscribing again. Use a period at least as long as `verificationWindow`.
 
 This field is shown in the control panel only when **Require Email Verification** is enabled.
 :::

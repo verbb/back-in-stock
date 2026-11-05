@@ -81,12 +81,7 @@ class BaseController extends Controller
             $subscription = Subscription::findOne($log->id);
 
             if ($subscription && $settings->requireVerification) {
-                $token = BackInStock::$plugin->getSubscriptions()->prepareVerification($subscription);
-                Craft::$app->getQueue()->push(new SendSubscriptionMessage([
-                    'subscriptionId' => $subscription->id,
-                    'messageKey' => 'back_in_stock_verification',
-                    'verificationToken' => $token,
-                ]));
+                BackInStock::$plugin->getSubscriptions()->queueVerification($subscription);
             } elseif ($subscription && $settings->sendConfirmation) {
                 Craft::$app->getQueue()->push(new SendSubscriptionMessage([
                     'subscriptionId' => $subscription->id,
@@ -94,6 +89,13 @@ class BaseController extends Controller
                     'template' => $settings->getConfirmationEmailTemplate(),
                     'subject' => $settings->confirmationEmailSubject,
                 ]));
+            }
+        } elseif ($pendingKey = $log->getPendingIdentityKey()) {
+            // A customer whose link expired or never arrived would otherwise be locked out until the request expires.
+            $subscription = Subscription::findOne(['pendingKey' => $pendingKey]);
+
+            if ($subscription) {
+                BackInStock::$plugin->getSubscriptions()->resendStaleVerification($subscription);
             }
         }
 
