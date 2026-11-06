@@ -1,51 +1,19 @@
 # Changelog
 
-## Unreleased
-
-### Added
-- Added actions to a variant’s Subscriptions tab to cancel a subscription and erase a subscriber’s data, with a new “Cancel subscriptions and erase subscriber data” permission.
-- Added **Retry failed sends** and **Mark as reviewed** to notification details, with a new “Retry failed notifications and mark notifications as reviewed” permission. A reviewed notification no longer counts towards the Overview alert unless a later attempt fails or can’t be confirmed.
-
-### Changed
-- Upgraded installations now keep sending the bundled email templates with their saved subjects, as they did in 4.1. Clear the template settings to switch to the editable System Messages.
-- Changed cancellation links to open a confirmation page before cancelling, so email security scanners can’t cancel a request by following the link. Verification and cancellation now show their own result page instead of redirecting to the homepage with a flash message.
-- Changed expiry and history retention to count from a request’s last update. Requests that existed before upgrading count from the upgrade, so none are removed on the first run.
-- Changed expiry, history retention and recovery of stalled notifications to also run during Craft’s garbage collection.
-- Changed registration rate limiting to use the forwarded client IP when `trustedHosts` names specific proxies.
-
-### Fixed
-- Fixed the upgrade migration failing on installations with existing subscriptions, and made it safe to re-run after a failed attempt.
-- Fixed verification and cancellation links being rejected with a 400 error.
-- Fixed stock sold through orders not closing a restock run, which prevented waiting subscribers from being notified on the next restock.
-- Fixed availability checks and notification deliveries failing on PostgreSQL.
-- Fixed verification and cancellation links using control panel URLs when the queue ran from a control panel request, and the wrong site on multi-site installations.
-- Fixed a variant disabled on one site cancelling notifications for subscribers on other sites sharing its store.
-- Fixed drafts and revisions of variants triggering availability checks.
-- Fixed inventory changes only checking availability for the current site’s store.
-- Fixed `purgeRequests` losing delivery counts and notifying too many subscribers on stock-matched runs. Delivered subscriptions now keep their row with the recipient details removed.
-- Fixed notification attempts staying stuck when a queue worker stopped or a queue job was lost. The `reconcile` command now requeues lost attempts and flags interrupted ones for review.
-- Fixed customers with an expired or undelivered verification email being unable to request a new one. Failed confirmation and verification emails now fail their queue job.
-- Fixed Overview’s review alert counting notifications whose retry succeeded, and linking to an empty list.
-- Fixed template errors being reported as unconfirmed sends and never retried.
-- Fixed cancellation links showing an error once a subscriber had already been notified.
-- Fixed queued confirmation emails still being sent after a subscription was cancelled.
-- Fixed the “subscribers waiting” count on repeat availability checks counting selected subscribers twice.
-- Fixed run details and Overview tooltips showing the wrong time when the system timezone isn’t UTC.
-- Fixed an error when registering interest with a blank or invalid `variantId`.
-- Fixed the log messages for Back In Stock emails that couldn’t be sent not including the recipient’s email or the error.
-
-## 4.2.0 -
+## 4.2.0 - 2026-11-06
 
 ### Added
 - Added an Overview showing demand by product variant, recent subscription activity and notifications needing review.
-- Added optional email verification, signed cancellation links and subscription states for pending verification, active, notified, cancelled and expired requests.
+- Added optional email verification, signed cancellation links with a confirmation page, and subscription states for pending verification, active, notified, cancelled and expired requests.
+- Added actions to cancel subscriptions and erase subscriber data, with a new “Cancel subscriptions and erase subscriber data” permission.
 - Added a stock-matched notification policy that selects the oldest waiting customers according to available inventory and a configurable subscribers-per-unit ratio.
 - Added the `stockFieldHandle` config setting to use a custom variant field for stock availability and stock-matched notifications, including variants with unlimited Commerce inventory. ([#43](https://github.com/verbb/back-in-stock/issues/43))
 - Added `craft.backInStock.isVariantInStock()` so storefront forms can follow the same stock rules as Back in Stock, including `stockFieldHandle`. ([#43](https://github.com/verbb/back-in-stock/issues/43))
-- Added notification history with per-recipient delivery attempts, error details, the stock and recipient setting used to select subscribers, and sent, failed, cancelled or unconfirmed outcomes. Confirmed failures can be retried automatically; unconfirmed sends are retained for review.
+- Added notification history with per-recipient delivery attempts, error details, stock and recipient settings, and sent, failed, cancelled or unconfirmed outcomes. Confirmed failures can be retried automatically; unconfirmed sends are retained for review.
+- Added **Retry failed sends** and **Mark as reviewed** actions, with a new “Retry failed notifications and mark notifications as reviewed” permission.
 - Added configurable subscription expiry and completed-history retention.
-- Added editable Craft System Messages for confirmation, verification and availability emails, with support for localised subjects and message bodies.
-- Added the `craft craft-commerce-back-in-stock/reconcile` command to recover missed inventory changes, expire old requests and remove completed history.
+- Added editable Craft System Messages for confirmation, verification and availability emails, with localised subjects and message bodies. Existing email templates and saved subjects are preserved on upgrade.
+- Added the `craft craft-commerce-back-in-stock/reconcile` command to recover missed inventory changes and stalled notifications, expire old requests and remove completed history. Expiry, retention and stalled-notification recovery also run during Craft’s garbage collection.
 - Added developer events for subscription creation and state changes, recipient selection, outgoing subscription messages, and completed delivery attempts.
 
 ### Changed
@@ -53,10 +21,20 @@
 - Changed notification delivery to use configurable batches, queue availability checks after Commerce commits inventory changes and recheck stock before sending each notification.
 - Changed fresh installations to match notification recipients to available stock by default; upgraded installations retain their existing notify-everyone behaviour until the setting is changed.
 - Changed successful JSON registration responses to include the subscription `state`, while preserving the existing response fields.
+- Changed registration rate limiting to use the forwarded client IP when `trustedHosts` names specific proxies.
+
+### Fixed
+- Fixed failed-email log messages omitting the recipient’s email address or error details.
 
 ### Deprecated
 - Deprecated the legacy Log and Inventory domain APIs in favour of subscriptions, restock runs and delivery attempts. Compatibility adapters remain available throughout the 4.x release line.
 - Deprecated immediate post-delivery purging through `purgeRequests`; use `historyRetention` to keep completed history for a configurable period. The existing setting remains functional throughout 4.x.
+
+## 4.1.13 - 2026-11-05
+
+### Fixed
+- Fixed an error when registering interest with a non-numeric variant ID.
+- Fixed the Confirmation Email Template setting being hidden when Confirmation Email was on and no template was set.
 
 ## 4.1.12 - 2026-10-15
 
