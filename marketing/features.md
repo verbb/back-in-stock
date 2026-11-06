@@ -7,7 +7,9 @@ Let customers enter their email address to be notified when a sold-out Craft Com
 
 Add an unstyled notification form wherever a sold-out variant appears. Guests and signed-in customers can join the list for the size, colour, or configuration they want, while repeated submissions for the same variant and email address remain a single request.
 
-![An exact variant's active subscribers, with email search and state filtering.](../screenshots/product-subscriptions.png)
+The example below shows one way to style the form for your storefront.
+
+![Example storefront showing a sold-out Harbour linen throw and an email notification form.](../screenshots/signup-form.png)
 <!-- feature-section-end -->
 
 <!-- feature-media -->
