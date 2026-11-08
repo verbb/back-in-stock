@@ -2,10 +2,14 @@
     "name": "back-in-stock-cp",
     "version": "4.2.0",
     "private": true,
+    "workspaces": [
+        "docs"
+    ],
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "dev:plugin-docs": "npm run docs:dev --prefix docs"
     },
     "dependencies": {
         "@verbb/plugin-kit-icons": "^2.1.0",

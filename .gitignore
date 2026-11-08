@@ -31,3 +31,8 @@
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# DOCS (local VitePress preview only)
+/docs/node_modules
+/docs/.vitepress/cache
+/docs/.vitepress/dist
