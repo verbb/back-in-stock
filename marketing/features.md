@@ -3,11 +3,27 @@ Let customers enter their email address to be notified when a sold-out Craft Com
 <!-- feature-intro-end -->
 
 <!-- feature-section media-size="large" -->
+## Build a waiting list for each variant
+
+Add an unstyled notification form wherever a sold-out variant appears. Guests and signed-in customers can join the list for the size, colour, or configuration they want, while repeated submissions for the same variant and email address remain a single request.
+
+![Example storefront showing a sold-out Harbour linen throw and an email notification form.](../screenshots/signup-form.png)
+<!-- feature-section-end -->
+
+<!-- feature-section media-size="large" -->
 ## Choose how many customers to notify
 
 Start with the oldest requests based on the quantity available, increase the number of people contacted for each unit, or notify everyone waiting. Back in Stock groups repeated stock updates while a variant remains available so the same request is not selected twice for that restock.
 
 ![A notification showing selected recipients, sending results and error details.](../screenshots/notification-detail.png)
+<!-- feature-section-end -->
+
+<!-- feature-section media-size="large" -->
+## Find current demand and recent activity
+
+Overview shows which products customers are waiting for, how many people are waiting and the latest activity across the store, so you can gauge demand before the stock arrives.
+
+![Overview showing the products customers are waiting for and recent activity.](../screenshots/overview.png)
 <!-- feature-section-end -->
 
 <!-- feature-section media-size="large" -->
@@ -28,25 +44,10 @@ Search by product, variant, SKU, or subscriber email without wading through the 
 <!-- feature-grid-end -->
 
 <!-- feature-section media-size="large" -->
-## Find current demand and recent activity
-
-See how many customers are waiting in Overview, then use Products to find a variant by product title, SKU, or subscriber email. The list only contains variants with Back in Stock requests or notification history, rather than the whole Commerce catalogue. Open a variant to see its current and past requests alongside the events recorded for it.
-
-![Overview showing the products customers are waiting for and recent activity.](../screenshots/overview.png)
-<!-- feature-section-end -->
-
-<!-- feature-section media-size="large" -->
 ## See what happened over time
 
-See customers subscribe, verify, cancel, expire, and receive notifications in one chronological view for each variant. Open a notification entry to review who was selected and the latest recorded sending result for each email.
+See customers subscribe, verify, cancel, expire, and receive notifications in one chronological view for each variant.
 
 ![Chronological subscription and notification activity for an exact product variant.](../screenshots/product-activity.png)
 <!-- feature-section-end -->
 
-<!-- feature-section media-size="large" -->
-## Build a waiting list for each variant
-
-Add an unstyled notification form wherever a sold-out variant appears. Guests and signed-in customers can join the list for the size, colour, or configuration they want, while repeated submissions for the same variant and email address remain a single request.
-
-![Example storefront showing a sold-out Harbour linen throw and an email notification form.](../screenshots/signup-form.png)
-<!-- feature-section-end -->
