@@ -1,8 +1,8 @@
 # Configuration
 
-You can customise Back in Stock’s settings using a PHP configuration file. This is optional: settings that are not included in the file retain their defaults.
+You can customise Back in Stock’s settings using a PHP configuration file. This is optional: each setting has a default, so you only need to include the values you want to change.
 
-To override a setting, create `craft-commerce-back-in-stock.php` in the Craft project’s `/config` directory and return an array of setting names and values. For example, the following changes the name displayed in the control panel:
+To override a setting, create `craft-commerce-back-in-stock.php` in your Craft project’s `/config` directory and return an array of setting names and values. For example, the following will change the name displayed in the control panel:
 
 ```php
 <?php
@@ -12,7 +12,7 @@ return [
 ];
 ```
 
-Values in this file override settings saved through the control panel. Add only the settings that need to differ for the project or environment.
+All other settings keep their defaults. Add any further settings you want to change to the same array. The options below explain the available settings and their defaults. You can also manage many of these settings in the control panel under **Back in Stock → Settings**.
 
 ## Configuration Options
 
@@ -74,7 +74,7 @@ The field controls availability, stock-matched recipient limits and the stock re
 
 Use a field available on every subscribed variant's field layout. Its value is read in the variant's site context; it does not sum Commerce inventory locations. For sites sharing a Commerce store, keep the field's stock quantity consistent across those sites. `includeAvailableForPurchase` still applies when enabled.
 
-Saving a variant queues an availability check when customers are waiting for it. Integrations that bypass element saves should run the [scheduled check](#scheduled-checks) after syncing. Use `craft.backInStock.isVariantInStock(variant)` in storefront form conditions so they follow the same field and threshold; see [Example Form](docs:template-guides/example-form). Leave this setting `null` or empty to use Commerce inventory.
+Saving a variant queues an availability check when customers are waiting for it. Integrations that bypass element saves should run the [scheduled check](docs:feature-tour/how-it-works#add-a-scheduled-safety-check) after syncing. Use `craft.backInStock.isVariantInStock(variant)` in storefront form conditions so they follow the same field and threshold; see [Example Form](docs:template-guides/example-form). Leave this setting `null` or empty to use Commerce inventory.
 :::
 
 ::: reference
@@ -219,26 +219,4 @@ An optional site Twig template that completely replaces the `back_in_stock_avail
 **Type:** `string` · **Default:** `'Order today, {{ variant.title }} is now in stock'`
 
 The Twig-enabled subject used with `emailTemplate`. Craft’s editable System Message subject is used when no custom template is configured.
-:::
-
-## Control Panel
-
-You can manage the main settings through **Settings → Plugins → Back in Stock**. The settings are separated into General Settings, Delivery, Subscription, and Email. `stockFieldHandle` is configured only in the PHP config file. Options that depend on stock matching or email verification appear only when the related feature is enabled.
-
-## System Messages
-
-When a custom Twig template is not configured, edit the confirmation, verification, and availability emails under **Utilities → System Messages**. The message keys are `back_in_stock_confirmation`, `back_in_stock_verification`, and `back_in_stock_available`.
-
-## Scheduled Checks
-
-Normal Commerce inventory changes trigger availability checks automatically and do not depend on this command. Schedule it when the store needs to catch changes made by imports or integrations that do not report the expected Commerce inventory event. The command also applies the subscription expiry and completed-history settings.
-
-```shell
-php craft craft-commerce-back-in-stock/reconcile
-```
-
-The command is safe to run repeatedly. A five-minute interval is a reasonable starting point for most stores. Expiry, retention, and recovery of stalled notifications also run during Craft’s garbage collection, but much less often.
-
-::: tip
-Ensure Craft’s queue is being processed, either by its automatic queue runner or a dedicated worker. Availability checks and notification deliveries use queued jobs and will wait until the queue runs.
 :::

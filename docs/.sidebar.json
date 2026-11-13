@@ -16,7 +16,8 @@
             "feature-tour/products-and-demand",
             "feature-tour/subscriptions",
             "feature-tour/notification-activity",
-            "feature-tour/email-messages"
+            "feature-tour/email-messages",
+            "feature-tour/permissions"
         ]
     },
     {
