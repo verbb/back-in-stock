@@ -1,12 +1,14 @@
 # Events
 
-Back in Stock provides events for responding to subscription and notification changes. Modules and plugins can register listeners, typically in their `init()` methods.
+Back in Stock provides events for extending its functionality. Modules and plugins can register event listeners, typically in their `init()` methods, to change Back in Stock’s behaviour.
 
-## Subscription Creation
+The events cover subscriptions and the notifications sent to subscribers.
+
+## Subscription Events
 
 ### The `beforeCreateSubscription` Event
 
-The event that is triggered after a new subscription has been prepared and before it is saved. Set `$event->isValid` to `false` to stop the subscription from being created; the `afterCreateSubscription` event will not run for that request.
+The event that is triggered after a new subscription has been prepared and before it is saved. Set `$event->isValid` to `false` to stop the subscription from being created. The `afterCreateSubscription` event doesn’t run for that request.
 
 ```php
 use verbb\backinstock\events\SubscriptionEvent;
@@ -27,6 +29,10 @@ Event::on(
 The event that is triggered after a new subscription has been saved.
 
 ```php
+use verbb\backinstock\events\SubscriptionEvent;
+use verbb\backinstock\services\Subscriptions;
+use yii\base\Event;
+
 Event::on(
     Subscriptions::class,
     Subscriptions::EVENT_AFTER_CREATE_SUBSCRIPTION,
@@ -35,8 +41,6 @@ Event::on(
     },
 );
 ```
-
-## Subscription State Changes
 
 ### The `afterChangeSubscriptionState` Event
 
@@ -59,7 +63,7 @@ Event::on(
 );
 ```
 
-## Recipient Selection
+## Notification Events
 
 ### The `afterSelectNotificationRecipients` Event
 
@@ -83,8 +87,6 @@ Event::on(
 
 This event reports the completed selection. Changing its `subscriptions` array does not alter the queued deliveries.
 
-## Outgoing Subscription Messages
-
 ### The `beforeSendSubscriptionMessage` Event
 
 The event that is triggered immediately before a confirmation, verification, or availability message is handed to Craft’s mailer. Listeners can modify the Craft message or set `$event->isValid` to `false` to cancel delivery. Cancelling the event does not cancel or delete the subscription.
@@ -107,8 +109,6 @@ Event::on(
     },
 );
 ```
-
-## Completed Delivery Attempts
 
 ### The `afterCompleteDeliveryAttempt` Event
 

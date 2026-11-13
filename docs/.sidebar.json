@@ -32,7 +32,8 @@
         "title": "Developers",
         "collapsable": false,
         "children": [
-            "developers/events"
+            "developers/events",
+            "developers/console-commands"
         ]
     }
 ]
