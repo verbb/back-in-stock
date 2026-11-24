@@ -44,6 +44,15 @@ class DashboardController extends Controller
     public function actionOverview(): Response
     {
         $this->_requireDashboardAccess();
+
+        // Until the first request arrives the Overview is one page empty state. Restock runs outlive purged requests,
+        // so a store whose request history was removed keeps its normal Overview.
+        if (!Subscription::find()->exists() && !RestockRun::find()->exists()) {
+            return $this->renderTemplate('craft-commerce-back-in-stock/overview', [
+                'firstRun' => true,
+            ]);
+        }
+
         $reviewCounts = $this->_reviewCounts();
         $counts = $this->_dashboardCounts($reviewCounts);
         $reviewVariantIds = array_keys($reviewCounts);

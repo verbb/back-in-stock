@@ -53,7 +53,6 @@
 
 .bis-overview__description,
 .bis-overview__meta,
-.bis-overview__empty,
 .bis-overview-product__count span {
     color: var(--bis-text-subtle);
     line-height: 1.6;
@@ -213,8 +212,52 @@
     padding-block-start: 16px;
 }
 
+/* A list with nothing in it: a compact Plugin Kit state panel in the list's place. */
 .bis-overview__empty {
-    padding: 24px 12px;
+    margin-block-start: 16px;
+}
+
+/* A page with nothing to show yet: Plugin Kit's page empty state, straight on the page background. */
+.bis-bare-content #content.content-pane {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.bis-bare-content #content > pk-state-panel[layout='page'] {
+    flex: 1 1 auto;
+}
+
+/* Back in Stock's spot illustrations in those states: a duotone in the brand colour (#09be95, from icon.svg), a
+   darker line on white with a soft tinted fill and the bell in the brand colour itself. */
+.bis-spot {
+    --bis-spot-line: #067a60;
+    --bis-spot-tint: #d5f5ec;
+    --bis-spot-accent: #09be95;
+    overflow: visible;
+}
+
+.bis-spot :is(.bis-spot__paper, .bis-spot__fill, .bis-spot__line) {
+    stroke: var(--bis-spot-line);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.bis-spot .bis-spot__paper {
+    fill: var(--white, #fff);
+}
+
+.bis-spot .bis-spot__fill {
+    fill: var(--bis-spot-tint);
+}
+
+.bis-spot .bis-spot__line {
+    fill: none;
+}
+
+.bis-spot .bis-spot__bell {
+    fill: var(--bis-spot-accent);
 }
 
 .bis-overview-alert {

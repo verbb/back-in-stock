@@ -2,6 +2,11 @@
 
 {% do view.registerAssetBundle('verbb\\backinstock\\web\\assets\\cp\\BackInStockAsset') %}
 
+{# A page that is one empty state sits straight on the page background, without Craft's content pane or Verbb's footer. #}
+{% if bareContent ?? false %}
+    {% set bodyClass = (bodyClass ?? []) | explodeClass | push('bis-bare-content') %}
+{% endif %}
+
 {% if title is not defined %}
     {% set title = 'Back In Stock' | t('craft-commerce-back-in-stock') %}
 {% endif %}
@@ -15,6 +20,7 @@
 
     {% endblock %}
 
+    {% if not (bareContent ?? false) %}
     <hr>
     
     <div id="plugin-footer">
@@ -38,4 +44,5 @@
             </a>
         </div>
     </div>
+    {% endif %}
 {% endblock %}

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Added a first-run page to the Overview, linking to the template guide, which shows until the first request arrives.
+
+### Changed
+- Changed the Overview’s empty “Products people are waiting for” and “Recent activity” lists to show an empty state explaining what will appear there.
+
 ## 4.2.0 - 2026-11-06
 
 ### Added

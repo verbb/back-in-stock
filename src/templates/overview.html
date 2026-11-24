@@ -3,7 +3,22 @@
 {% set title = 'Overview' | t('craft-commerce-back-in-stock') %}
 {% set selectedSubnavItem = 'overview' %}
 
+{# Before the first request the page is one empty state on the page background, without the sections or the footer. #}
+{% set firstRun = firstRun ?? false %}
+{% if firstRun %}
+    {% set bareContent = true %}
+{% endif %}
+
 {% block blockContent %}
+    {% if firstRun %}
+        {# Notifications work with the bundled emails, so the only setup left is the storefront form. #}
+        <pk-state-panel layout="page" heading="{{ 'Add the request form' | t('craft-commerce-back-in-stock') }}" heading-level="2">
+            {% include 'craft-commerce-back-in-stock/_includes/spots/requests' %}
+            {{ 'Once your product templates have the request form, customers can ask to be emailed when a sold-out variant is back, and their requests show up here.' | t('craft-commerce-back-in-stock') }}
+            {# Requests arrive from the storefront, so there's no create action here, only the guide as one grey button. #}
+            <pk-button slot="actions" href="https://verbb.io/craft-plugins/back-in-stock/docs/template-guides/example-form" target="_blank" rel="noopener">{{ 'View template guide' | t('craft-commerce-back-in-stock') }}</pk-button>
+        </pk-state-panel>
+    {% else %}
     <div class="bis-page bis-overview-page">
         {% if counts.attention %}
             <section class="bis-overview-alert bis-overview-alert--{{ counts.failed ? 'error' : 'warning' }}" aria-labelledby="bis-review-heading">
@@ -20,8 +35,11 @@
             <section class="bis-overview__section" aria-labelledby="bis-waiting-heading">
                 <div>
                     <h2 id="bis-waiting-heading">{{ 'Products people are waiting for' | t('craft-commerce-back-in-stock') }}</h2>
-                    <p class="bis-overview__description">{{ '{requests} active requests across {products, plural, =1{# product variant} other{# product variants}}.' | t('craft-commerce-back-in-stock', {requests: counts.active | number, products: counts.products}) }}</p>
+                    {% if products %}
+                        <p class="bis-overview__description">{{ '{requests} active requests across {products, plural, =1{# product variant} other{# product variants}}.' | t('craft-commerce-back-in-stock', {requests: counts.active | number, products: counts.products}) }}</p>
+                    {% endif %}
                 </div>
+                {% if products %}
                 <ul class="bis-overview-list">
                     {% for product in products | slice(0, 8) %}
                         <li><a class="bis-overview-row bis-overview-product" href="{{ url('back-in-stock/products/' ~ product.variantId) }}">
@@ -35,11 +53,15 @@
                             </div>
                             <div class="bis-overview-product__count"><strong>{{ product.activeCount | number }}</strong><span>{{ 'waiting' | t('craft-commerce-back-in-stock') }}</span></div>
                         </a></li>
-                    {% else %}
-                        <li class="bis-overview__empty">{{ 'Nobody is currently waiting for a product.' | t('craft-commerce-back-in-stock') }}</li>
                     {% endfor %}
                 </ul>
                 <div class="bis-overview__more"><pk-button variant="link" href="{{ url('back-in-stock/products', {demand: 'active'}) }}">{{ 'View all waiting products' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
+                {% else %}
+                    <pk-state-panel class="bis-overview__empty" size="sm" heading="{{ 'Nobody is waiting for a product' | t('craft-commerce-back-in-stock') }}" heading-level="3" hide-icon>
+                        {{ 'Customers who ask about a sold-out variant show up here until it’s back.' | t('craft-commerce-back-in-stock') }}
+                        <pk-button slot="actions" variant="link" href="{{ url('back-in-stock/products', {demand: 'past'}) }}">{{ 'View past requests' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button>
+                    </pk-state-panel>
+                {% endif %}
             </section>
 
             <section class="bis-overview__section" aria-labelledby="bis-activity-heading">
@@ -47,6 +69,7 @@
                     <h2 id="bis-activity-heading">{{ 'Recent activity' | t('craft-commerce-back-in-stock') }}</h2>
                     <p class="bis-overview__description">{{ 'Latest customer and notification events.' | t('craft-commerce-back-in-stock') }}</p>
                 </div>
+                {% if activity %}
                 <ul class="bis-overview-list bis-overview-activity">
                     {% for item in activity | slice(0, 8) %}
                         {# Tones follow the status dots used for the same events in each variant's Activity tab. #}
@@ -65,12 +88,16 @@
                                 </div>
                             </div>
                         </a></li>
-                    {% else %}
-                        <li class="bis-overview__empty">{{ 'No activity yet.' | t('craft-commerce-back-in-stock') }}</li>
                     {% endfor %}
                 </ul>
                 <div class="bis-overview__more"><pk-button variant="link" href="{{ url('back-in-stock/products', {sort: 'recent'}) }}">{{ 'View recently requested products' | t('craft-commerce-back-in-stock') }}<pk-icon slot="end" icon="arrow-right"></pk-icon></pk-button></div>
+                {% else %}
+                    <pk-state-panel class="bis-overview__empty" size="sm" heading="{{ 'No activity yet' | t('craft-commerce-back-in-stock') }}" heading-level="3" hide-icon>
+                        {{ 'New requests and notifications show up here.' | t('craft-commerce-back-in-stock') }}
+                    </pk-state-panel>
+                {% endif %}
             </section>
         </div>
     </div>
+    {% endif %}
 {% endblock %}
