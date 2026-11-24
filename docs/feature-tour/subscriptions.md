@@ -6,13 +6,13 @@ A subscription represents one email address waiting for one exact Commerce varia
 
 A subscription can move through these states:
 
-- **Awaiting verification** means email verification is required and the customer has not yet used their signed verification link.
-- **Waiting** means the request is active and eligible for a future restock notification.
+- **Pending verification** means email verification is required and the customer has not yet used their signed verification link.
+- **Active** means the customer is waiting and eligible for a future restock notification.
 - **Notified** means an availability message was successfully handed to Craft’s mailer.
 - **Cancelled** means the customer or a store manager ended the request before notification.
 - **Expired** means the request exceeded its configured lifetime without being notified or verified.
 
-Only waiting subscriptions can be selected when a variant becomes available. A successfully notified, cancelled, or expired customer can subscribe again later.
+Only active subscriptions can be selected when a variant becomes available, and only they count as customers waiting in [Product Demand](product-demand.md). A successfully notified, cancelled, or expired customer can subscribe again later.
 
 ## Duplicate Requests
 
@@ -30,15 +30,21 @@ Verification is useful when a store wants stronger evidence that the recipient c
 
 Confirmation emails include a signed cancellation URL, so recipients can leave a waiting list without signing in. The link opens a short confirmation page, so an email security scanner that follows it cannot cancel the request. Custom confirmation templates receive the same `cancelUrl` value. Cancelling one variant does not affect subscriptions for other variants.
 
-Waiting subscriptions can also expire after a configured period without a successful notification. Expiry stops an old request from remaining on the waiting list indefinitely and allows that customer to subscribe again. **Completed History Retention** separately controls how long notified, cancelled, and expired records remain available when answering customer questions or investigating a problem.
+Active subscriptions can also expire after a configured period without a successful notification. Expiry stops an old request from remaining on the waiting list indefinitely and allows that customer to subscribe again. **Completed History Retention** separately controls how long notified, cancelled, and expired records remain available when answering customer questions or investigating a problem.
 
-You can inspect these records from the **Subscriptions** tab for a variant. Search by email address or filter by state when tracing a particular customer request.
+## Checking Whether a Customer Is Waiting
+
+When a customer asks whether they're still on a waiting list, search for their email address in **Products**. The list narrows to the variants that address has subscribed to, and opening one shows that variant's subscriptions already searched for the address, in every state, so you can see whether the request is active, was notified or has ended.
+
+Each variant's **Subscriptions** tab lists its active requests by default. Use the **State** menu beside the search box to see another state, or **All states** to see every request that's still kept, and search by email address to trace one person.
+
+![The Subscriptions tab for an exact variant, with state filtering and email search.](../../screenshots/product-subscriptions.png)
 
 ## Managing Subscriptions
 
-Admins, and users with the **Cancel subscriptions and erase subscriber data** permission, can act on a subscription from its row in the **Subscriptions** tab:
+Admins, and users with the **Cancel subscriptions and erase subscriber data** permission, can act on a subscription from its row in the **Subscriptions** tab. Both actions ask for confirmation first.
 
-- **Cancel subscription** ends a waiting request for that variant, as if the customer had used their cancellation link. They can still subscribe again later.
+- **Cancel subscription** ends an active or pending request for that variant, as if the customer had used their cancellation link. They can still subscribe again later.
 - **Erase subscriber data** handles a request to remove someone’s data. It cancels everything that email address is waiting for, then removes the address, any linked user and any `options` from all of their subscriptions, on every variant and site. It also clears any delivery error text for those subscriptions, as mail servers often include the address in their errors. This can’t be undone.
 
 Erased subscriptions stay in the list without an email address, so notification history and counts remain accurate, until **Completed History Retention** removes them.

@@ -25,21 +25,25 @@ Each delivery attempt records one of these outcomes:
 - **Sent** means Craft’s mailer accepted the message. It does not confirm that the email reached the inbox, was opened, or led to a purchase.
 - **Failed** means Craft’s mailer did not accept the message. Back in Stock can retry a definite failure up to the configured maximum.
 - **Cancelled** means the subscription or product availability changed before delivery.
-- **Sending unconfirmed** means Back in Stock could not determine whether the mailer accepted the message. It is not retried automatically because doing so could send a duplicate.
+- **Unconfirmed** means Back in Stock could not determine whether the mailer accepted the message. It is not retried automatically because doing so could send a duplicate.
 
 A single notification can cover many recipients, and one recipient can have several attempts when a definite failure is retried. The summary uses the latest recorded result for each selected subscription, while the table keeps the individual attempts and any error messages.
 
-## Reviewing Activity
+## Following Notifications for a Variant
 
-Open a variant’s **Activity** tab to follow subscription changes and restock notifications in chronological order. Subscription events explain when a customer joined, verified, or left the waiting list. Notification entries open a detail page showing who was selected, the latest result for each email, timestamps, and any recorded error details.
+Each variant's **Activity** tab lists its restock notifications alongside its subscription changes, in date order, so you can see who joined, verified or left the waiting list before a restock and what was sent afterwards. Each notification shows how many emails were sent and how many subscribers were selected out of those waiting, and opening it shows the details for every recipient.
 
 ![The Activity tab for an exact variant, showing subscription changes and notification outcomes in chronological order.](../../screenshots/product-activity.png)
 
-Failed and unconfirmed outcomes are marked for review on the detail page and in the Overview alert. **Review notifications** opens the affected notifications directly when they belong to one variant, or the Products list filtered to notifications needing review. The recorded error code and message can help distinguish a mail configuration problem from an eligibility or stock change.
+A notification's page shows how many subscribers were waiting, how many were selected, and the latest result for each recipient, with timestamps and any recorded error beneath the relevant attempt. Its details include the **Notification Recipients** setting that applied and the stock found at the last check, and the summary explains how many subscribers that stock allowed. This answers the usual questions after a restock, such as why some customers were notified and others are still waiting.
+
+## Finding Notifications That Need Review
+
+A notification needs review when any of its emails failed or couldn't be confirmed, and stays that way until someone marks it as reviewed. While any notification from the last 30 days needs review, the **Overview** shows an alert with how many emails failed and how many couldn't be confirmed. **Review notifications** opens the affected notifications directly when they all belong to one variant, or **Products** filtered to the affected variants otherwise.
 
 ![The Overview alert for failed and unconfirmed notifications.](../../screenshots/overview-notifications.png)
 
-Open an affected notification to see how many subscribers were waiting, how many were selected, and the latest result for each recipient. The details sidebar shows the **Notification Recipients** setting and the stock found at the last check, and the summary explains how many subscribers that stock allowed. Error details appear beneath the relevant attempt so longer mail messages remain readable.
+In **Products**, the **Needs review** filter shows the same variants, and each one shows how many emails need review beside its title. Opening the variant takes you to its notifications that need review, with a note above the list and a link back to all of its activity. On the notification's page, failed and unconfirmed results are marked for review, and the recorded error code and message help you tell a mail configuration problem from a change in stock or eligibility.
 
 ![A notification detail page with recipient results and error information for failed attempts.](../../screenshots/notification-detail.png)
 
