@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 4.2.1 - 2026-11-24
 
 ### Added
 - Added a first-run page to the Overview, linking to the template guide, which shows until the first request arrives.
