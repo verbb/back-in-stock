@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.2.2 - 2026-11-29
+
+### Changed
+- Update the selector parser used by Tailwind Typography to 6.1.5.
+
 ## 4.2.1 - 2026-11-24
 
 ### Added
